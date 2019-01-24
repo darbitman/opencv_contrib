@@ -50,7 +50,9 @@ namespace opencv_test
         int32_t initialNumRows = 1080;
         int32_t initialNumChannels = 3;
         cv::PixelEnergy2D pixelEnergyCalculator(initialMarginEnergy);
-        pixelEnergyCalculator.setDimensions(initialNumColumns, initialNumRows, initialNumChannels);
+        pixelEnergyCalculator.setDimensions(initialNumColumns,
+                                            initialNumRows,
+                                            initialNumChannels);
         cv::ImageDimensionStruct imageDimensions = pixelEnergyCalculator.getDimensions();
 
         EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());

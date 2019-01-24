@@ -55,46 +55,58 @@ namespace cv
     {
     public:
         /**
-         * @brief Default constructor, where the default pixel energy at the edges is 390150.0
-         * @param
+         * @brief Default ctor, where the default pixel energy at the edges is 390150.0
+         * @param marginEnergy: energy defined for border pixels
          */
-        explicit PixelEnergy2D(double MarginEnergy = 390150.0);
+        explicit PixelEnergy2D(double marginEnergy = 390150.0);
 
         /**
-         * @brief CTOR that will initialize internal memory and
-         * @param NumColumns: width of the image in pixels
-         * @param NumRows: height of the image in pixels
-         * @param NumChannels: number of color channels in image (1 for grayscale, 3 for BGR color)
-         * @param MarginEnergy: energy defined for border pixels
+         * @brief ctor that will initialize internal memory and
+         * @param numColumns: width of the image in pixels
+         * @param numRows: height of the image in pixels
+         * @param numChannels: number of color channels in image (1 for grayscale, 3 for BGR color)
+         * @param marginEnergy: energy defined for border pixels
          */
-        explicit PixelEnergy2D(int32_t NumColumns, int32_t NumRows,
-                               int32_t NumChannels, double MarginEnergy = 390150.0);
+        explicit PixelEnergy2D(int32_t numColumns, int32_t numRows,
+                               int32_t numChannels, double marginEnergy = 390150.0);
 
         /**
-         * @brief
-         * @param
-         * @param
+         * @brief ctor that will initialize image dimensions based on the image itself
+         * @param image: the image whose dimensions will be extracted
+         * @param marginEnergy: energy defined for border pixels
          */
-        explicit PixelEnergy2D(const cv::Mat& Image, double MarginEnergy = 390150.0);
+        explicit PixelEnergy2D(const cv::Mat& image, double marginEnergy = 390150.0);
 
         /**
-         * @brief
-         * @return
+         * @brief copy ctor
+         * @param other: the object whose parameters will be copied
+         */
+        explicit PixelEnergy2D(const PixelEnergy2D& other);
+
+        virtual ~PixelEnergy2D();
+
+        /**
+         * @brief returns the marginEnergy associated with this calculator
+         * @return double
          */
         virtual double getMarginEnergy() const;
 
         /**
-         *
+         * @brief sets the marginEnergy
          */
         virtual void setMarginEnergy(double MarginEnergy);
 
         /**
-         *
+         * @brief returns the image dimensions
+         * @return cv::ImageDimensionStruct
          */
         virtual cv::ImageDimensionStruct getDimensions() const;
 
         /**
-         *
+         * @brief sets the image dimensions
+         * @param numColumns: width of the image in pixels
+         * @param numRows: height of the image in pixels
+         * @param numChannels: number of color channels in image (1 for grayscale, 3 for BGR color)
          */
         virtual void setDimensions(int32_t numColumns, int32_t numRows, int32_t numChannels);
 
@@ -105,7 +117,11 @@ namespace cv
          * @return bool: indicates if the operation was successful
          */
         virtual void calculatePixelEnergy(const cv::Mat& image,
-                                          vector< vector<double> >& outPixelEnergy);
+                                          vector<vector<double>>& outPixelEnergy);
+
+        PixelEnergy2D(const PixelEnergy2D&&) = delete;
+        virtual PixelEnergy2D& operator=(const PixelEnergy2D&) = delete;
+        virtual PixelEnergy2D& operator=(const PixelEnergy2D&&) = delete;
 
     protected:
         /**
@@ -116,7 +132,7 @@ namespace cv
          * @return bool: indicates if the operation was successful
          */
         virtual void calculatePixelEnergyForEveryRow(const cv::Mat& image,
-                                                     vector< vector<double> >& outPixelEnergy,
+                                                     vector<vector<double>>& outPixelEnergy,
                                                      bool bDoOddColumns);
 
         /**
@@ -132,16 +148,13 @@ namespace cv
 
     private:
         // stores number of columns, rows, color channels
-        cv::ImageDimensionStruct imageDimensions;
+        cv::ImageDimensionStruct imageDimensions_;
 
         // energy at the borders of an image
         double marginEnergy_ = 0.0;
 
         // indicates whether image dimensions and memory has already been allocated
         bool bDimensionsInitialized = false;
-
-        // indicates whether the number of color channels has been established
-        bool bNumChannelsInitialized = false;
 
         // number of channels used for computing energy of a BGR image
         const int32_t numChannelsInColorImage_ = 3;
