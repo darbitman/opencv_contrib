@@ -40,6 +40,7 @@
 //M*/
 
 #include "opencv2/seamcarver.hpp"
+#include <thread>
 
 cv::PixelEnergy2D::PixelEnergy2D(double marginEnergy)
 {
@@ -119,14 +120,38 @@ void cv::PixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
     // if more columns, split calculation into 2 operations to calculate for every row
     if (imageDimensions_.NumColumns_ >= imageDimensions_.NumRows_)
     {
-        calculatePixelEnergyForEveryRow(image, outPixelEnergy, true);
-        calculatePixelEnergyForEveryRow(image, outPixelEnergy, false);
+        std::thread thread1(&cv::PixelEnergy2D::calculatePixelEnergyForEveryRow,
+                            this, std::ref(image),
+                            std::ref(outPixelEnergy),
+                            true);
+        std::thread thread2(&cv::PixelEnergy2D::calculatePixelEnergyForEveryRow,
+                            this, std::ref(image),
+                            std::ref(outPixelEnergy),
+                            false);
+        while (!thread1.joinable());
+        thread1.join();
+        while (!thread2.joinable());
+        thread2.join();
+        //calculatePixelEnergyForEveryRow(image, outPixelEnergy, true);
+        //calculatePixelEnergyForEveryRow(image, outPixelEnergy, false);
     }
     // otherwise, if more rows, split calculation into 2 operations to calculate for every column
     else
     {
-        calculatePixelEnergyForEveryColumn(image, outPixelEnergy, true);
-        calculatePixelEnergyForEveryColumn(image, outPixelEnergy, false);
+        std::thread thread1(&cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn,
+                            this, std::ref(image),
+                            std::ref(outPixelEnergy),
+                            true);
+        std::thread thread2(&cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn,
+                            this, std::ref(image),
+                            std::ref(outPixelEnergy),
+                            false);
+        while (!thread1.joinable());
+        thread1.join();
+        while (!thread2.joinable());
+        thread2.join();
+        //calculatePixelEnergyForEveryColumn(image, outPixelEnergy, true);
+        //calculatePixelEnergyForEveryColumn(image, outPixelEnergy, false);
     }
 }
 
