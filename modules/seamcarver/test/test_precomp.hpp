@@ -6,5 +6,7 @@
 
 #include "opencv2/ts.hpp"
 #include "opencv2/seamcarver/pixelenergy2d.hpp"
+#include "opencv2/seamcarver/constsizeminbinaryheap.hpp"
+#include "opencv2/seamcarver/resizablepriorityqueue.hpp"
 
 #endif
