@@ -54,13 +54,13 @@ namespace cv
     class CV_EXPORTS SeamCarver
     {
     public:
-        SeamCarver(double MarginEnergy = 390150.0) : marginEnergy(MarginEnergy),
+        SeamCarver(double marginEnergy = 390150.0) : marginEnergy(marginEnergy),
             numRows_(0),
             numColumns_(0),
             bottomRow_(0),
             rightColumn_(0),
             posInf_(std::numeric_limits<double>::max()),
-            pixelEnergyCalculator_(MarginEnergy)
+            pixelEnergyCalculator_(marginEnergy)
         {}
 
         virtual ~SeamCarver() {}
@@ -74,7 +74,7 @@ namespace cv
          *      internal one will be used
          * @return bool: indicates whether seam removal was successful or not
          */
-        virtual bool findAndRemoveVerticalSeams(int32_t numSeams,
+        virtual void findAndRemoveVerticalSeams(int32_t numSeams,
                                                 const cv::Mat& img,
                                                 cv::Mat& outImg,
                                                 cv::energyFunc computeEnergyFn = nullptr);
@@ -82,16 +82,16 @@ namespace cv
     protected:
         /**
          * @brief find vertical seams for later removal
+         * @param numSeams: number of seams to discover for removal
          * @param pixelEnergy: calculated pixel energy of image
          * @param outDiscoveredSeams: output parameter (vector of priority queues)
          * @return bool: indicates success
          */
-        virtual bool findVerticalSeams(int32_t NumSeams, vector<vector<double>>& pixelEnergy,
+        virtual void findVerticalSeams(int32_t numSeams, vector<vector<double>>& pixelEnergy,
                                        vectorOfMinPQ& outDiscoveredSeams);
 
         /**
-        * @brief calculates the energy required to reach bottom row and saves the column of the
-        *       pixel in the row above to get to every pixel
+        * @brief calculates the energy required to reach bottom row
         * @param pixelEnergy: calculated pixel energy of image
         * @param outTotalEnergyTo: cumulative energy to reach pixel
         * @param outColumnTo: columnn of the pixel in the row above to get to every pixel
