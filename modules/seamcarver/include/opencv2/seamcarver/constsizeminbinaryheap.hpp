@@ -64,7 +64,7 @@ namespace cv
         /**
          * @brief deallocate memory
          */
-        ~ConstSizeMinBinaryHeap();
+        virtual ~ConstSizeMinBinaryHeap();
 
         /**
          * @brief copy constructor to perform deep copy
@@ -75,82 +75,81 @@ namespace cv
         /**
          * @brief initialize data members and allocate memory for new heap
          * @param capacity maximum number of elements
-         * @return returns false if could not allocate memory, otherwise return true once memory is allocated
          */
-        bool allocate(uint32_t capacity);
+        virtual void allocate(uint32_t capacity);
 
         /**
          * @brief insert new element
          * @param element element to insert
          */
-        bool push(_Tp element);
+        virtual void push(_Tp element);
 
         /**
          * @brief remove top (minimum) element and return it
          * @return minimum element
          */
-        _Tp pop();
+        virtual _Tp pop();
 
         /**
          * @brief return the top (minimum) element without deleting it
          * @return minimum element
          */
-        _Tp top() const;
+        virtual _Tp top() const;
 
         /**
          * @brief return the number of elements in the queue
          * @return uint32_t number of elements in the queue
          */
-        uint32_t size() const;
+        virtual uint32_t size() const;
 
         /**
          * @brief return the maximum number of elements that can be stored in the queue
          * @return uint32_t maximum number of elements that can be stored in the queue
          */
-        uint32_t capacity() const;
+        virtual uint32_t capacity() const;
 
         /**
          * @brief check if the queue is empty
          * @return bool returns true if queue is empty
          */
-        bool empty() const;
+        virtual bool empty() const;
 
-        ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap& rhs) = delete;
+        virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap& rhs) = delete;
 
     protected:
         /**
          * @brief promote element k if less than its parent
          * @param k index of element to promote
          */
-        void swim(uint32_t k);
+        virtual void swim(uint32_t k);
 
         /**
          * @brief demote element k if greater than its parent
          * @param k index of element to demote
          */
-        void sink(uint32_t k);
+        virtual void sink(uint32_t k);
 
         /**
          * @brief swap 2 elements
          * @param j index of the first element
          * @param k index of the second element
          */
-        void exch(uint32_t j, uint32_t k);
+        virtual void exch(uint32_t j, uint32_t k);
 
         // max number of elements
-        uint32_t capacity_;
+        uint32_t capacity_ = 0;
 
         // position of last element
         // also the number of elements (size)
-        uint32_t N_;
+        uint32_t N_ = 0;
 
         // pointer to where the raw data will be stored
-        _Tp* heap_;
+        _Tp* heap_ = nullptr;
     };
 
 
     template<typename _Tp>
-    ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) : N_(0), capacity_(capacity), heap_(nullptr)
+    ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) : capacity_(capacity)
     {
         // make sure allocating a heap of at least 1 element
         if (capacity_ > 0)
@@ -159,19 +158,20 @@ namespace cv
             // so need an extra element in array
             heap_ = new _Tp[capacity_ + 1];
         }
+        else
+        {
+            CV_Error(Error::Code::StsBadArg, "Capacity is not a positive integer");
+        }
     }
 
-
     template<typename _Tp>
-    ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap() : N_(0), capacity_(0), heap_(nullptr) {}
-
+    ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap() {}
 
     template<typename _Tp>
     ConstSizeMinBinaryHeap<_Tp>::~ConstSizeMinBinaryHeap()
     {
         delete[] heap_;
     }
-
 
     template<typename _Tp>
     ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>& rhs)
@@ -191,41 +191,38 @@ namespace cv
     }
 
     template<typename _Tp>
-    bool ConstSizeMinBinaryHeap<_Tp>::allocate(uint32_t capacity)
+    void ConstSizeMinBinaryHeap<_Tp>::allocate(uint32_t capacity)
     {
         // check if heap has already been allocated to prevent memory leaks
         // make sure allocating a heap of at least 1 element
-        if (heap_ == nullptr && capacity > 0)
+        if (heap_ != nullptr || capacity_ <= 0)
         {
-            N_ = 0;
-            capacity_ = capacity;
-            heap_ = new _Tp[capacity_ + 1];
-            return true;
+            CV_Error(Error::Code::StsInternal,
+                     "ConstSizeMinBinaryHeap::allocate() failed due to internal error");
         }
         else
         {
-            return false;
+            capacity_ = capacity;
+            heap_ = new _Tp[capacity_ + 1];
         }
     }
 
 
     template<typename _Tp>
-    bool ConstSizeMinBinaryHeap<_Tp>::push(_Tp element)
+    void ConstSizeMinBinaryHeap<_Tp>::push(_Tp element)
     {
         // verify memory is allocated
         // verify that capacity is non-zero and positive
         // check if queue full
-        if (this->heap_ != nullptr &&
-            this->capacity_ > 0 &&
-            this->N_ < this->capacity_)
+        if (heap_ == nullptr || capacity_ <= 0 || N_ >= capacity_)
         {
-            this->heap_[++N_] = element;
-            this->swim(N_);
-            return true;
+            CV_Error(Error::Code::StsInternal,
+                     "ConstSizeMinBinaryHeap::push() failed due to internal error");
         }
         else
         {
-            return false;
+            this->heap_[++N_] = element;
+            this->swim(N_);
         }
     }
 
@@ -233,18 +230,19 @@ namespace cv
     template<typename _Tp>
     _Tp ConstSizeMinBinaryHeap<_Tp>::pop()
     {
-        // initialize default return value
-        _Tp min = _Tp();
         // verify memory exists
-        if (heap_ != nullptr)
+        if (heap_ == nullptr)
         {
-            // save root element
-            min = heap_[1];
-            // swap root element and last element
-            exch(1, N_--);
-            // demote root to reorder heap
-            sink(1);
+            CV_Error(Error::Code::StsInternal,
+                     "ConstSizeMinBinaryHeap::pop() failed due to internal error");
         }
+
+        // save root element
+        _Tp min = heap_[1];
+        // swap root element and last element
+        exch(1, N_--);
+        // demote root to reorder heap
+        sink(1);
         return min;
     }
 
@@ -252,12 +250,13 @@ namespace cv
     template<typename _Tp>
     _Tp ConstSizeMinBinaryHeap<_Tp>::top() const
     {
-        _Tp min = _Tp();
-        if (heap_ != nullptr)
+        if (heap_ == nullptr)
         {
-            min = heap_[1];
+            CV_Error(Error::Code::StsInternal,
+                     "ConstSizeMinBinaryHeap::top() failed due to internal error");
         }
-        return min;
+
+        return heap_[1];
     }
 
 
