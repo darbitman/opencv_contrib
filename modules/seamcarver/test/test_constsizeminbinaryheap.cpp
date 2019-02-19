@@ -43,43 +43,6 @@
 
 namespace opencv_test
 {
-    TEST(ConstSizeMinBinaryHeap, DefaultCtor)
-    {
-        uint32_t capacity = 10;
-        ConstSizeMinBinaryHeap<uint32_t> minHeap;
-        EXPECT_EQ(minHeap.capacity(), 0);
-
-        minHeap.allocate(capacity);
-        EXPECT_EQ(minHeap.capacity(), capacity);
-
-        EXPECT_EQ(minHeap.size(), 0);
-
-        vector<uint32_t> greatestToLeast;
-        greatestToLeast.push_back(123);
-        greatestToLeast.push_back(100);
-        greatestToLeast.push_back(92);
-        greatestToLeast.push_back(72);
-        greatestToLeast.push_back(28);
-        greatestToLeast.push_back(15);
-        greatestToLeast.push_back(13);
-        greatestToLeast.push_back(10);
-        greatestToLeast.push_back(9);
-        greatestToLeast.push_back(2);
-
-        for (int32_t i = 0; i < greatestToLeast.size(); i++)
-        {
-            minHeap.push(greatestToLeast[i]);
-            EXPECT_EQ(minHeap.size(), i + 1);
-        }
-
-        // Check whether min is popped first
-        while (minHeap.size())
-        {
-            uint32_t currentIndex = minHeap.size() - 1;
-            EXPECT_EQ(greatestToLeast[currentIndex], minHeap.pop());
-        }
-    }
-
     TEST(ConstSizeMinBinaryHeap, CheckAllocateThrows)
     {
         try
@@ -95,7 +58,7 @@ namespace opencv_test
 
         try
         {
-            uint32_t capacity = 10;
+            int32_t capacity = 10;
             ConstSizeMinBinaryHeap<uint32_t> minHeap;
             minHeap.allocate(-capacity);
         }
@@ -109,7 +72,6 @@ namespace opencv_test
     {
         try
         {
-            uint32_t capacity = 10;
             ConstSizeMinBinaryHeap<uint32_t> minHeap;
             minHeap.push(10);
         }
@@ -181,14 +143,16 @@ namespace opencv_test
         }
     }
 
-    TEST(ConstSizeMinBinaryHeap, InitializeCtor)
+    TEST(ConstSizeMinBinaryHeap, DefaultCtor)
     {
         uint32_t capacity = 10;
-        ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+        ConstSizeMinBinaryHeap<uint32_t> minHeap;
+        EXPECT_EQ((int32_t)minHeap.capacity(), 0);
 
+        minHeap.allocate(capacity);
         EXPECT_EQ(minHeap.capacity(), capacity);
 
-        EXPECT_EQ(minHeap.size(), 0);
+        EXPECT_EQ((int32_t)minHeap.size(), 0);
 
         vector<uint32_t> greatestToLeast;
         greatestToLeast.push_back(123);
@@ -202,10 +166,45 @@ namespace opencv_test
         greatestToLeast.push_back(9);
         greatestToLeast.push_back(2);
 
-        for (int32_t i = 0; i < greatestToLeast.size(); i++)
+        for (int32_t i = 0; i < (int32_t)greatestToLeast.size(); i++)
         {
             minHeap.push(greatestToLeast[i]);
-            EXPECT_EQ(minHeap.size(), i + 1);
+            EXPECT_EQ((int32_t)minHeap.size(), i + 1);
+        }
+
+        // Check whether min is popped first
+        while (minHeap.size())
+        {
+            uint32_t currentIndex = minHeap.size() - 1;
+            EXPECT_EQ(greatestToLeast[currentIndex], minHeap.pop());
+        }
+    }
+
+    TEST(ConstSizeMinBinaryHeap, InitializeCtor)
+    {
+        uint32_t capacity = 10;
+        ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+
+        EXPECT_EQ(minHeap.capacity(), capacity);
+
+        EXPECT_EQ((int32_t)minHeap.size(), 0);
+
+        vector<uint32_t> greatestToLeast;
+        greatestToLeast.push_back(123);
+        greatestToLeast.push_back(100);
+        greatestToLeast.push_back(92);
+        greatestToLeast.push_back(72);
+        greatestToLeast.push_back(28);
+        greatestToLeast.push_back(15);
+        greatestToLeast.push_back(13);
+        greatestToLeast.push_back(10);
+        greatestToLeast.push_back(9);
+        greatestToLeast.push_back(2);
+
+        for (int32_t i = 0; i < (int32_t)greatestToLeast.size(); i++)
+        {
+            minHeap.push(greatestToLeast[i]);
+            EXPECT_EQ((int32_t)minHeap.size(), i + 1);
         }
 
         // Check whether min is popped first

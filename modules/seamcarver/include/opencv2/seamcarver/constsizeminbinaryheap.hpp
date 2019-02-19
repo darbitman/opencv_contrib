@@ -114,7 +114,11 @@ namespace cv
          */
         virtual bool empty() const;
 
-        virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap& rhs) = delete;
+        ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>&& rhs) = delete;
+
+        virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap<_Tp>& rhs) = delete;
+
+        virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap<_Tp>&& rhs) = delete;
 
     protected:
         /**
