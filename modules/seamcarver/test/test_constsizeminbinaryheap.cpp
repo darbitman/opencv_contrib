@@ -68,7 +68,7 @@ namespace opencv_test
 
         for (int32_t i = 0; i < greatestToLeast.size(); i++)
         {
-            EXPECT_EQ(minHeap.push(greatestToLeast[i]), true);
+            minHeap.push(greatestToLeast[i]);
             EXPECT_EQ(minHeap.size(), i + 1);
         }
 
@@ -77,6 +77,107 @@ namespace opencv_test
         {
             uint32_t currentIndex = minHeap.size() - 1;
             EXPECT_EQ(greatestToLeast[currentIndex], minHeap.pop());
+        }
+    }
+
+    TEST(ConstSizeMinBinaryHeap, CheckAllocateThrows)
+    {
+        try
+        {
+            uint32_t capacity = 10;
+            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            minHeap.allocate(capacity);
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+
+        try
+        {
+            uint32_t capacity = 10;
+            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            minHeap.allocate(-capacity);
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+    }
+
+    TEST(ConstSizeMinBinaryHeap, CheckPushThrows)
+    {
+        try
+        {
+            uint32_t capacity = 10;
+            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            minHeap.push(10);
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+
+        try
+        {
+            uint32_t capacity = 1;
+            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            minHeap.push(10);
+            minHeap.push(10);
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+    }
+
+    TEST(ConstSizeMinBinaryHeap, CheckPopThrows)
+    {
+        try
+        {
+            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            minHeap.pop();
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+
+        try
+        {
+            uint32_t capacity = 1;
+            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            minHeap.push(1);
+            minHeap.pop();
+            minHeap.pop();
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+    }
+
+    TEST(ConstSizeMinBinaryHeap, CheckTopThrows)
+    {
+        try
+        {
+            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            minHeap.top();
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
+        }
+
+        try
+        {
+            uint32_t capacity = 1;
+            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            minHeap.top();
+        }
+        catch (cv::Exception& ex)
+        {
+            EXPECT_EQ(ex.code, Error::Code::StsInternal);
         }
     }
 
@@ -103,7 +204,7 @@ namespace opencv_test
 
         for (int32_t i = 0; i < greatestToLeast.size(); i++)
         {
-            EXPECT_EQ(minHeap.push(greatestToLeast[i]), true);
+            minHeap.push(greatestToLeast[i]);
             EXPECT_EQ(minHeap.size(), i + 1);
         }
 

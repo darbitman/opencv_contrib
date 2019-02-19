@@ -76,7 +76,7 @@ namespace cv
          * @brief initialize data members and allocate memory for new heap
          * @param capacity maximum number of elements
          */
-        virtual void allocate(uint32_t capacity);
+        virtual void allocate(int32_t capacity);
 
         /**
          * @brief insert new element
@@ -152,15 +152,15 @@ namespace cv
     ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) : capacity_(capacity)
     {
         // make sure allocating a heap of at least 1 element
-        if (capacity_ > 0)
+        if (capacity_ < 1)
+        {
+            CV_Error(Error::Code::StsBadArg, "Capacity is not a positive integer");
+        }
+        else
         {
             // binary heap functions do not use element 0
             // so need an extra element in array
             heap_ = new _Tp[capacity_ + 1];
-        }
-        else
-        {
-            CV_Error(Error::Code::StsBadArg, "Capacity is not a positive integer");
         }
     }
 
@@ -170,7 +170,10 @@ namespace cv
     template<typename _Tp>
     ConstSizeMinBinaryHeap<_Tp>::~ConstSizeMinBinaryHeap()
     {
-        delete[] heap_;
+        if (heap_ != nullptr)
+        {
+            delete[] heap_;
+        }
     }
 
     template<typename _Tp>
@@ -178,7 +181,6 @@ namespace cv
     {
         N_ = rhs.N_;
         capacity_ = rhs.capacity_;
-        heap_ = nullptr;
         // make sure allocating a heap of at least 1 element
         if (capacity_ > 0)
         {
@@ -191,11 +193,11 @@ namespace cv
     }
 
     template<typename _Tp>
-    void ConstSizeMinBinaryHeap<_Tp>::allocate(uint32_t capacity)
+    void ConstSizeMinBinaryHeap<_Tp>::allocate(int32_t capacity)
     {
         // check if heap has already been allocated to prevent memory leaks
         // make sure allocating a heap of at least 1 element
-        if (heap_ != nullptr || capacity_ <= 0)
+        if (heap_ != nullptr || capacity <= 0)
         {
             CV_Error(Error::Code::StsInternal,
                      "ConstSizeMinBinaryHeap::allocate() failed due to internal error");
@@ -230,8 +232,8 @@ namespace cv
     template<typename _Tp>
     _Tp ConstSizeMinBinaryHeap<_Tp>::pop()
     {
-        // verify memory exists
-        if (heap_ == nullptr)
+        // verify memory exists and there's a valid item to return
+        if (heap_ == nullptr || N_ == 0)
         {
             CV_Error(Error::Code::StsInternal,
                      "ConstSizeMinBinaryHeap::pop() failed due to internal error");
@@ -250,7 +252,7 @@ namespace cv
     template<typename _Tp>
     _Tp ConstSizeMinBinaryHeap<_Tp>::top() const
     {
-        if (heap_ == nullptr)
+        if (heap_ == nullptr || N_ == 0)
         {
             CV_Error(Error::Code::StsInternal,
                      "ConstSizeMinBinaryHeap::top() failed due to internal error");
