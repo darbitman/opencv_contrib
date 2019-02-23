@@ -49,7 +49,7 @@
 namespace cv
 {
     typedef void(*energyFunc)(const cv::Mat& img, vector<vector<double>>& outPixelEnergy);
-    typedef std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> vectorOfMinPQ;
+    typedef std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> vectorOfMinOrientedPQ;
 
     class CV_EXPORTS SeamCarver
     {
@@ -74,12 +74,24 @@ namespace cv
          *      internal one will be used
          * @return bool: indicates whether seam removal was successful or not
          */
-        virtual void findAndRemoveVerticalSeams(int32_t numSeams,
+        virtual void findAndRemoveVerticalSeams(size_t numSeams,
                                                 const cv::Mat& img,
                                                 cv::Mat& outImg,
-                                                cv::energyFunc computeEnergyFn = nullptr);
+                                                cv::energyFunc computeEnergyFunction = nullptr);
 
     protected:
+        /**
+         * @brief initializes local member variables
+         * @param numRows: number of rows in the image
+         * @param numColumns: number of columns in the image
+         * @param bottomRow: index of the bottom row
+         * @param rightColumn: index of the right column
+         */
+        virtual void initializeLocalVariables(size_t numRows,
+                                              size_t numColumns,
+                                              size_t bottomRow,
+                                              size_t rightColumn);
+
         /**
          * @brief find vertical seams for later removal
          * @param numSeams: number of seams to discover for removal
@@ -87,8 +99,8 @@ namespace cv
          * @param outDiscoveredSeams: output parameter (vector of priority queues)
          * @return bool: indicates success
          */
-        virtual void findVerticalSeams(int32_t numSeams, vector<vector<double>>& pixelEnergy,
-                                       vectorOfMinPQ& outDiscoveredSeams);
+        virtual void findVerticalSeams(size_t numSeams, vector<vector<double>>& pixelEnergy,
+                                       vectorOfMinOrientedPQ& outDiscoveredSeams);
 
         /**
         * @brief calculates the energy required to reach bottom row
@@ -107,7 +119,7 @@ namespace cv
          * @param seams vector of priority queues that hold the columns for the pixels to remove
          *              for each row, where the index into the vector is the row number
          */
-        virtual void removeVerticalSeams(vector<cv::Mat>& bgr, vectorOfMinPQ& seams);
+        virtual void removeVerticalSeams(vector<cv::Mat>& bgr, vectorOfMinOrientedPQ& seams);
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
@@ -116,10 +128,10 @@ namespace cv
         // default energy at the borders of the image
         const double marginEnergy;
 
-        int32_t numRows_;
-        int32_t numColumns_;
-        int32_t bottomRow_;
-        int32_t rightColumn_;
+        size_t numRows_;
+        size_t numColumns_;
+        size_t bottomRow_;
+        size_t rightColumn_;
         double posInf_;
 
         cv::PixelEnergy2D pixelEnergyCalculator_;
