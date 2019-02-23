@@ -47,7 +47,7 @@
 namespace cv
 {
     template<typename _Tp>
-    class ConstSizeMinBinaryHeap
+    class CV_EXPORTS ConstSizeMinBinaryHeap
     {
     public:
         /**
@@ -114,7 +114,7 @@ namespace cv
          */
         virtual bool empty() const;
 
-        ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>&& rhs) = delete;
+        ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>&& rhs) = default;
 
         virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap<_Tp>& rhs) = delete;
 
