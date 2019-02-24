@@ -6,6 +6,15 @@ using namespace std::chrono;
 #include "DebugDisplay.h"
 #endif
 
+cv::SeamCarver::SeamCarver(double marginEnergy) : marginEnergy_(marginEnergy), pixelEnergyCalculator_(marginEnergy)
+{
+}
+
+cv::SeamCarver::SeamCarver(size_t numRows, size_t numColumns, double marginEnergy) : marginEnergy_(marginEnergy), pixelEnergyCalculator_(marginEnergy)
+{
+    initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1);
+}
+
 void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& img,
                                                  cv::Mat& outImg, cv::energyFunc computeEnergyFunction)
 {
@@ -117,11 +126,10 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
 
 inline void cv::SeamCarver::initializeLocalVariables(size_t numRows, size_t numColumns, size_t bottomRow, size_t rightColumn)
 {
-    this->numRows_ = numRows;
-    this->numColumns_ = numColumns;
-    this->bottomRow_ = bottomRow;
-    this->rightColumn_ = rightColumn;
-    this->posInf_ = std::numeric_limits<double>::max();
+    numRows_ = numRows;
+    numColumns_ = numColumns;
+    bottomRow_ = bottomRow;
+    rightColumn_ = rightColumn;
 }
 
 void cv::SeamCarver::findVerticalSeams(size_t numSeams, vector<vector<double>>& pixelEnergy,
@@ -280,7 +288,7 @@ void cv::SeamCarver::calculateCumulativeVerticalPathEnergy(
         }
         else
         {
-            outTotalEnergyTo[0][column] = marginEnergy;
+            outTotalEnergyTo[0][column] = marginEnergy_;
         }
         outColumnTo[0][column] = -1;
     }

@@ -54,14 +54,9 @@ namespace cv
     class CV_EXPORTS SeamCarver
     {
     public:
-        SeamCarver(double marginEnergy = 390150.0) : marginEnergy(marginEnergy),
-            numRows_(0),
-            numColumns_(0),
-            bottomRow_(0),
-            rightColumn_(0),
-            posInf_(std::numeric_limits<double>::max()),
-            pixelEnergyCalculator_(marginEnergy)
-        {}
+        SeamCarver(double marginEnergy = 390150.0);
+
+        SeamCarver(size_t numRows, size_t numColumns, double marginEnergy = 390150.0);
 
         virtual ~SeamCarver() {}
 
@@ -126,13 +121,13 @@ namespace cv
         vector<vector<bool>> markedPixels;
 
         // default energy at the borders of the image
-        const double marginEnergy;
+        const double marginEnergy_;
 
-        size_t numRows_;
-        size_t numColumns_;
-        size_t bottomRow_;
-        size_t rightColumn_;
-        double posInf_;
+        size_t numRows_  = 0;
+        size_t numColumns_ = 0;
+        size_t bottomRow_ = 0;
+        size_t rightColumn_ = 0;
+        double posInf_ = std::numeric_limits<double>::max();
 
         cv::PixelEnergy2D pixelEnergyCalculator_;
     };
