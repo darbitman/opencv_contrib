@@ -43,31 +43,6 @@
 
 namespace opencv_test
 {
-    TEST(ConstSizeMinBinaryHeap, CheckAllocateThrows)
-    {
-        try
-        {
-            uint32_t capacity = 10;
-            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
-            minHeap.allocate(capacity);
-        }
-        catch (cv::Exception& ex)
-        {
-            EXPECT_EQ(ex.code, Error::Code::StsInternal);
-        }
-
-        try
-        {
-            int32_t capacity = 10;
-            ConstSizeMinBinaryHeap<uint32_t> minHeap;
-            minHeap.allocate(-capacity);
-        }
-        catch (cv::Exception& ex)
-        {
-            EXPECT_EQ(ex.code, Error::Code::StsInternal);
-        }
-    }
-
     TEST(ConstSizeMinBinaryHeap, CheckPushThrows)
     {
         try
