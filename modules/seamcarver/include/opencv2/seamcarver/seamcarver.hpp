@@ -58,10 +58,6 @@ namespace cv
 
         SeamCarver(size_t numRows, size_t numColumns, double marginEnergy = 390150.0);
 
-        void initializeLocalMatrices();
-
-        void unmarkMarkedPixels(const size_t &r);
-
         virtual ~SeamCarver() {}
 
         /**
@@ -93,7 +89,7 @@ namespace cv
 
         virtual void initializeLocalVectors();
 
-        virtual void resetLocalVectors(int32_t numSeams);
+        virtual void resetLocalVectors(size_t numSeams);
 
         /**
          * @brief find vertical seams for later removal
@@ -109,8 +105,9 @@ namespace cv
         */
         virtual void calculateCumulativeVerticalPathEnergy(
             //const vector<vector<double>>& pixelEnergy,
-            vector<vector<double>>& outTotalEnergyTo,
-            vector<vector<int32_t>>& outColumnTo);
+            //vector<vector<double>>& outTotalEnergyTo,
+            //vector<vector<int32_t>>& outColumnTo
+        );
 
         /**
          * @brief remove vertical seam from img given by column locations stored in seam
@@ -119,7 +116,8 @@ namespace cv
          *              for each row, where the index into the vector is the row number
          */
         virtual void removeVerticalSeams(//vector<cv::Mat>& bgr,
-                                         vectorOfMinOrientedPQ& seams);
+                                         //vectorOfMinOrientedPQ& seams
+        );
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
@@ -128,8 +126,18 @@ namespace cv
         // store pixel energy
         vector<vector<double>> pixelEnergy;
 
-        // vector of min oriented priority queues
+        // vector of min oriented priority queues that store the location of the columns to remove
+        //      for each row
         vectorOfMinOrientedPQ discoveredSeams;
+
+        // store cumulative energy to each pixel
+        vector<vector<double>> totalEnergyTo;
+
+        // store the columnn of the pixel in the row above used to get to current pixel
+        vector<vector<int32_t>> columnTo;
+
+        // store the current seam being discovered
+        vector<int32_t> currentSeam;
 
         // vector to hold image color channels separately
         vector<cv::Mat> bgr;
