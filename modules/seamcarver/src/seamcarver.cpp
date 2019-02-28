@@ -2,9 +2,6 @@
 #include <chrono>
 using namespace std::chrono;
 #include <iostream>
-#ifdef USEDEBUGDISPLAY
-#include "DebugDisplay.h"
-#endif
 
 cv::SeamCarver::SeamCarver(double marginEnergy) :
     marginEnergy_(marginEnergy),
@@ -37,39 +34,6 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
         CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
     }
 
-    ///*** DECLARE VECTORS THAT WILL BE USED THROUGHOUT THE SEAM REMOVAL PROCESS ***/
-    //// output of the function to compute energy
-    //// input to the currentSeam finding function
-    //// resize output if necessary
-    //pixelEnergy.resize(numRows_);
-    //for (size_t r = 0; r < numRows_; r++)
-    //{
-    //    pixelEnergy[r].resize(numColumns_);
-    //}
-
-    //// output of the currentSeam finding function
-    //// input to the currentSeam removal function
-    //// vector of minimum-oriented priority queues. Each row in the vector corresponds to a
-    ////      priority queue for that row in the image
-    //discoveredSeams.resize(numRows_);
-
-    //// make sure markedPixels hasn't been set before
-    //// resize markedPixels matrix to the same size as img;
-    //if (markedPixels.size() != (uint32_t)numRows_)
-    //{
-    //    markedPixels.resize(numRows_);
-    //    for (size_t r = 0; r < numRows_; r++)
-    //    {
-    //        markedPixels[r].resize(numColumns_);
-    //        for (size_t c = 0; c < numColumns_; c++)
-    //        {
-    //            markedPixels[r][c] = false;
-    //        }
-    //    }
-    //}
-
-    //// vector to store the image's channels separately
-    //bgr.resize(3);
     if (needToInitializeLocalData)
     {
         initializeLocalVectors();
@@ -82,15 +46,6 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
 
     try
     {
-        //// allocate min-oriented priority queue for each row to hold numSeams elements
-        //for (size_t r = 0; r < numRows_; r++)
-        //{
-        //    if (discoveredSeams[r].capacity() == 0)
-        //    {
-        //        discoveredSeams[r].allocate(numSeams);
-        //    }
-        //}
-
         auto start = high_resolution_clock::now();
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(stop - start);
@@ -103,11 +58,6 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
             pixelEnergyCalculator_.calculatePixelEnergy(img, pixelEnergy);
             stop = high_resolution_clock::now();
             duration = duration_cast<microseconds>(stop - start);
-
-#ifdef USEDEBUGDISPLAY
-            KDebugDisplay d;
-            d.Display2DVector<double>(PixelEnergy, PixelEnergyCalculator_.GetMarginEnergy());
-#endif
         }
         else
         {

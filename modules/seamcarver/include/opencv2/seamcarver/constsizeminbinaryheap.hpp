@@ -42,8 +42,6 @@
 #ifndef OPENCV_SEAMCARVER_CONSTSIZEMINBINARYHEAP_HPP
 #define OPENCV_SEAMCARVER_CONSTSIZEMINBINARYHEAP_HPP
 
-#include <stdint.h>
-
 namespace cv
 {
     template<typename _Tp>

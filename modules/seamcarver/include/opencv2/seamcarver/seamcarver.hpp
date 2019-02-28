@@ -99,15 +99,8 @@ namespace cv
 
         /**
         * @brief calculates the energy required to reach bottom row
-        * @param pixelEnergy: calculated pixel energy of image
-        * @param outTotalEnergyTo: cumulative energy to reach pixel
-        * @param outColumnTo: columnn of the pixel in the row above to get to every pixel
         */
-        virtual void calculateCumulativeVerticalPathEnergy(
-            //const vector<vector<double>>& pixelEnergy,
-            //vector<vector<double>>& outTotalEnergyTo,
-            //vector<vector<int32_t>>& outColumnTo
-        );
+        virtual void calculateCumulativeVerticalPathEnergy();
 
         /**
          * @brief remove vertical seam from img given by column locations stored in seam
@@ -115,9 +108,7 @@ namespace cv
          * @param seams vector of priority queues that hold the columns for the pixels to remove
          *              for each row, where the index into the vector is the row number
          */
-        virtual void removeVerticalSeams(//vector<cv::Mat>& bgr,
-                                         //vectorOfMinOrientedPQ& seams
-        );
+        virtual void removeVerticalSeams();
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
