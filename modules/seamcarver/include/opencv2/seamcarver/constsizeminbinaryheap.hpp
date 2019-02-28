@@ -216,6 +216,7 @@ namespace cv
 
             capacity_ = capacity;
             heap_ = new _Tp[capacity_ + 1];
+            N_ = 0;
         }
     }
 
@@ -279,14 +280,14 @@ namespace cv
 
 
     template<typename _Tp>
-    uint32_t ConstSizeMinBinaryHeap<_Tp>::size() const
+    size_t ConstSizeMinBinaryHeap<_Tp>::size() const
     {
         return this->N_;
     }
 
 
     template<typename _Tp>
-    uint32_t ConstSizeMinBinaryHeap<_Tp>::capacity() const
+    size_t ConstSizeMinBinaryHeap<_Tp>::capacity() const
     {
         return this->capacity_;
     }
