@@ -42,8 +42,6 @@
 #ifndef OPENCV_SEAMCARVER_CONSTSIZEMINBINARYHEAP_HPP
 #define OPENCV_SEAMCARVER_CONSTSIZEMINBINARYHEAP_HPP
 
-#include <stdint.h>
-
 namespace cv
 {
     template<typename _Tp>
@@ -54,7 +52,7 @@ namespace cv
          * @brief initialize min oriented binary heap
          * @param capacity maximum number of elements
          */
-        explicit ConstSizeMinBinaryHeap(uint32_t capacity);
+        explicit ConstSizeMinBinaryHeap(size_t capacity);
 
         /**
          * @brief default constructor to initialize to null values
@@ -76,7 +74,12 @@ namespace cv
          * @brief initialize data members and allocate memory for new heap
          * @param capacity maximum number of elements
          */
-        virtual void allocate(int32_t capacity);
+        virtual void allocate(size_t capacity);
+
+        /**
+         * @brief resets heap to starting position
+         */
+        virtual void resetHeap();
 
         /**
          * @brief insert new element
@@ -100,13 +103,13 @@ namespace cv
          * @brief return the number of elements in the queue
          * @return uint32_t number of elements in the queue
          */
-        virtual uint32_t size() const;
+        virtual size_t size() const;
 
         /**
          * @brief return the maximum number of elements that can be stored in the queue
          * @return uint32_t maximum number of elements that can be stored in the queue
          */
-        virtual uint32_t capacity() const;
+        virtual size_t capacity() const;
 
         /**
          * @brief check if the queue is empty
@@ -140,12 +143,12 @@ namespace cv
          */
         virtual void exch(uint32_t j, uint32_t k);
 
-        // max number of elements
-        uint32_t capacity_ = 0;
+        // max number of elements that can be stored
+        size_t capacity_ = 0;
 
         // position of last element
         // also the number of elements (size)
-        uint32_t N_ = 0;
+        size_t N_ = 0;
 
         // pointer to where the raw data will be stored
         _Tp* heap_ = nullptr;
@@ -153,7 +156,7 @@ namespace cv
 
 
     template<typename _Tp>
-    ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) : capacity_(capacity)
+    ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(size_t capacity) : capacity_(capacity)
     {
         // make sure allocating a heap of at least 1 element
         if (capacity_ < 1)
@@ -189,7 +192,7 @@ namespace cv
         if (capacity_ > 0)
         {
             heap_ = new _Tp[capacity_ + 1];
-            for (uint32_t i = 1; i < N_ + 1; i++)
+            for (size_t i = 1; i < N_ + 1; i++)
             {
                 heap_[i] = rhs.heap_[i];
             }
@@ -197,20 +200,28 @@ namespace cv
     }
 
     template<typename _Tp>
-    void ConstSizeMinBinaryHeap<_Tp>::allocate(int32_t capacity)
+    void ConstSizeMinBinaryHeap<_Tp>::allocate(size_t capacity)
     {
-        // check if heap has already been allocated to prevent memory leaks
-        // make sure allocating a heap of at least 1 element
-        if (heap_ != nullptr || capacity <= 0)
+        // only need to allocate if increasing size
+        // if new allocation has to be smaller, just change capacity
+        if (capacity > capacity_)
         {
-            CV_Error(Error::Code::StsInternal,
-                     "ConstSizeMinBinaryHeap::allocate() failed due to internal error");
-        }
-        else
-        {
+            // deallocate previous memory if it's allocated
+            if (heap_ != nullptr)
+            {
+                delete[] heap_;
+            }
+
             capacity_ = capacity;
             heap_ = new _Tp[capacity_ + 1];
+            N_ = 0;
         }
+    }
+
+    template<typename _Tp>
+    void ConstSizeMinBinaryHeap<_Tp>::resetHeap()
+    {
+        N_ = 0;
     }
 
 
@@ -267,14 +278,14 @@ namespace cv
 
 
     template<typename _Tp>
-    uint32_t ConstSizeMinBinaryHeap<_Tp>::size() const
+    size_t ConstSizeMinBinaryHeap<_Tp>::size() const
     {
         return this->N_;
     }
 
 
     template<typename _Tp>
-    uint32_t ConstSizeMinBinaryHeap<_Tp>::capacity() const
+    size_t ConstSizeMinBinaryHeap<_Tp>::capacity() const
     {
         return this->capacity_;
     }

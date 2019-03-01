@@ -87,26 +87,20 @@ namespace cv
                                               size_t bottomRow,
                                               size_t rightColumn);
 
+        virtual void initializeLocalVectors();
+
+        virtual void resetLocalVectors(size_t numSeams);
+
         /**
          * @brief find vertical seams for later removal
          * @param numSeams: number of seams to discover for removal
-         * @param pixelEnergy: calculated pixel energy of image
-         * @param outDiscoveredSeams: output parameter (vector of priority queues)
-         * @return bool: indicates success
          */
-        virtual void findVerticalSeams(size_t numSeams, vector<vector<double>>& pixelEnergy,
-                                       vectorOfMinOrientedPQ& outDiscoveredSeams);
+        virtual void findVerticalSeams(size_t numSeams);
 
         /**
         * @brief calculates the energy required to reach bottom row
-        * @param pixelEnergy: calculated pixel energy of image
-        * @param outTotalEnergyTo: cumulative energy to reach pixel
-        * @param outColumnTo: columnn of the pixel in the row above to get to every pixel
         */
-        virtual void calculateCumulativeVerticalPathEnergy(
-            const vector<vector<double>>& pixelEnergy,
-            vector<vector<double>>& outTotalEnergyTo,
-            vector<vector<int32_t>>& outColumnTo);
+        virtual void calculateCumulativeVerticalPathEnergy();
 
         /**
          * @brief remove vertical seam from img given by column locations stored in seam
@@ -114,11 +108,32 @@ namespace cv
          * @param seams vector of priority queues that hold the columns for the pixels to remove
          *              for each row, where the index into the vector is the row number
          */
-        virtual void removeVerticalSeams(vector<cv::Mat>& bgr, vectorOfMinOrientedPQ& seams);
+        virtual void removeVerticalSeams();
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
         vector<vector<bool>> markedPixels;
+
+        // store pixel energy
+        vector<vector<double>> pixelEnergy;
+
+        // vector of min oriented priority queues that store the location of the columns to remove
+        //      for each row
+        vectorOfMinOrientedPQ discoveredSeams;
+
+        // store cumulative energy to each pixel
+        vector<vector<double>> totalEnergyTo;
+
+        // store the columnn of the pixel in the row above used to get to current pixel
+        vector<vector<int32_t>> columnTo;
+
+        // store the current seam being discovered
+        vector<int32_t> currentSeam;
+
+        // vector to hold image color channels separately
+        vector<cv::Mat> bgr;
+
+        bool needToInitializeLocalData = true;
 
         // default energy at the borders of the image
         const double marginEnergy_;

@@ -2,23 +2,31 @@
 #include <chrono>
 using namespace std::chrono;
 #include <iostream>
-#ifdef USEDEBUGDISPLAY
-#include "DebugDisplay.h"
-#endif
 
-cv::SeamCarver::SeamCarver(double marginEnergy) : marginEnergy_(marginEnergy), pixelEnergyCalculator_(marginEnergy)
+cv::SeamCarver::SeamCarver(double marginEnergy) :
+    marginEnergy_(marginEnergy),
+    pixelEnergyCalculator_(marginEnergy),
+    needToInitializeLocalData(true)
 {
 }
 
-cv::SeamCarver::SeamCarver(size_t numRows, size_t numColumns, double marginEnergy) : marginEnergy_(marginEnergy), pixelEnergyCalculator_(marginEnergy)
+cv::SeamCarver::SeamCarver(size_t numRows, size_t numColumns, double marginEnergy) :
+    marginEnergy_(marginEnergy),
+    pixelEnergyCalculator_(marginEnergy),
+    needToInitializeLocalData(false)
 {
     initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1);
+
+    initializeLocalVectors();
 }
 
 void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& img,
                                                  cv::Mat& outImg, cv::energyFunc computeEnergyFunction)
 {
-    initializeLocalVariables(img.rows, img.cols, img.rows - 1, img.cols - 1);
+    if (needToInitializeLocalData)
+    {
+        initializeLocalVariables(img.rows, img.cols, img.rows - 1, img.cols - 1);
+    }
 
     // check if removing more seams than columns available
     if (numSeams > numColumns_)
@@ -26,55 +34,18 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
         CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
     }
 
-    /*** DECLARE VECTORS THAT WILL BE USED THROUGHOUT THE SEAM REMOVAL PROCESS ***/
-    // output of the function to compute energy
-    // input to the currentSeam finding function
-    vector<vector<double>> pixelEnergy;
-    // resize output if necessary
-    pixelEnergy.resize(numRows_);
-    for (size_t r = 0; r < numRows_; r++)
+    if (needToInitializeLocalData)
     {
-        pixelEnergy[r].resize(numColumns_);
+        initializeLocalVectors();
+        needToInitializeLocalData = false;
     }
 
-    // output of the currentSeam finding function
-    // input to the currentSeam removal function
-    // vector of minimum-oriented priority queues. Each row in the vector corresponds to a
-    //      priority queue for that row in the image
-    vectorOfMinOrientedPQ seams;
-    seams.resize(numRows_);
+    resetLocalVectors(numSeams);
 
-    // make sure markedPixels hasn't been set before
-    // resize markedPixels matrix to the same size as img;
-    if (markedPixels.size() != (uint32_t)numRows_)
-    {
-        markedPixels.resize(numRows_);
-        for (size_t r = 0; r < numRows_; r++)
-        {
-            markedPixels[r].resize(numColumns_);
-            for (size_t c = 0; c < numColumns_; c++)
-            {
-                markedPixels[r][c] = false;
-            }
-        }
-    }
-
-    // vector to store the image's channels separately
-    vector<cv::Mat> bgr;
-    bgr.resize(3);
     cv::split(img, bgr);
 
     try
     {
-        // allocate min-oriented priority queue for each row to hold numSeams elements
-        for (size_t r = 0; r < numRows_; r++)
-        {
-            if (seams[r].capacity() == 0)
-            {
-                seams[r].allocate(numSeams);
-            }
-        }
-
         auto start = high_resolution_clock::now();
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(stop - start);
@@ -87,11 +58,6 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
             pixelEnergyCalculator_.calculatePixelEnergy(img, pixelEnergy);
             stop = high_resolution_clock::now();
             duration = duration_cast<microseconds>(stop - start);
-
-#ifdef USEDEBUGDISPLAY
-            KDebugDisplay d;
-            d.Display2DVector<double>(PixelEnergy, PixelEnergyCalculator_.GetMarginEnergy());
-#endif
         }
         else
         {
@@ -102,13 +68,13 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
 
         // find all vertical seams
         start = high_resolution_clock::now();
-        findVerticalSeams(numSeams, pixelEnergy, seams); // ~2.5s
+        findVerticalSeams(numSeams); // ~2.5s
         stop = high_resolution_clock::now();
         duration = duration_cast<microseconds>(stop - start);
 
         // remove all found seams, least cumulative energy first
         start = high_resolution_clock::now();
-        removeVerticalSeams(bgr, seams);  // ~55ms
+        removeVerticalSeams();  // ~55ms
         stop = high_resolution_clock::now();
         duration = duration_cast<microseconds>(stop - start);
 
@@ -132,48 +98,71 @@ inline void cv::SeamCarver::initializeLocalVariables(size_t numRows, size_t numC
     rightColumn_ = rightColumn;
 }
 
-void cv::SeamCarver::findVerticalSeams(size_t numSeams, vector<vector<double>>& pixelEnergy,
-                                        vectorOfMinOrientedPQ& outDiscoveredSeams)
+void cv::SeamCarver::initializeLocalVectors()
+{
+    pixelEnergy.resize(numRows_);
+    markedPixels.resize(numRows_);
+    totalEnergyTo.resize(numRows_);
+    columnTo.resize(numRows_);
+    currentSeam.resize(numRows_);
+
+    for (size_t row = 0; row < numRows_; row++)
+    {
+        pixelEnergy[row].resize(numColumns_);
+        markedPixels[row].resize(numColumns_);
+        totalEnergyTo[row].resize(numColumns_);
+        columnTo[row].resize(numColumns_);
+    }
+
+    // TODO remove magic number
+    bgr.resize(3);
+
+    discoveredSeams.resize(numRows_);
+}
+
+void cv::SeamCarver::resetLocalVectors(size_t numSeams)
+{
+    for (size_t row = 0; row < numRows_; row++)
+    {
+        // set marked pixels to false for new run
+        for (size_t column = 0; column < numColumns_; column++)
+        {
+            markedPixels[row][column] = false;
+        }
+
+        // ensure priority queue has at least numSeams capacity
+        if (numSeams > discoveredSeams[row].capacity())
+        {
+            discoveredSeams[row].allocate(numSeams);
+        }
+
+        // reset priority queue since it could be filled from a previous run
+        if (discoveredSeams[row].size() > 0)
+        {
+            discoveredSeams[row].resetHeap();
+        }
+    }
+}
+
+void cv::SeamCarver::findVerticalSeams(size_t numSeams)
 {
     if (pixelEnergy.size() == 0)
     {
         CV_Error(Error::Code::StsInternal,
-                 "SeamCarver::findVerticalSeams() failed due to zero size pixelEnergy vector");
+                 "SeamCarver::findVerticalSeams() failed due to zero-size pixelEnergy vector");
     }
 
-    if (outDiscoveredSeams.size() != pixelEnergy.size())
+    if (discoveredSeams.size() != pixelEnergy.size())
     {
         CV_Error(Error::Code::StsInternal,
                  "SeamCarver::findVerticalSeams() failed due to different sized vectors");
     }
 
-    // TODO delete this variable once ready for release
+    // TODO delete once ready for release
     int32_t seamRecalculationCount = 0;
 
-    // totalEnergyTo will store cumulative energy to each pixel
-    // columnTo will store the columnn of the pixel in the row above to get to current pixel
-    vector<vector<double>> totalEnergyTo;
-    vector<vector<int32_t>> columnTo;
-
-    // resize number of rows
-    totalEnergyTo.resize(numRows_);
-    columnTo.resize(numRows_);
-
-    // resize number of columns for each row
-    for (size_t r = 0; r < numRows_; r++)
-    {
-        totalEnergyTo[r].resize(numColumns_);
-        columnTo[r].resize(numColumns_);
-    }
-
     // initial cumulative energy path calculation
-    calculateCumulativeVerticalPathEnergy(pixelEnergy, totalEnergyTo, columnTo);
-
-    // temporary currentSeam to verify that there are no previously markedPixels
-    //      while building seam
-    // otherwise the cumulative energies will need to be recalculated
-    vector<int32_t> currentSeam;
-    currentSeam.resize(numRows_);
+    calculateCumulativeVerticalPathEnergy();
 
     // declare/initialize variables used in currentSeam discovery when looking for the least
     //      cumulative energy column in the bottom row
@@ -206,9 +195,9 @@ void cv::SeamCarver::findVerticalSeams(size_t numSeams, vector<vector<double>>& 
             // need to recalculate the cumulative energy
             n--;
             seamRecalculationCount++;
-            calculateCumulativeVerticalPathEnergy(pixelEnergy, totalEnergyTo, columnTo);
+            calculateCumulativeVerticalPathEnergy();
 
-            // TODO delete output once ready for release
+            // TODO delete once ready for release
             std::cout << "recalculated seam number: " << n + 1 << std::endl;
             restartSeamDiscovery = true;
         }
@@ -262,21 +251,22 @@ void cv::SeamCarver::findVerticalSeams(size_t numSeams, vector<vector<double>>& 
             for (size_t row = 0; row < numRows_; row++)
             {
                 prevCol = currentSeam[row];
-                outDiscoveredSeams[row].push(prevCol);
+                discoveredSeams[row].push(prevCol);
                 markedPixels[row][prevCol] = true;
             }
         }
     }   // for (size_t n = 0; n < numSeams; n++)
 
-    // TODO delete output once ready for release
+    // TODO delete once ready for release
     std::cout << "recalculated total times: " << seamRecalculationCount << std::endl;
 }
 
 
 void cv::SeamCarver::calculateCumulativeVerticalPathEnergy(
-    const vector<vector<double>>& pixelEnergy,
-    vector<vector<double>>& outTotalEnergyTo,
-    vector<vector<int32_t>>& outColumnTo)
+    //const vector<vector<double>>& pixelEnergy,
+    //vector<vector<double>>& outTotalEnergyTo,
+    //vector<vector<int32_t>>& outColumnTo
+)
 {
     // initialize top row
     for (size_t column = 0; column < numColumns_; column++)
@@ -284,13 +274,13 @@ void cv::SeamCarver::calculateCumulativeVerticalPathEnergy(
         // if previously markedPixels, set its energy to +INF
         if (markedPixels[0][column])
         {
-            outTotalEnergyTo[0][column] = posInf_;
+            totalEnergyTo[0][column] = posInf_;
         }
         else
         {
-            outTotalEnergyTo[0][column] = marginEnergy_;
+            totalEnergyTo[0][column] = marginEnergy_;
         }
-        outColumnTo[0][column] = -1;
+        columnTo[0][column] = -1;
     }
 
     // cache the total energy to the pixels up/left, directly above, and up/right
@@ -314,8 +304,8 @@ void cv::SeamCarver::calculateCumulativeVerticalPathEnergy(
     for (size_t row = 1; row < numRows_; row++)
     {
         energyUpLeft = posInf_;
-        energyUp = outTotalEnergyTo[row - 1][0];
-        energyUpRight = numColumns_ > 1 ? outTotalEnergyTo[row - 1][1] : posInf_;
+        energyUp = totalEnergyTo[row - 1][0];
+        energyUpRight = numColumns_ > 1 ? totalEnergyTo[row - 1][1] : posInf_;
 
         markedUpLeft = true;
         markedUp = markedPixels[row - 1][0];
@@ -370,7 +360,7 @@ void cv::SeamCarver::calculateCumulativeVerticalPathEnergy(
             // get markedPixels and totalEnergyTo data for pixels right/above
             if (numColumns_ > 1 && column < numColumns_ - 2)
             {
-                energyUpRight = outTotalEnergyTo[row - 1][column + 2];
+                energyUpRight = totalEnergyTo[row - 1][column + 2];
                 markedUpRight = markedPixels[row - 1][column + 2];
             }
 
@@ -380,19 +370,21 @@ void cv::SeamCarver::calculateCumulativeVerticalPathEnergy(
                 // current pixel is unreachable from parent pixels since they are all markedPixels
                 //   OR current pixel already markedPixels
                 // set energy to reach current pixel to +INF
-                outTotalEnergyTo[row][column] = posInf_;
+                totalEnergyTo[row][column] = posInf_;
             }
             else
             {
-                outTotalEnergyTo[row][column] = minEnergy + pixelEnergy[row][column];
+                totalEnergyTo[row][column] = minEnergy + pixelEnergy[row][column];
             }
-            outColumnTo[row][column] = minEnergyCol;
+            columnTo[row][column] = minEnergyCol;
         }
     }
 }
 
 
-void cv::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vectorOfMinOrientedPQ& seams)
+void cv::SeamCarver::removeVerticalSeams(//vector<cv::Mat>& bgr,
+                                         //vectorOfMinOrientedPQ& seams
+)
 {
     // each row of seams stores an ordered queue of pixels to remove in that row
     //   starting with the min number column
@@ -408,14 +400,14 @@ void cv::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vectorOfMinOrient
         //   to indicate how many spaces to move pixels that aren't being removed to the left
         numSeamsRemoved = 0;
         // loop through all pixels to remove in current row
-        while (seams[r].size())
+        while (discoveredSeams[r].size())
         {
             numSeamsRemoved++;
             // column location of pixel to remove in row row
-            colToRemove = seams[r].pop();
+            colToRemove = discoveredSeams[r].pop();
             //seams[row].pop();
             // mark right endpoint/next pixel column
-            size_t rightColBorder = (seams[r].empty() ? numColumns_ : seams[r].top());
+            size_t rightColBorder = (discoveredSeams[r].empty() ? numColumns_ : discoveredSeams[r].top());
             // starting at the column to the right of the column to remove,
             //      move the pixel to the left by the number of seams to the left of the pixel,
             //      until the right end point which is either the last column or the next column
