@@ -20,22 +20,21 @@ cv::SeamCarver::SeamCarver(size_t numRows, size_t numColumns, double marginEnerg
     initializeLocalVectors();
 }
 
-void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& img,
-                                                 cv::Mat& outImg, cv::energyFunc computeEnergyFunction)
+void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams,
+                                                const cv::Mat& img,
+                                                 cv::Mat& outImg,
+                                                cv::energyFunc computeEnergyFunction)
 {
     if (needToInitializeLocalData)
     {
         initializeLocalVariables(img.rows, img.cols, img.rows - 1, img.cols - 1);
-    }
 
-    // check if removing more seams than columns available
-    if (numSeams > numColumns_)
-    {
-        CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
-    }
+        // check if removing more seams than columns available
+        if (numSeams > numColumns_)
+        {
+            CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
+        }
 
-    if (needToInitializeLocalData)
-    {
         initializeLocalVectors();
         needToInitializeLocalData = false;
     }
@@ -90,7 +89,8 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams, const cv::Mat& 
     }
 }
 
-inline void cv::SeamCarver::initializeLocalVariables(size_t numRows, size_t numColumns, size_t bottomRow, size_t rightColumn)
+inline void cv::SeamCarver::initializeLocalVariables(size_t numRows, size_t numColumns,
+                                                     size_t bottomRow, size_t rightColumn)
 {
     numRows_ = numRows;
     numColumns_ = numColumns;
@@ -218,8 +218,7 @@ void cv::SeamCarver::findVerticalSeams(size_t numSeams)
                 //      current row
                 currentCol = columnTo[row + 1][prevCol];
 
-                // check if the current seam we're swimming up has a pixel that has been used part of
-                //      another seam
+                // check if the current pixel of the current seam has been used part of another seam
                 if (markedPixels[row][currentCol])
                 {
                     // mark the starting pixel in bottom row as having +INF cumulative energy so it
@@ -407,7 +406,8 @@ void cv::SeamCarver::removeVerticalSeams(//vector<cv::Mat>& bgr,
             colToRemove = discoveredSeams[r].pop();
             //seams[row].pop();
             // mark right endpoint/next pixel column
-            size_t rightColBorder = (discoveredSeams[r].empty() ? numColumns_ : discoveredSeams[r].top());
+            size_t rightColBorder = (discoveredSeams[r].empty() ?
+                                     numColumns_ : discoveredSeams[r].top());
             // starting at the column to the right of the column to remove,
             //      move the pixel to the left by the number of seams to the left of the pixel,
             //      until the right end point which is either the last column or the next column

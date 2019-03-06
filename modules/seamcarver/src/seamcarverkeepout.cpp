@@ -22,11 +22,61 @@ void cv::SeamCarverKeepout::findAndRemoveVerticalSeams(size_t numSeams,
                                                        cv::Mat& outImg,
                                                        cv::energyFunc computeEnergyFunction)
 {
-    // check keepout region is defined within image dimensions
-    if (keepoutRegionDefined)
+    if (!keepoutRegionDefined)
     {
-        // TODO throw error if keepout region extends past borders
+        CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
+    }
+    else
+    {
+        if (keepoutRegionDimensions_.column_ < 0 ||
+            keepoutRegionDimensions_.column_ >= (size_t)img.size().width ||
+            keepoutRegionDimensions_.row_ < 0 ||
+            keepoutRegionDimensions_.row_ >= (size_t)img.size().height)
+        {
+            CV_Error(Error::Code::StsInternal, "Keepout region begins past borders");
+        }
+
+        if (keepoutRegionDimensions_.column_ + keepoutRegionDimensions_.width_
+            >= (size_t)img.size().width ||
+            keepoutRegionDimensions_.row_ + keepoutRegionDimensions_.height_
+            >= (size_t)img.size().height)
+        {
+            CV_Error(Error::Code::StsInternal, "Keepout region extends past borders");
+        }
     }
 
-    // TODO need to mark appropriate pixels in the marked vector
+    SeamCarver::findAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFunction);
+}
+
+void cv::SeamCarverKeepout::resetLocalVectors(size_t numSeams)
+{
+    SeamCarver::resetLocalVectors(numSeams);
+    if (keepoutRegionDefined)
+    {
+        for (size_t row = keepoutRegionDimensions_.row_;
+             row < keepoutRegionDimensions_.row_ + keepoutRegionDimensions_.height_; row++)
+        {
+            for (size_t column = keepoutRegionDimensions_.column_;
+                 column < keepoutRegionDimensions_.column_ + keepoutRegionDimensions_.width_;
+                 column++)
+            {
+                markedPixels[row][column] = true;
+            }
+        }
+    }
+}
+
+void cv::SeamCarverKeepout::setKeepoutRegion(size_t startingRow, size_t startingColumn,
+                                             size_t height, size_t width)
+{
+    if (height == 0 || width == 0)
+    {
+        CV_Error(Error::Code::StsInternal, "Zero size keepout region");
+    }
+
+    keepoutRegionDimensions_.row_ = startingRow;
+    keepoutRegionDimensions_.column_ = startingColumn;
+    keepoutRegionDimensions_.height_ = height;
+    keepoutRegionDimensions_.width_ = width;
+    keepoutRegionDefined = true;
 }
