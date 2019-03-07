@@ -78,8 +78,10 @@ void cv::SeamCarverKeepout::resetLocalVectors(size_t numSeams)
     }
 }
 
-void cv::SeamCarverKeepout::setKeepoutRegion(size_t startingRow, size_t startingColumn,
-                                             size_t height, size_t width)
+void cv::SeamCarverKeepout::setKeepoutRegion(size_t startingRow,
+                                             size_t startingColumn,
+                                             size_t height,
+                                             size_t width)
 {
     if (height == 0 || width == 0)
     {

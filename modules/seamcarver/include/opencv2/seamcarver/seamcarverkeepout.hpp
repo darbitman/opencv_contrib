@@ -60,15 +60,18 @@ namespace cv
     public:
         SeamCarverKeepout(double marginEnergy = 390150.0);
 
-        SeamCarverKeepout(size_t startingRow, size_t startingColumn, size_t regionWidth,
-                          size_t regionHeight, double marginEnergy = 390150.0);
+        SeamCarverKeepout(size_t startingRow,
+                          size_t startingColumn,
+                          size_t regionWidth,
+                          size_t regionHeight,
+                          double marginEnergy = 390150.0);
 
         virtual ~SeamCarverKeepout() {}
 
         virtual void runVerticalSeamRemover(size_t numSeams,
-                                        const cv::Mat& img,
-                                        cv::Mat& outImg,
-                                        cv::energyFunc computeEnergyFunction = nullptr) override;
+                                            const cv::Mat& img,
+                                            cv::Mat& outImg,
+                                           cv::energyFunc computeEnergyFunction = nullptr) override;
 
         virtual void setKeepoutRegion(size_t startingRow,
                                       size_t startingColumn,

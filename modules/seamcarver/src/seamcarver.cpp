@@ -71,8 +71,7 @@ void cv::SeamCarver::initializeLocalVectors()
         columnTo[row].resize(numColumns_);
     }
 
-    // TODO remove magic number
-    bgr.resize(3);
+    bgr.resize(pixelEnergyCalculator_.getDimensions().numColorChannels_);
 
     discoveredSeams.resize(numRows_);
 }
@@ -100,7 +99,6 @@ void cv::SeamCarver::findAndRemoveVerticalSeams(const size_t& numSeams,
         }
         else
         {
-            // TODO refactor names/parameters associated with user defined function
             // call user-defined energy computation function
             computeEnergyFunction(img, pixelEnergy);
         }
@@ -415,9 +413,8 @@ void cv::SeamCarver::removeVerticalSeams(//vector<cv::Mat>& bgr,
     }
 
     /*** SHRINK IMAGE BY REMOVING SEAMS ***/
-    // TODO remove magic number
-    int32_t NumColorChannels = 3;
-    for (int32_t Channel = 0; Channel < NumColorChannels; Channel++)
+    int32_t numColorChannels = pixelEnergyCalculator_.getDimensions().numColorChannels_;
+    for (int32_t Channel = 0; Channel < numColorChannels; Channel++)
     {
         bgr[Channel] = bgr[Channel].colRange(0, bgr[Channel].cols - numSeamsRemoved);
     }

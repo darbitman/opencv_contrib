@@ -50,27 +50,27 @@ cv::PixelEnergy2D::PixelEnergy2D(double marginEnergy)
 cv::PixelEnergy2D::PixelEnergy2D(int32_t numColumns, int32_t numRows,
                                  int32_t numChannels, double marginEnergy)
 {
-    imageDimensions_.NumColumns_ = numColumns;
-    imageDimensions_.NumRows_ = numRows;
-    imageDimensions_.NumColorChannels_ = numChannels;
+    imageDimensions_.numColumns_ = numColumns;
+    imageDimensions_.numRows_ = numRows;
+    imageDimensions_.numColorChannels_ = numChannels;
     marginEnergy_ = marginEnergy;
     bDimensionsInitialized = true;
 }
 
 cv::PixelEnergy2D::PixelEnergy2D(const cv::Mat& image, double marginEnergy)
 {
-    imageDimensions_.NumColumns_ = image.cols;
-    imageDimensions_.NumRows_ = image.rows;
-    imageDimensions_.NumColorChannels_ = image.channels();
+    imageDimensions_.numColumns_ = image.cols;
+    imageDimensions_.numRows_ = image.rows;
+    imageDimensions_.numColorChannels_ = image.channels();
     marginEnergy_ = marginEnergy;
     bDimensionsInitialized = true;
 }
 
 cv::PixelEnergy2D::PixelEnergy2D(const PixelEnergy2D& other)
 {
-    imageDimensions_.NumColumns_ = other.imageDimensions_.NumColumns_;
-    imageDimensions_.NumRows_ = other.imageDimensions_.NumRows_;
-    imageDimensions_.NumColorChannels_ = other.imageDimensions_.NumColorChannels_;
+    imageDimensions_.numColumns_ = other.imageDimensions_.numColumns_;
+    imageDimensions_.numRows_ = other.imageDimensions_.numRows_;
+    imageDimensions_.numColorChannels_ = other.imageDimensions_.numColorChannels_;
     marginEnergy_ = other.marginEnergy_;
     bDimensionsInitialized = other.bDimensionsInitialized;
 }
@@ -108,9 +108,9 @@ void cv::PixelEnergy2D::setDimensions(int32_t numColumns, int32_t numRows, int32
         // TODO throw exception
         // TODO add enum class?
     }
-    imageDimensions_.NumColumns_ = numColumns;
-    imageDimensions_.NumRows_ = numRows;
-    imageDimensions_.NumColorChannels_ = numChannels;
+    imageDimensions_.numColumns_ = numColumns;
+    imageDimensions_.numRows_ = numRows;
+    imageDimensions_.numColorChannels_ = numChannels;
 }
 
 void cv::PixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
@@ -118,7 +118,7 @@ void cv::PixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
 {
     // TODO add threads
     // if more columns, split calculation into 2 operations to calculate for every row
-    if (imageDimensions_.NumColumns_ >= imageDimensions_.NumRows_)
+    if (imageDimensions_.numColumns_ >= imageDimensions_.numRows_)
     {
         std::thread thread1(&cv::PixelEnergy2D::calculatePixelEnergyForEveryRow,
                             this, std::ref(image),
@@ -160,9 +160,9 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
                                                         bool bDoOddColumns)
 {
     // ensure image is of the right size
-    if (!(image.cols == imageDimensions_.NumColumns_ &&
-          image.rows == imageDimensions_.NumRows_ &&
-          image.channels() == imageDimensions_.NumColorChannels_))
+    if (!(image.cols == imageDimensions_.numColumns_ &&
+          image.rows == imageDimensions_.numRows_ &&
+          image.channels() == imageDimensions_.numColorChannels_))
     {
         // TODO throw exception
     }
@@ -175,29 +175,29 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
 
     // ensure outPixelEnergy has the right dimensions
     // if not, then resize locally
-    if (!(outPixelEnergy.size() == (uint32_t)imageDimensions_.NumRows_) ||
-        !(outPixelEnergy[0].size() == (uint32_t)imageDimensions_.NumColumns_))
+    if (!(outPixelEnergy.size() == (uint32_t)imageDimensions_.numRows_) ||
+        !(outPixelEnergy[0].size() == (uint32_t)imageDimensions_.numColumns_))
     {
-        outPixelEnergy.resize(imageDimensions_.NumRows_);
-        for (int32_t Row = 0; Row < imageDimensions_.NumRows_; Row++)
+        outPixelEnergy.resize(imageDimensions_.numRows_);
+        for (int32_t Row = 0; Row < imageDimensions_.numRows_; Row++)
         {
-            outPixelEnergy[Row].resize(imageDimensions_.NumColumns_);
+            outPixelEnergy[Row].resize(imageDimensions_.numColumns_);
         }
     }
 
-    int32_t BottomRow = imageDimensions_.NumRows_ - 1;
-    int32_t RightColumn = imageDimensions_.NumColumns_ - 1;
+    int32_t BottomRow = imageDimensions_.numRows_ - 1;
+    int32_t RightColumn = imageDimensions_.numColumns_ - 1;
 
     vector<cv::Mat> ImageByChannel;
-    ImageByChannel.resize(imageDimensions_.NumColorChannels_);
+    ImageByChannel.resize(imageDimensions_.numColorChannels_);
 
     // if color channels use cv::split
     // otherwise if grayscale use cv::extractChannel
-    if (imageDimensions_.NumColorChannels_ == numChannelsInColorImage_)
+    if (imageDimensions_.numColorChannels_ == numChannelsInColorImage_)
     {
         cv::split(image, ImageByChannel);
     }
-    else if (imageDimensions_.NumColorChannels_ == 1)
+    else if (imageDimensions_.numColorChannels_ == 1)
     {
         cv::extractChannel(image, ImageByChannel[0], 0);
     }
@@ -214,14 +214,14 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
     vector<double> XDirection2;
     vector<double> XDirection1;
 
-    XDirection2.resize(imageDimensions_.NumColorChannels_);
-    XDirection1.resize(imageDimensions_.NumColorChannels_);
+    XDirection2.resize(imageDimensions_.numColorChannels_);
+    XDirection1.resize(imageDimensions_.numColorChannels_);
 
     vector<double> DeltaXDirection;
     vector<double> DeltaYDirection;
 
-    DeltaXDirection.resize(imageDimensions_.NumColorChannels_);
-    DeltaYDirection.resize(imageDimensions_.NumColorChannels_);
+    DeltaXDirection.resize(imageDimensions_.numColorChannels_);
+    DeltaYDirection.resize(imageDimensions_.numColorChannels_);
 
     double DeltaSquareX = 0.0;
     double DeltaSquareY = 0.0;
@@ -230,7 +230,7 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
     // compute energy for every row
     // do odd columns and even columns separately in order to leverage cached values to prevent
         // multiple memory accesses
-    for (int32_t Row = 0; Row < imageDimensions_.NumRows_; Row++)
+    for (int32_t Row = 0; Row < imageDimensions_.numRows_; Row++)
     {
         /***** ODD COLUMNS *****/
         if (bDoOddColumns)
@@ -239,14 +239,14 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
             Column = 1;
 
             // initialize color values to the left of current pixel
-            for (int32_t Channel = 0; Channel < imageDimensions_.NumColorChannels_; Channel++)
+            for (int32_t Channel = 0; Channel < imageDimensions_.numColorChannels_; Channel++)
             {
                 XDirection1[Channel] = ImageByChannel[Channel].at<uchar>(Row, Column - 1);
             }
 
             // Compute energy of odd columns
             for (/* Column already initialized */;
-                 Column < imageDimensions_.NumColumns_; Column += 2)
+                 Column < imageDimensions_.numColumns_; Column += 2)
             {
                 if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
                 {
@@ -262,7 +262,7 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
                       // Compute gradients
                       // Compute overall energy by summing both X and Y gradient
                     for (int32_t Channel = 0;
-                         Channel < imageDimensions_.NumColorChannels_; Channel++)
+                         Channel < imageDimensions_.numColorChannels_; Channel++)
                     {
                         // get new values to the right
                         XDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row, Column + 1);
@@ -291,14 +291,14 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
             Column = 0;
 
             // initialize color values to the right of current pixel
-            for (int32_t Channel = 0; Channel < imageDimensions_.NumColorChannels_; Channel++)
+            for (int32_t Channel = 0; Channel < imageDimensions_.numColorChannels_; Channel++)
             {
                 XDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row, Column + 1);
             }
 
             // Compute energy of odd columns
             for (/* Column already initialized */;
-                 Column < imageDimensions_.NumColumns_; Column += 2)
+                 Column < imageDimensions_.numColumns_; Column += 2)
             {
                 if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
                 {
@@ -314,7 +314,7 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
                       // Compute gradients
                       // Compute overall energy by summing both X and Y gradient
                     for (int32_t Channel = 0;
-                         Channel < imageDimensions_.NumColorChannels_; Channel++)
+                         Channel < imageDimensions_.numColorChannels_; Channel++)
                     {
                         // shift color values to the left
                         XDirection1[Channel] = XDirection2[Channel];
@@ -343,9 +343,9 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
                                                            bool bDoOddRows)
 {
     // ensure image is of the right size
-    if (!(Image.cols == imageDimensions_.NumColumns_ &&
-          Image.rows == imageDimensions_.NumRows_ &&
-          Image.channels() == imageDimensions_.NumColorChannels_))
+    if (!(Image.cols == imageDimensions_.numColumns_ &&
+          Image.rows == imageDimensions_.numRows_ &&
+          Image.channels() == imageDimensions_.numColorChannels_))
     {
         // TODO throw exception
     }
@@ -358,29 +358,29 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
 
     // ensure outPixelEnergy has the right dimensions
     // if not, then resize locally
-    if (!(OutPixelEnergy.size() == (uint32_t)imageDimensions_.NumRows_) ||
-        !(OutPixelEnergy[0].size() == (uint32_t)imageDimensions_.NumColumns_))
+    if (!(OutPixelEnergy.size() == (uint32_t)imageDimensions_.numRows_) ||
+        !(OutPixelEnergy[0].size() == (uint32_t)imageDimensions_.numColumns_))
     {
-        OutPixelEnergy.resize(imageDimensions_.NumRows_);
-        for (int32_t Row = 0; Row < imageDimensions_.NumRows_; Row++)
+        OutPixelEnergy.resize(imageDimensions_.numRows_);
+        for (int32_t Row = 0; Row < imageDimensions_.numRows_; Row++)
         {
-            OutPixelEnergy[Row].resize(imageDimensions_.NumColumns_);
+            OutPixelEnergy[Row].resize(imageDimensions_.numColumns_);
         }
     }
 
-    int32_t BottomRow = imageDimensions_.NumRows_ - 1;
-    int32_t RightColumn = imageDimensions_.NumColumns_ - 1;
+    int32_t BottomRow = imageDimensions_.numRows_ - 1;
+    int32_t RightColumn = imageDimensions_.numColumns_ - 1;
 
     vector<cv::Mat> ImageByChannel;
-    ImageByChannel.resize(imageDimensions_.NumColorChannels_);
+    ImageByChannel.resize(imageDimensions_.numColorChannels_);
 
     // if color channels use cv::split
     // otherwise if grayscale use cv::extractChannel
-    if (imageDimensions_.NumColorChannels_ == numChannelsInColorImage_)
+    if (imageDimensions_.numColorChannels_ == numChannelsInColorImage_)
     {
         cv::split(Image, ImageByChannel);
     }
-    else if (imageDimensions_.NumColorChannels_ == 1)
+    else if (imageDimensions_.numColorChannels_ == 1)
     {
         cv::extractChannel(Image, ImageByChannel[0], 0);
     }
@@ -397,14 +397,14 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
     vector<double> YDirection2;
     vector<double> YDirection1;
 
-    YDirection2.resize(imageDimensions_.NumColorChannels_);
-    YDirection1.resize(imageDimensions_.NumColorChannels_);
+    YDirection2.resize(imageDimensions_.numColorChannels_);
+    YDirection1.resize(imageDimensions_.numColorChannels_);
 
     vector<double> DeltaXDirection;
     vector<double> DeltaYDirection;
 
-    DeltaXDirection.resize(imageDimensions_.NumColorChannels_);
-    DeltaYDirection.resize(imageDimensions_.NumColorChannels_);
+    DeltaXDirection.resize(imageDimensions_.numColorChannels_);
+    DeltaYDirection.resize(imageDimensions_.numColorChannels_);
 
     double DeltaSquareX = 0.0;
     double DeltaSquareY = 0.0;
@@ -413,7 +413,7 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
     // compute energy for every column
     // do odd rows and even rows separately in order to leverage cached values
         // to prevent multiple memory accesses
-    for (int32_t Column = 0; Column < imageDimensions_.NumColumns_; Column++)
+    for (int32_t Column = 0; Column < imageDimensions_.numColumns_; Column++)
     {
         /***** ODD ROWS *****/
         if (bDoOddRows)
@@ -422,13 +422,13 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
             Row = 1;
 
             // initialize color values above the current pixel
-            for (int32_t Channel = 0; Channel < imageDimensions_.NumColorChannels_; Channel++)
+            for (int32_t Channel = 0; Channel < imageDimensions_.numColorChannels_; Channel++)
             {
                 YDirection1[Channel] = ImageByChannel[Channel].at<uchar>(Row - 1, Column);
             }
 
             // Compute energy of odd rows
-            for (/* Row was already initialized */; Row < imageDimensions_.NumRows_; Row += 2)
+            for (/* Row was already initialized */; Row < imageDimensions_.numRows_; Row += 2)
             {
                 if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
                 {
@@ -444,7 +444,7 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
                       // Compute gradients
                       // Compute overall energy by summing both X and Y gradient
                     for (int32_t Channel = 0;
-                         Channel < imageDimensions_.NumColorChannels_; Channel++)
+                         Channel < imageDimensions_.numColorChannels_; Channel++)
                     {
                         // get new values below the current pixel
                         YDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row + 1, Column);
@@ -473,13 +473,13 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
             Row = 0;
 
             // initialize color values below the current pixel
-            for (int32_t Channel = 0; Channel < imageDimensions_.NumColorChannels_; Channel++)
+            for (int32_t Channel = 0; Channel < imageDimensions_.numColorChannels_; Channel++)
             {
                 YDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row + 1, Column);
             }
 
             // Compute energy of odd rows
-            for (/* Row was already initialized */; Row < imageDimensions_.NumRows_; Row += 2)
+            for (/* Row was already initialized */; Row < imageDimensions_.numRows_; Row += 2)
             {
                 if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
                 {
@@ -495,7 +495,7 @@ void cv::PixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& Image,
                       // Compute gradients
                       // Compute overall energy by summing both X and Y gradient
                     for (int32_t Channel = 0;
-                         Channel < imageDimensions_.NumColorChannels_; Channel++)
+                         Channel < imageDimensions_.numColorChannels_; Channel++)
                     {
                         // shift color values up
                         YDirection1[Channel] = YDirection2[Channel];
