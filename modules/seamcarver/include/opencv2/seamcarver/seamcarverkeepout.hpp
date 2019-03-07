@@ -55,7 +55,6 @@ namespace cv
         size_t width_ = 0;
     };
 
-
     class CV_EXPORTS SeamCarverKeepout : public SeamCarver
     {
     public:
@@ -66,12 +65,18 @@ namespace cv
 
         virtual ~SeamCarverKeepout() {}
 
-        virtual void
-            findAndRemoveVerticalSeams(size_t numSeams,
-                                       const cv::Mat& img,
-                                       cv::Mat& outImg,
-                                       cv::energyFunc computeEnergyFunction = nullptr) override;
+        virtual void runVerticalSeamRemover(size_t numSeams,
+                                        const cv::Mat& img,
+                                        cv::Mat& outImg,
+                                        cv::energyFunc computeEnergyFunction = nullptr) override;
 
+        virtual void setKeepoutRegion(size_t startingRow,
+                                      size_t startingColumn,
+                                      size_t height,
+                                      size_t width);
+
+
+        // Delete/defaulted go here
         SeamCarverKeepout(const SeamCarverKeepout& rhs) = delete;
         SeamCarverKeepout(const SeamCarverKeepout&& rhs) = delete;
         virtual SeamCarverKeepout& operator=(const SeamCarverKeepout& rhs) = delete;
@@ -79,9 +84,6 @@ namespace cv
 
     protected:
         virtual void resetLocalVectors(size_t numSeams) override;
-
-        virtual void setKeepoutRegion(size_t startingRow, size_t startingColumn,
-                                      size_t height, size_t width);
 
         bool keepoutRegionDefined = false;
 

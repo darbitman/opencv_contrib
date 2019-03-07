@@ -61,20 +61,45 @@ namespace cv
         virtual ~SeamCarver() {}
 
         /**
-         * @brief find and remove vertical seams
-         * @param NumSeams: number of vertical seams to remove
+         * @brief run the vertical seam remover algorithm
+         * @param numSeams: number of vertical seams to remove
          * @param img: input image
          * @param outImg: output paramter
-         * @param computeEnergy: pointer to a user-defined energy function. If one is not provided,
-         *      internal one will be used
-         * @return bool: indicates whether seam removal was successful or not
+         * @param computeEnergyFunction: pointer to a user-defined energy function.
+         *                               If one is not provided, internal one will be used
          */
-        virtual void findAndRemoveVerticalSeams(size_t numSeams,
-                                                const cv::Mat& img,
-                                                cv::Mat& outImg,
-                                                cv::energyFunc computeEnergyFunction = nullptr);
+        virtual void runVerticalSeamRemover(size_t numSeams,
+                                            const cv::Mat& img,
+                                            cv::Mat& outImg,
+                                            cv::energyFunc computeEnergyFunction = nullptr);
 
     protected:
+        /**
+         * @brief initializes member data using image dimensions
+         * @param img: a frame from which dimensions are extracted
+         */
+        virtual void init(const cv::Mat& img);
+
+        /**
+         * @brief initilizes member data using image dimensions
+         * @param numRows: number of rows in the image (height)
+         * @param numColumns: number of columns in the image (width)
+         */
+        virtual void init(size_t numRows, size_t numColumns);
+
+        /**
+         * @brief find and remove vertical seams
+         * @param numSeams: number of vertical seams to remove
+         * @param img: input image
+         * @param outImg: output parameter
+         * @param computeEnergyFunction: pointer to a user-defined energy function.
+         *                               If one is not provided, internal one will be used
+         */
+        virtual void findAndRemoveVerticalSeams(const size_t& numSeams,
+                                        const cv::Mat& img,
+                                        cv::Mat& outImg,
+                                        cv::energyFunc computeEnergyFunction);
+
         /**
          * @brief initializes local member variables
          * @param numRows: number of rows in the image
@@ -87,8 +112,14 @@ namespace cv
                                               size_t bottomRow,
                                               size_t rightColumn);
 
+        /**
+         * @brief initializes memory for all local vectors used part of the algorithm
+         */
         virtual void initializeLocalVectors();
 
+        /**
+         * @brief reset vectors to their "clean" state
+         */
         virtual void resetLocalVectors(size_t numSeams);
 
         /**

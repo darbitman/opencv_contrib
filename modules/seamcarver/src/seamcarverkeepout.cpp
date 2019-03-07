@@ -9,19 +9,17 @@ cv::SeamCarverKeepout::SeamCarverKeepout(size_t startingRow,
                                          size_t startingColumn,
                                          size_t regionWidth,
                                          size_t regionHeight,
-                                         double marginEnergy) :
-    SeamCarver(marginEnergy),
-    keepoutRegionDimensions_{startingRow, startingColumn, regionHeight, regionWidth},
-    keepoutRegionDefined(true)
+                                         double marginEnergy) : SeamCarver(marginEnergy)
 {
-
+    setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }
 
-void cv::SeamCarverKeepout::findAndRemoveVerticalSeams(size_t numSeams,
-                                                       const cv::Mat& img,
-                                                       cv::Mat& outImg,
-                                                       cv::energyFunc computeEnergyFunction)
+void cv::SeamCarverKeepout::runVerticalSeamRemover(size_t numSeams,
+                                                   const cv::Mat& img,
+                                                   cv::Mat& outImg,
+                                                   cv::energyFunc computeEnergyFunction)
 {
+    // verify keepout region dimensions
     if (!keepoutRegionDefined)
     {
         CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
@@ -45,12 +43,26 @@ void cv::SeamCarverKeepout::findAndRemoveVerticalSeams(size_t numSeams,
         }
     }
 
-    SeamCarver::findAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFunction);
+    if (needToInitializeLocalData)
+    {
+        init(img);
+    }
+
+    // check if removing more seams than columns available
+    if (numSeams > numColumns_)
+    {
+        CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
+    }
+
+    resetLocalVectors(numSeams);
+
+    findAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFunction);
 }
 
 void cv::SeamCarverKeepout::resetLocalVectors(size_t numSeams)
 {
     SeamCarver::resetLocalVectors(numSeams);
+
     if (keepoutRegionDefined)
     {
         for (size_t row = keepoutRegionDimensions_.row_;

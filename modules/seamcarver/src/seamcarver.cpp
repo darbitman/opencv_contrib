@@ -1,92 +1,49 @@
 #include "opencv2/seamcarver/seamcarver.hpp"
-#include <chrono>
-using namespace std::chrono;
-#include <iostream>
 
 cv::SeamCarver::SeamCarver(double marginEnergy) :
     marginEnergy_(marginEnergy),
-    pixelEnergyCalculator_(marginEnergy),
-    needToInitializeLocalData(true)
+    pixelEnergyCalculator_(marginEnergy)
 {
 }
 
 cv::SeamCarver::SeamCarver(size_t numRows, size_t numColumns, double marginEnergy) :
     marginEnergy_(marginEnergy),
-    pixelEnergyCalculator_(marginEnergy),
-    needToInitializeLocalData(false)
+    pixelEnergyCalculator_(marginEnergy)
 {
-    initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1);
-
-    initializeLocalVectors();
+    init(numRows, numColumns);
 }
 
-void cv::SeamCarver::findAndRemoveVerticalSeams(size_t numSeams,
-                                                const cv::Mat& img,
-                                                 cv::Mat& outImg,
-                                                cv::energyFunc computeEnergyFunction)
+void cv::SeamCarver::runVerticalSeamRemover(size_t numSeams,
+                                            const cv::Mat& img,
+                                            cv::Mat& outImg,
+                                            cv::energyFunc computeEnergyFunction)
 {
     if (needToInitializeLocalData)
     {
-        initializeLocalVariables(img.rows, img.cols, img.rows - 1, img.cols - 1);
+        init(img);
+    }
 
-        // check if removing more seams than columns available
-        if (numSeams > numColumns_)
-        {
-            CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
-        }
-
-        initializeLocalVectors();
-        needToInitializeLocalData = false;
+    // check if removing more seams than columns available
+    if (numSeams > numColumns_)
+    {
+        CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
     }
 
     resetLocalVectors(numSeams);
 
-    cv::split(img, bgr);
+    findAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFunction);
+}
 
-    try
-    {
-        auto start = high_resolution_clock::now();
-        auto stop = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(stop - start);
+void cv::SeamCarver::init(const cv::Mat& img)
+{
+    init(img.rows, img.cols);
+}
 
-        // Compute pixel energy
-        if (computeEnergyFunction == nullptr)
-        {
-            start = high_resolution_clock::now();
-            pixelEnergyCalculator_.setDimensions(numColumns_, numRows_, img.channels());
-            pixelEnergyCalculator_.calculatePixelEnergy(img, pixelEnergy);
-            stop = high_resolution_clock::now();
-            duration = duration_cast<microseconds>(stop - start);
-        }
-        else
-        {
-            // TODO refactor names/parameters associated with user defined function
-            // call user-defined energy computation function
-            computeEnergyFunction(img, pixelEnergy);
-        }
-
-        // find all vertical seams
-        start = high_resolution_clock::now();
-        findVerticalSeams(numSeams); // ~2.5s
-        stop = high_resolution_clock::now();
-        duration = duration_cast<microseconds>(stop - start);
-
-        // remove all found seams, least cumulative energy first
-        start = high_resolution_clock::now();
-        removeVerticalSeams();  // ~55ms
-        stop = high_resolution_clock::now();
-        duration = duration_cast<microseconds>(stop - start);
-
-        // combine separate channels into output image
-        start = high_resolution_clock::now();
-        cv::merge(bgr, outImg); // ~300-400us
-        stop = high_resolution_clock::now();
-        duration = duration_cast<microseconds>(stop - start);
-    }
-    catch (...)
-    {
-        // TODO handle exception
-    }
+void cv::SeamCarver::init(size_t numRows, size_t numColumns)
+{
+    initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1);
+    initializeLocalVectors();
+    needToInitializeLocalData = false;
 }
 
 inline void cv::SeamCarver::initializeLocalVariables(size_t numRows, size_t numColumns,
@@ -119,6 +76,50 @@ void cv::SeamCarver::initializeLocalVectors()
 
     discoveredSeams.resize(numRows_);
 }
+
+void cv::SeamCarver::findAndRemoveVerticalSeams(const size_t& numSeams,
+                                                const cv::Mat& img,
+                                                cv::Mat& outImg,
+                                                const cv::energyFunc computeEnergyFunction)
+{
+    // check if removing more seams than columns available
+    if (numSeams > numColumns_)
+    {
+        CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
+    }
+
+    cv::split(img, bgr);
+
+    try
+    {
+        // Compute pixel energy
+        if (computeEnergyFunction == nullptr)
+        {
+            pixelEnergyCalculator_.setDimensions(numColumns_, numRows_, img.channels());
+            pixelEnergyCalculator_.calculatePixelEnergy(img, pixelEnergy);
+        }
+        else
+        {
+            // TODO refactor names/parameters associated with user defined function
+            // call user-defined energy computation function
+            computeEnergyFunction(img, pixelEnergy);
+        }
+
+        // find all vertical seams
+        findVerticalSeams(numSeams);
+
+        // remove all found seams, least cumulative energy first
+        removeVerticalSeams();
+
+        // combine separate channels into output image
+        cv::merge(bgr, outImg);
+    }
+    catch (...)
+    {
+        // TODO handle exception
+    }
+}
+
 
 void cv::SeamCarver::resetLocalVectors(size_t numSeams)
 {
@@ -158,9 +159,6 @@ void cv::SeamCarver::findVerticalSeams(size_t numSeams)
                  "SeamCarver::findVerticalSeams() failed due to different sized vectors");
     }
 
-    // TODO delete once ready for release
-    int32_t seamRecalculationCount = 0;
-
     // initial cumulative energy path calculation
     calculateCumulativeVerticalPathEnergy();
 
@@ -194,11 +192,8 @@ void cv::SeamCarver::findVerticalSeams(size_t numSeams)
             // decrement currentSeam number iterator since this currentSeam was invalid
             // need to recalculate the cumulative energy
             n--;
-            seamRecalculationCount++;
             calculateCumulativeVerticalPathEnergy();
 
-            // TODO delete once ready for release
-            std::cout << "recalculated seam number: " << n + 1 << std::endl;
             restartSeamDiscovery = true;
         }
 
@@ -255,9 +250,6 @@ void cv::SeamCarver::findVerticalSeams(size_t numSeams)
             }
         }
     }   // for (size_t n = 0; n < numSeams; n++)
-
-    // TODO delete once ready for release
-    std::cout << "recalculated total times: " << seamRecalculationCount << std::endl;
 }
 
 
