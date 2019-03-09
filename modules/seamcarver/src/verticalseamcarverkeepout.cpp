@@ -1,23 +1,26 @@
-#include "opencv2/seamcarver/seamcarverkeepout.hpp"
+#include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
 
-cv::SeamCarverKeepout::SeamCarverKeepout(double marginEnergy) : SeamCarver(marginEnergy)
-{
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(double marginEnergy) :
+    VerticalSeamCarver(marginEnergy)
+{}
 
-}
-
-cv::SeamCarverKeepout::SeamCarverKeepout(size_t startingRow,
-                                         size_t startingColumn,
-                                         size_t regionWidth,
-                                         size_t regionHeight,
-                                         double marginEnergy) : SeamCarver(marginEnergy)
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
+                                   size_t numRows,
+                                   size_t numColumns,
+                                   size_t startingRow,
+                                   size_t startingColumn,
+                                   size_t regionWidth,
+                                   size_t regionHeight,
+                                   double marginEnergy) :
+                                       VerticalSeamCarver(numRows, numColumns, marginEnergy)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }
 
-void cv::SeamCarverKeepout::runVerticalSeamRemover(size_t numSeams,
-                                                   const cv::Mat& img,
-                                                   cv::Mat& outImg,
-                                                   cv::energyFunc computeEnergyFunction)
+void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
+                                           const cv::Mat& img,
+                                           cv::Mat& outImg,
+                                           cv::energyFunc computeEnergyFunction)
 {
     // verify keepout region dimensions
     if (!keepoutRegionDefined)
@@ -45,7 +48,7 @@ void cv::SeamCarverKeepout::runVerticalSeamRemover(size_t numSeams,
 
     if (needToInitializeLocalData)
     {
-        init(img);
+        init(img, img.rows);
     }
 
     // check if removing more seams than columns available
@@ -56,12 +59,12 @@ void cv::SeamCarverKeepout::runVerticalSeamRemover(size_t numSeams,
 
     resetLocalVectors(numSeams);
 
-    findAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFunction);
+    findAndRemoveSeams(numSeams, img, outImg, computeEnergyFunction);
 }
 
-void cv::SeamCarverKeepout::resetLocalVectors(size_t numSeams)
+void cv::VerticalSeamCarverKeepout::resetLocalVectors(size_t numSeams)
 {
-    SeamCarver::resetLocalVectors(numSeams);
+    VerticalSeamCarver::resetLocalVectors(numSeams);
 
     if (keepoutRegionDefined)
     {
@@ -78,7 +81,7 @@ void cv::SeamCarverKeepout::resetLocalVectors(size_t numSeams)
     }
 }
 
-void cv::SeamCarverKeepout::setKeepoutRegion(size_t startingRow,
+void cv::VerticalSeamCarverKeepout::setKeepoutRegion(size_t startingRow,
                                              size_t startingColumn,
                                              size_t height,
                                              size_t width)

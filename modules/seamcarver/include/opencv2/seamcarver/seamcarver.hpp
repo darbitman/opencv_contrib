@@ -54,51 +54,73 @@ namespace cv
     class CV_EXPORTS SeamCarver
     {
     public:
-        SeamCarver(double marginEnergy = 390150.0);
-
-        SeamCarver(size_t numRows, size_t numColumns, double marginEnergy = 390150.0);
-
         virtual ~SeamCarver() {}
 
         /**
-         * @brief run the vertical seam remover algorithm
-         * @param numSeams: number of vertical seams to remove
+         * @brief run the seam remover algorithm
+         * @param numSeams: number of seams to remove
          * @param img: input image
-         * @param outImg: output paramter
+         * @param outImg: output image parameter
          * @param computeEnergyFunction: pointer to a user-defined energy function.
          *                               If one is not provided, internal one will be used
          */
-        virtual void runVerticalSeamRemover(size_t numSeams,
-                                            const cv::Mat& img,
-                                            cv::Mat& outImg,
-                                            cv::energyFunc computeEnergyFunction = nullptr);
+        virtual void runSeamRemover(size_t numSeams,
+                                    const cv::Mat& img,
+                                    cv::Mat& outImg,
+                                    cv::energyFunc computeEnergyFunction = nullptr) = 0;
+
+        // delete/defaulted functions
+        SeamCarver(const SeamCarver& rhs) = delete;
+        SeamCarver(const SeamCarver&& rhs) = delete;
 
     protected:
+        SeamCarver(double marginEnergy);
+
+        /**
+         * @brief find and remove seams
+         * @param numSeams: number of seams to remove
+         * @param img: input image
+         * @param outImg: output image parameter
+         * @param computeEnergyFunction: pointer to a user-defined energy function.
+         *                               If one is not provided, internal one will be used
+         */
+        virtual void findAndRemoveSeams(const size_t& numSeams,
+                                        const cv::Mat& img,
+                                        cv::Mat& outImg,
+                                        cv::energyFunc computeEnergyFunction) = 0;
+
+        /**
+         * @brief calculates the energy required to reach the end
+         */
+        virtual void calculateCumulativePathEnergy() = 0;
+
+        /**
+         * @brief find seams for later removal
+         * @param numSeams: number of seams to discover for removal
+         */
+        virtual void findSeams(size_t numSeams) = 0;
+
+        /**
+         * @brief remove seams from img given by column locations stored in seam
+         * @param bgr: image separate into 3 channels (BLUE GREEN RED)
+         * @param seams: vector of priority queues that hold the locations of the pixels to remove
+         */
+        virtual void removeSeams() = 0;
+
         /**
          * @brief initializes member data using image dimensions
-         * @param img: a frame from which dimensions are extracted
+         * @param img: a sample frame from which dimensions are extracted
+         * @param seamLength: number of pixels per seam
          */
-        virtual void init(const cv::Mat& img);
+        virtual void init(const cv::Mat& img, size_t seamLength);
 
         /**
          * @brief initilizes member data using image dimensions
          * @param numRows: number of rows in the image (height)
          * @param numColumns: number of columns in the image (width)
+         * @param seamLength: number of pixels per seam
          */
-        virtual void init(size_t numRows, size_t numColumns);
-
-        /**
-         * @brief find and remove vertical seams
-         * @param numSeams: number of vertical seams to remove
-         * @param img: input image
-         * @param outImg: output parameter
-         * @param computeEnergyFunction: pointer to a user-defined energy function.
-         *                               If one is not provided, internal one will be used
-         */
-        virtual void findAndRemoveVerticalSeams(const size_t& numSeams,
-                                        const cv::Mat& img,
-                                        cv::Mat& outImg,
-                                        cv::energyFunc computeEnergyFunction);
+        virtual void init(size_t numRows, size_t numColumns, size_t seamLength);
 
         /**
          * @brief initializes local member variables
@@ -106,11 +128,13 @@ namespace cv
          * @param numColumns: number of columns in the image
          * @param bottomRow: index of the bottom row
          * @param rightColumn: index of the right column
+         * @param seamLength: number of pixels per seam
          */
         virtual void initializeLocalVariables(size_t numRows,
                                               size_t numColumns,
                                               size_t bottomRow,
-                                              size_t rightColumn);
+                                              size_t rightColumn,
+                                              size_t seamLength);
 
         /**
          * @brief initializes memory for all local vectors used part of the algorithm
@@ -118,48 +142,28 @@ namespace cv
         virtual void initializeLocalVectors();
 
         /**
-         * @brief reset vectors to their "clean" state
+         * @brief reset vectors to their starting state
          */
         virtual void resetLocalVectors(size_t numSeams);
-
-        /**
-         * @brief find vertical seams for later removal
-         * @param numSeams: number of seams to discover for removal
-         */
-        virtual void findVerticalSeams(size_t numSeams);
-
-        /**
-        * @brief calculates the energy required to reach bottom row
-        */
-        virtual void calculateCumulativeVerticalPathEnergy();
-
-        /**
-         * @brief remove vertical seam from img given by column locations stored in seam
-         * @param bgr image separate into 3 channels (BLUE GREEN RED)
-         * @param seams vector of priority queues that hold the columns for the pixels to remove
-         *              for each row, where the index into the vector is the row number
-         */
-        virtual void removeVerticalSeams();
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
         vector<vector<bool>> markedPixels;
 
-        // store pixel energy
+        // individual pixel energy
         vector<vector<double>> pixelEnergy;
 
-        // vector of min oriented priority queues that store the location of the columns to remove
-        //      for each row
+        // vector of min oriented priority queues that store the location of the pixels to remove
         vectorOfMinOrientedPQ discoveredSeams;
 
         // store cumulative energy to each pixel
         vector<vector<double>> totalEnergyTo;
 
-        // store the columnn of the pixel in the row above used to get to current pixel
-        vector<vector<int32_t>> columnTo;
+        // store the location (column or row) of the previous pixel to get to the current pixel
+        vector<vector<int32_t>> previousLocationTo;
 
         // store the current seam being discovered
-        vector<int32_t> currentSeam;
+        vector<size_t> currentSeam;
 
         // vector to hold image color channels separately
         vector<cv::Mat> bgr;
@@ -173,6 +177,10 @@ namespace cv
         size_t numColumns_ = 0;
         size_t bottomRow_ = 0;
         size_t rightColumn_ = 0;
+
+        // number of pixels per seam
+        size_t seamLength_ = 0;
+
         double posInf_ = std::numeric_limits<double>::max();
 
         cv::PixelEnergy2D pixelEnergyCalculator_;

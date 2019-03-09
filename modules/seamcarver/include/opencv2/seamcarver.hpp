@@ -3,6 +3,7 @@
 
 #include "seamcarver/pixelenergy2d.hpp"
 #include "seamcarver/seamcarver.hpp"
-#include "seamcarver/seamcarverkeepout.hpp"
+#include "seamcarver/verticalseamcarver.hpp"
+#include "seamcarver/verticalseamcarverkeepout.hpp"
 
 #endif //__OPENCV_SEAMCARVER_HPP__
