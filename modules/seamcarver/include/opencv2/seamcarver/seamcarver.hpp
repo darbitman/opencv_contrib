@@ -48,7 +48,7 @@
 
 namespace cv
 {
-    typedef void(*energyFunc)(const cv::Mat& img, vector<vector<double>>& outPixelEnergy);
+    typedef void(*energyFunc)(const cv::Mat& img, std::vector<std::vector<double>>& outPixelEnergy);
     typedef std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> vectorOfMinOrientedPQ;
 
     class CV_EXPORTS SeamCarver
@@ -69,12 +69,25 @@ namespace cv
                                     cv::Mat& outImg,
                                     cv::energyFunc computeEnergyFunction = nullptr) = 0;
 
+        virtual size_t getNumberOfColumns() const;
+
+        virtual size_t getNumberOfRows() const;
+
+        virtual bool areDimensionsInitialized() const;
+
         // delete/defaulted functions
         SeamCarver(const SeamCarver& rhs) = delete;
         SeamCarver(const SeamCarver&& rhs) = delete;
 
     protected:
         SeamCarver(double marginEnergy);
+
+        SeamCarver(size_t numRows,
+                   size_t numColumns,
+                   size_t numColorChannels,
+                   double marginEnergy = 390150.0);
+
+        SeamCarver(const cv::Mat& img, double marginEnergy = 390150.0);
 
         /**
          * @brief find and remove seams
@@ -118,9 +131,13 @@ namespace cv
          * @brief initilizes member data using image dimensions
          * @param numRows: number of rows in the image (height)
          * @param numColumns: number of columns in the image (width)
+         * @param numColorChannels: number of color channels in an image
          * @param seamLength: number of pixels per seam
          */
-        virtual void init(size_t numRows, size_t numColumns, size_t seamLength);
+        virtual void init(size_t numRows,
+                          size_t numColumns,
+                          size_t numColorChannels,
+                          size_t seamLength);
 
         /**
          * @brief initializes local member variables
@@ -148,25 +165,25 @@ namespace cv
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
-        vector<vector<bool>> markedPixels;
+        std::vector<std::vector<bool>> markedPixels;
 
         // individual pixel energy
-        vector<vector<double>> pixelEnergy;
+        std::vector<std::vector<double>> pixelEnergy;
 
         // vector of min oriented priority queues that store the location of the pixels to remove
         vectorOfMinOrientedPQ discoveredSeams;
 
         // store cumulative energy to each pixel
-        vector<vector<double>> totalEnergyTo;
+        std::vector<std::vector<double>> totalEnergyTo;
 
         // store the location (column or row) of the previous pixel to get to the current pixel
-        vector<vector<int32_t>> previousLocationTo;
+        std::vector<std::vector<int32_t>> previousLocationTo;
 
         // store the current seam being discovered
-        vector<size_t> currentSeam;
+        std::vector<size_t> currentSeam;
 
         // vector to hold image color channels separately
-        vector<cv::Mat> bgr;
+        std::vector<cv::Mat> bgr;
 
         bool needToInitializeLocalData = true;
 
