@@ -92,11 +92,11 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
                                                 cv::Mat& outImg,
                                                 const cv::energyFunc computeEnergyFunction)
 {
-    if (pixelEnergyCalculator_.getNumColorChannels() == 3)
+    if (pixelEnergyCalculator_.getNumColorChannels() == 3 && img.channels() == 3)
     {
         cv::split(img, bgr);
     }
-    else if (pixelEnergyCalculator_.getNumColorChannels() == 1)
+    else if (pixelEnergyCalculator_.getNumColorChannels() == 1 && img.channels() == 1)
     {
         cv::extractChannel(img, bgr[0], 0);
     }
