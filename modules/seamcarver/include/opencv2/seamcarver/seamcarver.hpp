@@ -73,6 +73,10 @@ namespace cv
 
         virtual size_t getNumberOfRows() const;
 
+        virtual void setDimensions(size_t numRows, size_t numColumns, size_t numColorChannels);
+
+        virtual void setDimensions(const cv::Mat& img);
+
         virtual bool areDimensionsInitialized() const;
 
         // delete/defaulted functions

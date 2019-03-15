@@ -70,6 +70,40 @@ size_t cv::SeamCarver::getNumberOfRows() const
     return numRows_;
 }
 
+void cv::SeamCarver::setDimensions(size_t numRows, size_t numColumns, size_t numColorChannels)
+{
+    if (numRows == 0 || numColumns == 0 || !(numColorChannels == 1 || numColorChannels == 3))
+    {
+        CV_Error(Error::Code::StsBadArg, "setDimensions failed due bad dimensions");
+    }
+
+    try
+    {
+        init(numRows, numColumns, numColorChannels, numRows);
+    }
+    catch (...)
+    {
+        throw;
+    }
+}
+
+void cv::SeamCarver::setDimensions(const cv::Mat& img)
+{
+    if (img.empty())
+    {
+        CV_Error(Error::Code::StsBadArg, "setDimensions failed due to empty image");
+    }
+
+    try
+    {
+        setDimensions((size_t)img.rows, (size_t)img.cols, (size_t)img.channels());
+    }
+    catch (...)
+    {
+        throw;
+    }
+}
+
 inline bool cv::SeamCarver::areDimensionsInitialized() const
 {
     return !needToInitializeLocalData;
