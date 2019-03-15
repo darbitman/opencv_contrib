@@ -40,42 +40,185 @@
 //M*/
 
 #include "test_precomp.hpp"
+#include <vector>
+#include "opencv2/seamcarver/debugdisplay.hpp"
 
 namespace opencv_test
 {
-    TEST(PixelEnergy2D, DefaultCtor)
+    namespace
     {
         double initialMarginEnergy = 390150.0;
-        int32_t initialNumColumns = 1920;
-        int32_t initialNumRows = 1080;
-        int32_t initialNumChannels = 3;
-        cv::PixelEnergy2D pixelEnergyCalculator(initialMarginEnergy);
-        pixelEnergyCalculator.setDimensions(initialNumColumns,
-                                            initialNumRows,
-                                            initialNumChannels);
-        cv::ImageDimensionStruct imageDimensions = pixelEnergyCalculator.getDimensions();
+        size_t initialNumColumns = 1920;
+        size_t initialNumRows = 1080;
+        size_t initialNumChannels = 3;
 
-        EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
-        EXPECT_EQ(initialNumColumns, imageDimensions.NumColumns_);
-        EXPECT_EQ(initialNumRows, imageDimensions.NumRows_);
-        EXPECT_EQ(initialNumChannels, imageDimensions.NumColorChannels_);
-    }
+        cv::Mat img = cv::imread("eagle.jpg");
 
-    TEST(PixelEnergy2D, DimsCtor)
-    {
-        double initialMarginEnergy = 390150.0;
-        int32_t initialNumColumns = 1920;
-        int32_t initialNumRows = 1080;
-        int32_t initialNumChannels = 3;
-        cv::PixelEnergy2D pixelEnergyCalculator(initialNumColumns,
-                                                initialNumRows,
-                                                initialNumChannels,
-                                                initialMarginEnergy);
-        cv::ImageDimensionStruct imageDimensions = pixelEnergyCalculator.getDimensions();
+        TEST(PixelEnergy2D, CanOpenImage)
+        {
+            EXPECT_EQ(img.empty(), false);
+        }
 
-        EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
-        EXPECT_EQ(initialNumColumns, imageDimensions.NumColumns_);
-        EXPECT_EQ(initialNumRows, imageDimensions.NumRows_);
-        EXPECT_EQ(initialNumChannels, imageDimensions.NumColorChannels_);
+        TEST(PixelEnergy2D, DefaultCtor)
+        {
+            cv::PixelEnergy2D pixelEnergyCalculator(initialMarginEnergy);
+
+            EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), false);
+            EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), false);
+
+            pixelEnergyCalculator.setDimensions(initialNumColumns, initialNumRows);
+            pixelEnergyCalculator.setNumColorChannels(initialNumChannels);
+
+            EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), true);
+            EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), true);
+
+            cv::ImageDimensionStruct imageDimensions = pixelEnergyCalculator.getDimensions();
+
+            EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
+            EXPECT_EQ(initialNumChannels, pixelEnergyCalculator.getNumColorChannels());
+            EXPECT_EQ(initialNumColumns, imageDimensions.numColumns_);
+            EXPECT_EQ(initialNumRows, imageDimensions.numRows_);
+        }
+
+        TEST(PixelEnergy2D, DimsCtor)
+        {
+            cv::PixelEnergy2D pixelEnergyCalculator(initialNumColumns,
+                                                    initialNumRows,
+                                                    initialNumChannels,
+                                                    initialMarginEnergy);
+
+            EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), true);
+            EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), true);
+
+            cv::ImageDimensionStruct imageDimensions = pixelEnergyCalculator.getDimensions();
+
+            EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
+            EXPECT_EQ(initialNumChannels, pixelEnergyCalculator.getNumColorChannels());
+            EXPECT_EQ(initialNumColumns, imageDimensions.numColumns_);
+            EXPECT_EQ(initialNumRows, imageDimensions.numRows_);
+        }
+
+        TEST(PixelEnergy2D, ImgCtor)
+        {
+            cv::Mat testImage(initialNumRows, initialNumColumns, CV_8U);
+
+            cv::PixelEnergy2D pixelEnergyCalculator(testImage, initialMarginEnergy);
+
+            EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), true);
+            EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), true);
+
+            cv::ImageDimensionStruct imageDimensions = pixelEnergyCalculator.getDimensions();
+
+            EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
+            EXPECT_EQ((size_t)testImage.channels(), pixelEnergyCalculator.getNumColorChannels());
+            EXPECT_EQ(initialNumColumns, imageDimensions.numColumns_);
+            EXPECT_EQ(initialNumRows, imageDimensions.numRows_);
+        }
+
+        TEST(PixelEnergy2D, CheckingExceptions)
+        {
+            // setting negative margin energy
+            try
+            {
+                cv::PixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.setMarginEnergy(-3.0);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
+
+            // check uninitialized dimensions
+            try
+            {
+                cv::PixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.getDimensions();
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
+
+            // check if number of color channels uninitialized
+            try
+            {
+                cv::PixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.getNumColorChannels();
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
+
+            // setting dimension of 0 size
+            try
+            {
+                cv::PixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.setDimensions(0, 10);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
+
+            // setting dimension of 0 size
+            try
+            {
+                cv::PixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.setDimensions(10, 0);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
+
+            // setting invalid number of color channels
+            try
+            {
+                cv::PixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.setNumColorChannels(2);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
+
+            // check if image is of the wrong dimensions
+            {
+                cv::Mat testImage(initialNumRows, initialNumColumns, CV_8U);
+
+                cv::PixelEnergy2D pixelEnergyCalculator(initialNumColumns - 1,
+                                                        initialNumRows - 1,
+                                                        testImage.channels());
+
+                EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), true);
+                EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), true);
+
+                vector<vector<double>> calculatedPixelEnergy;
+
+                try
+                {
+                    pixelEnergyCalculator.calculatePixelEnergy(testImage, calculatedPixelEnergy);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+                }
+            }
+        }
+
+        //TEST(PixelEnergy2D, DisplayCalculatedEnergy)
+        //{
+        //    cv::PixelEnergy2D pixelEnergyCalculator(img, initialMarginEnergy);
+
+        //    cv::namedWindow("Original Image");
+        //    cv::imshow("Original Image", img);
+
+        //    std::vector<std::vector<double>> computedPixelEnergy;
+        //    pixelEnergyCalculator.calculatePixelEnergy(img, computedPixelEnergy);
+
+        //    cv::DebugDisplay d;
+        //    d.Display2DVector<double>(computedPixelEnergy, initialMarginEnergy);
+        //}
     }
 }
