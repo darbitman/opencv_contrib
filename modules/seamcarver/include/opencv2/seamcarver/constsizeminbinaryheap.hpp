@@ -161,7 +161,7 @@ namespace cv
         // make sure allocating a heap of at least 1 element
         if (capacity_ < 1)
         {
-            CV_Error(Error::Code::StsBadArg, "Capacity is not a positive integer");
+            CV_Error(Error::Code::StsBadArg, "MinPQ capacity is not a positive integer");
         }
         else
         {
