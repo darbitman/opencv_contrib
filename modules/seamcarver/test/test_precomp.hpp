@@ -8,6 +8,7 @@
 #include "opencv2/seamcarver/pixelenergy2d.hpp"
 #include "opencv2/seamcarver/constsizeminbinaryheap.hpp"
 #include "opencv2/seamcarver/resizablepriorityqueue.hpp"
-#include "opencv2/seamcarver/seamcarver.hpp"
+#include "opencv2/seamcarver/verticalseamcarver.hpp"
+#include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
 
 #endif

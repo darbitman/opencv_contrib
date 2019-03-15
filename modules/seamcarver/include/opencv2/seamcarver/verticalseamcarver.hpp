@@ -47,15 +47,17 @@
 
 namespace cv
 {
-    typedef void(*energyFunc)(const cv::Mat& img, vector<vector<double>>& outPixelEnergy);
-    typedef std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> vectorOfMinOrientedPQ;
-
     class CV_EXPORTS VerticalSeamCarver : public SeamCarver
     {
     public:
         VerticalSeamCarver(double marginEnergy = 390150.0);
 
-        VerticalSeamCarver(size_t numRows, size_t numColumns, double marginEnergy = 390150.0);
+        VerticalSeamCarver(size_t numRows,
+                           size_t numColumns,
+                           size_t numColorChannels,
+                           double marginEnergy = 390150.0);
+
+        VerticalSeamCarver(const cv::Mat& img, double marginEnergy = 390150.0);
 
         virtual ~VerticalSeamCarver() {}
 

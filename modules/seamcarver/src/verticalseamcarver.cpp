@@ -1,12 +1,62 @@
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                        Intel License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000, Intel Corporation, all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of Intel Corporation may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
 #include "opencv2/seamcarver/verticalseamcarver.hpp"
 
 cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy) : SeamCarver(marginEnergy)
 {}
 
-cv::VerticalSeamCarver::VerticalSeamCarver(size_t numRows, size_t numColumns, double marginEnergy) :
+cv::VerticalSeamCarver::VerticalSeamCarver(size_t numRows,
+                                           size_t numColumns,
+                                           size_t numColorChannels,
+                                           double marginEnergy) :
+    SeamCarver(numRows, numColumns, numColorChannels, marginEnergy)
+{
+    init(numRows, numColumns, numColorChannels, numRows);
+}
+
+cv::VerticalSeamCarver::VerticalSeamCarver(const cv::Mat& img, double marginEnergy) :
     SeamCarver(marginEnergy)
 {
-    init(numRows, numColumns, numRows);
+    init(img, (size_t)img.rows);
 }
 
 void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
@@ -14,20 +64,27 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
                                             cv::Mat& outImg,
                                             cv::energyFunc computeEnergyFunction)
 {
-    if (needToInitializeLocalData)
+    try
     {
-        init(img, img.rows);
-    }
+        if (needToInitializeLocalData)
+        {
+            init(img, img.rows);
+        }
 
-    // check if removing more seams than columns available
-    if (numSeams > numColumns_)
+        // check if removing more seams than columns available
+        if (numSeams > numColumns_)
+        {
+            CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
+        }
+
+        resetLocalVectors(numSeams);
+
+        findAndRemoveSeams(numSeams, img, outImg, computeEnergyFunction);
+    }
+    catch (...)
     {
-        CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
+        throw;
     }
-
-    resetLocalVectors(numSeams);
-
-    findAndRemoveSeams(numSeams, img, outImg, computeEnergyFunction);
 }
 
 void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
@@ -35,14 +92,25 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
                                                 cv::Mat& outImg,
                                                 const cv::energyFunc computeEnergyFunction)
 {
-    cv::split(img, bgr);
+    if (pixelEnergyCalculator_.getNumColorChannels() == 3)
+    {
+        cv::split(img, bgr);
+    }
+    else if (pixelEnergyCalculator_.getNumColorChannels() == 1)
+    {
+        cv::extractChannel(img, bgr[0], 0);
+    }
+    else
+    {
+        CV_Error(Error::Code::StsInternal, "VerticalSeamCarver::findAndRemoveSeams failed due to \
+                                            incorrect number of color channels");
+    }
 
     try
     {
         // Compute pixel energy
         if (computeEnergyFunction == nullptr)
         {
-            pixelEnergyCalculator_.setDimensions(numColumns_, numRows_, img.channels());
             pixelEnergyCalculator_.calculatePixelEnergy(img, pixelEnergy);
         }
         else
@@ -57,12 +125,13 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
         // remove all found seams, least cumulative energy first
         removeSeams();
 
+        // FIXME merge based on number of color channels
         // combine separate channels into output image
         cv::merge(bgr, outImg);
     }
-    catch (...)
+    catch (const cv::Exception& caughtException)
     {
-        // TODO handle exception
+        throw caughtException;
     }
 }
 
@@ -129,18 +198,21 @@ void cv::VerticalSeamCarver::findSeams(size_t numSeams)
 
         if (!restartSeamDiscovery)
         {
-            for (size_t row = bottomRow_ - 1; row >= 0; row--)
+            for (int32_t row = bottomRow_ - 1; row >= 0; row--)
             {
                 // using the below pixel's row and column, extract the column of the pixel in the
                 //      current row
-                currentCol = previousLocationTo[row + 1][prevCol];
+                currentCol = previousLocationTo[(size_t)row + 1][prevCol];
 
                 // check if the current pixel of the current seam has been used part of another seam
-                if (markedPixels[row][currentCol])
+
+                if (markedPixels[(size_t)row][currentCol])
                 {
                     // mark the starting pixel in bottom row as having +INF cumulative energy so it
                     //      will not be chosen again
                     totalEnergyTo[bottomRow_][minTotalEnergyCol] = posInf_;
+
+                    // FIXME n-- could overflow & cause the outer for loop to fail since n is unsign
                     // decrement currentSeam number iterator since this currentSeam was invalid
                     n--;
                     // restart currentSeam finding loop
@@ -149,7 +221,7 @@ void cv::VerticalSeamCarver::findSeams(size_t numSeams)
                 }
 
                 // save the column of the pixel in the current row
-                currentSeam[row] = currentCol;
+                currentSeam[(size_t)row] = currentCol;
 
                 // save current column to be used for the next iteration of the loop
                 prevCol = currentCol;
@@ -296,42 +368,43 @@ void cv::VerticalSeamCarver::removeSeams()
     // each time a new column is encountered, move the pixels to the right of it
     //   (up until the next column number) to the left by the number of pixels already removed
 
-    int32_t colToRemove = 0;
-    int32_t numSeamsRemoved = 0;
+    size_t colToRemove = 0;
+    size_t numSeamsRemoved = 0;
     /*** REMOVE PIXELS FOR EVERY ROW ***/
-    for (size_t r = 0; r < numRows_; r++)
+    for (size_t row = 0; row < numRows_; row++)
     {
         // seamRecalculationCount the number of seams to the left of the current pixel
         //   to indicate how many spaces to move pixels that aren't being removed to the left
         numSeamsRemoved = 0;
         // loop through all pixels to remove in current row
-        while (discoveredSeams[r].size())
+        while (!discoveredSeams[row].empty())
         {
             numSeamsRemoved++;
             // column location of pixel to remove in row row
-            colToRemove = discoveredSeams[r].pop();
+            colToRemove = discoveredSeams[row].pop();
             //seams[row].pop();
             // mark right endpoint/next pixel column
-            size_t rightColBorder = (discoveredSeams[r].empty() ?
-                                     numColumns_ : discoveredSeams[r].top());
+            size_t rightColBorder = (discoveredSeams[row].empty() ?
+                                     numColumns_ : discoveredSeams[row].top());
             // starting at the column to the right of the column to remove,
-            //      move the pixel to the left by the number of seams to the left of the pixel,
+            //      move the pixel to the left, by the number of seams to the left of the pixel,
             //      until the right end point which is either the last column or the next column
             //      to remove whichever comes first
-            for (size_t c = colToRemove + 1; c < rightColBorder; c++)
+            for (size_t column = colToRemove + 1; column < rightColBorder; column++)
             {
-                for (int32_t j = 0; j < 3; j++)
+                for (size_t j = 0; j < pixelEnergyCalculator_.getNumColorChannels(); j++)
                 {
-                    bgr[j].at<uchar>(r, c - numSeamsRemoved) = bgr[j].at<uchar>(r, c);
+                    bgr[j].at<uchar>(row, column - numSeamsRemoved) = bgr[j].at<uchar>(row, column);
                 }
+
             }
         }
     }
 
     /*** SHRINK IMAGE BY REMOVING SEAMS ***/
-    int32_t numColorChannels = pixelEnergyCalculator_.getDimensions().numColorChannels_;
-    for (int32_t Channel = 0; Channel < numColorChannels; Channel++)
+    size_t numColorChannels = pixelEnergyCalculator_.getNumColorChannels();
+    for (size_t channel = 0; channel < numColorChannels; channel++)
     {
-        bgr[Channel] = bgr[Channel].colRange(0, bgr[Channel].cols - numSeamsRemoved);
+        bgr[channel] = bgr[channel].colRange(0, numColumns_ - numSeamsRemoved);
     }
 }
