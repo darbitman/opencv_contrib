@@ -47,7 +47,7 @@
 
 namespace cv
 {
-    struct keepoutRegionDimensionsStruct
+    struct CV_EXPORTS keepoutRegionDimensionsStruct
     {
         size_t row_ = 0;
         size_t column_ = 0;
@@ -62,6 +62,14 @@ namespace cv
 
         VerticalSeamCarverKeepout(size_t numRows,
                                   size_t numColumns,
+                                  size_t numColorChannels,
+                                  size_t startingRow,
+                                  size_t startingColumn,
+                                  size_t regionWidth,
+                                  size_t regionHeight,
+                                  double marginEnergy = 390150.0);
+
+        VerticalSeamCarverKeepout(const cv::Mat& img,
                                   size_t startingRow,
                                   size_t startingColumn,
                                   size_t regionWidth,
@@ -80,17 +88,19 @@ namespace cv
                                       size_t height,
                                       size_t width);
 
+        virtual bool isKeepoutRegionDefined() const;
+
 
         // Delete/defaulted go here
         VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout& rhs) = delete;
         VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout&& rhs) = delete;
         virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout& rhs) = delete;
-        virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout&& rhs) =delete;
+        virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout&& rhs) = delete;
 
     protected:
         virtual void resetLocalVectors(size_t numSeams) override;
 
-        bool keepoutRegionDefined = false;
+        bool bKeepoutRegionDefined = false;
 
         keepoutRegionDimensionsStruct keepoutRegionDimensions_;
     };
