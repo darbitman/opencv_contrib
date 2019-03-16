@@ -85,17 +85,17 @@ namespace cv
 
         virtual void setKeepoutRegion(size_t startingRow,
                                       size_t startingColumn,
-                                      size_t height,
-                                      size_t width);
+                                      size_t width,
+                                      size_t height);
 
         virtual bool isKeepoutRegionDefined() const;
 
 
-        // Delete/defaulted go here
+        // Deleted/defaulted
         VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout& rhs) = delete;
         VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout&& rhs) = delete;
         virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout& rhs) = delete;
-        virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout&& rhs) = delete;
+        virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout&& rhs)= delete;
 
     protected:
         virtual void resetLocalVectors(size_t numSeams) override;
