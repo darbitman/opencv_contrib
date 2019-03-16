@@ -56,31 +56,6 @@ namespace cv
     class CV_EXPORTS PixelEnergy2D
     {
     public:
-        /**
-         * @brief Default ctor, where the default pixel energy at the edges is 390150.0
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit PixelEnergy2D(double marginEnergy = 390150.0);
-
-        /**
-         * @brief ctor that will initialize all image dimensions
-         * @param numColumns: width of the image in pixels
-         * @param numRows: height of the image in pixels
-         * @param numColorChannels: how many color channels an image has
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit PixelEnergy2D(size_t numColumns,
-                               size_t numRows,
-                               size_t numColorChannels,
-                               double marginEnergy = 390150.0);
-
-        /**
-         * @brief ctor that will initialize image dimensions based on the image itself
-         * @param image: the image whose dimensions will be extracted
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit PixelEnergy2D(const cv::Mat& image, double marginEnergy = 390150.0);
-
         virtual ~PixelEnergy2D();
 
         /**
@@ -139,7 +114,7 @@ namespace cv
          * @return bool: indicates if the operation was successful
          */
         virtual void calculatePixelEnergy(const cv::Mat& image,
-                                          std::vector<std::vector<double>>& outPixelEnergy);
+                                          std::vector<std::vector<double>>& outPixelEnergy) = 0;
 
         // Deleted/defaulted
         PixelEnergy2D(const PixelEnergy2D&) = delete;
@@ -149,28 +124,29 @@ namespace cv
 
     protected:
         /**
-         * @brief
-         * @param Image: 2D matrix representation of the image
-         * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
-         * @param bDoOddColumns: Indicates whether odd or even columns are done
-         * @return bool: indicates if the operation was successful
+         * @brief Default ctor, where the default pixel energy at the edges is 390150.0
+         * @param marginEnergy: energy defined for border pixels
          */
-        virtual void calculatePixelEnergyForEveryRow(
-            const cv::Mat& image,
-            std::vector<std::vector<double>>& outPixelEnergy,
-            bool bDoOddColumns);
+        explicit PixelEnergy2D(double marginEnergy = 390150.0);
 
         /**
-         * @brief
-         * @param Image: 2D matrix representation of the image
-         * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
-         * @param bDoOddRows: Indicates whether odd or even rows are done
-         * @return bool: indicates if the operation was successful
+         * @brief ctor that will initialize all image dimensions
+         * @param numColumns: width of the image in pixels
+         * @param numRows: height of the image in pixels
+         * @param numColorChannels: how many color channels an image has
+         * @param marginEnergy: energy defined for border pixels
          */
-        virtual void calculatePixelEnergyForEveryColumn(
-            const cv::Mat& image,
-            std::vector<std::vector<double>>& outPixelEnergy,
-            bool bDoOddRows);
+        explicit PixelEnergy2D(size_t numColumns,
+                               size_t numRows,
+                               size_t numColorChannels,
+                               double marginEnergy = 390150.0);
+
+        /**
+         * @brief ctor that will initialize image dimensions based on the image itself
+         * @param image: the image whose dimensions will be extracted
+         * @param marginEnergy: energy defined for border pixels
+         */
+        explicit PixelEnergy2D(const cv::Mat& image, double marginEnergy = 390150.0);
 
         // stores number of columns, rows
         cv::ImageDimensionStruct imageDimensions_;
@@ -187,9 +163,9 @@ namespace cv
         bool bNumColorChannelsInitialized = false;
 
         // store an exception if a thread throws it
-        std::exception_ptr threadExceptionPtr = nullptr;
+        //std::exception_ptr threadExceptionPtr = nullptr;
 
-        std::mutex threadExceptionPtrMutex;
+        //std::mutex threadExceptionPtrMutex;
     };
 }
 

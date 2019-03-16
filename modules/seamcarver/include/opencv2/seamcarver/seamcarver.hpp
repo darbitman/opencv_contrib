@@ -43,7 +43,7 @@
 #define OPENCV_SEAMCARVER_SEAMCARVER_HPP
 
 #include <opencv2/core.hpp>
-#include "pixelenergy2d.hpp"
+//#include "pixelenergy2d.hpp"
 #include "constsizeminbinaryheap.hpp"
 
 namespace cv
@@ -51,10 +51,13 @@ namespace cv
     typedef void(*energyFunc)(const cv::Mat& img, std::vector<std::vector<double>>& outPixelEnergy);
     typedef std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> vectorOfMinOrientedPQ;
 
+    // forward declare
+    class PixelEnergy2D;
+
     class CV_EXPORTS SeamCarver
     {
     public:
-        virtual ~SeamCarver() {}
+        virtual ~SeamCarver();
 
         /**
          * @brief run the seam remover algorithm
@@ -66,8 +69,7 @@ namespace cv
          */
         virtual void runSeamRemover(size_t numSeams,
                                     const cv::Mat& img,
-                                    cv::Mat& outImg,
-                                    cv::energyFunc computeEnergyFunction = nullptr) = 0;
+                                    cv::Mat& outImg) = 0;
 
         virtual size_t getNumberOfColumns() const;
 
@@ -84,27 +86,27 @@ namespace cv
         SeamCarver(const SeamCarver&& rhs) = delete;
 
     protected:
-        SeamCarver(double marginEnergy);
+        SeamCarver(double marginEnergy = 390150.0, PixelEnergy2D* pPixelEnergy2D = nullptr);
 
         SeamCarver(size_t numRows,
                    size_t numColumns,
                    size_t numColorChannels,
-                   double marginEnergy = 390150.0);
+                   double marginEnergy = 390150.0,
+                   PixelEnergy2D* pPixelEnergy2D = nullptr);
 
-        SeamCarver(const cv::Mat& img, double marginEnergy = 390150.0);
+        SeamCarver(const cv::Mat& img,
+                   double marginEnergy = 390150.0,
+                   PixelEnergy2D* pPixelEnergy2D = nullptr);
 
         /**
          * @brief find and remove seams
          * @param numSeams: number of seams to remove
          * @param img: input image
          * @param outImg: output image parameter
-         * @param computeEnergyFunction: pointer to a user-defined energy function.
-         *                               If one is not provided, internal one will be used
          */
         virtual void findAndRemoveSeams(const size_t& numSeams,
                                         const cv::Mat& img,
-                                        cv::Mat& outImg,
-                                        cv::energyFunc computeEnergyFunction) = 0;
+                                        cv::Mat& outImg) = 0;
 
         /**
          * @brief calculates the energy required to reach the end
@@ -204,7 +206,7 @@ namespace cv
 
         double posInf_ = std::numeric_limits<double>::max();
 
-        cv::PixelEnergy2D pixelEnergyCalculator_;
+        cv::PixelEnergy2D* pixelEnergyCalculator_ = nullptr;
     };
 
 }

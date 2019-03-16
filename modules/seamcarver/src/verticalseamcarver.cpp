@@ -40,9 +40,10 @@
 //M*/
 
 #include "opencv2/seamcarver/verticalseamcarver.hpp"
+#include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
 
-cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy) : SeamCarver(marginEnergy)
-{}
+
+cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy) : SeamCarver(marginEnergy) {}
 
 cv::VerticalSeamCarver::VerticalSeamCarver(size_t numRows,
                                            size_t numColumns,
@@ -61,8 +62,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(const cv::Mat& img, double marginEner
 
 void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
                                             const cv::Mat& img,
-                                            cv::Mat& outImg,
-                                            cv::energyFunc computeEnergyFunction)
+                                            cv::Mat& outImg)
 {
     try
     {
@@ -79,7 +79,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
 
         resetLocalVectors(numSeams);
 
-        findAndRemoveSeams(numSeams, img, outImg, computeEnergyFunction);
+        findAndRemoveSeams(numSeams, img, outImg);
     }
     catch (...)
     {
@@ -89,14 +89,13 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
 
 void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
                                                 const cv::Mat& img,
-                                                cv::Mat& outImg,
-                                                const cv::energyFunc computeEnergyFunction)
+                                                cv::Mat& outImg)
 {
-    if (pixelEnergyCalculator_.getNumColorChannels() == 3 && img.channels() == 3)
+    if (pixelEnergyCalculator_->getNumColorChannels() == 3 && img.channels() == 3)
     {
         cv::split(img, bgr);
     }
-    else if (pixelEnergyCalculator_.getNumColorChannels() == 1 && img.channels() == 1)
+    else if (pixelEnergyCalculator_->getNumColorChannels() == 1 && img.channels() == 1)
     {
         cv::extractChannel(img, bgr[0], 0);
     }
@@ -108,16 +107,7 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
 
     try
     {
-        // Compute pixel energy
-        if (computeEnergyFunction == nullptr)
-        {
-            pixelEnergyCalculator_.calculatePixelEnergy(img, pixelEnergy);
-        }
-        else
-        {
-            // call user-defined energy computation function
-            computeEnergyFunction(img, pixelEnergy);
-        }
+        pixelEnergyCalculator_->calculatePixelEnergy(img, pixelEnergy);
 
         // find all vertical seams
         findSeams(numSeams);
@@ -392,7 +382,7 @@ void cv::VerticalSeamCarver::removeSeams()
             //      to remove whichever comes first
             for (size_t column = colToRemove + 1; column < rightColBorder; column++)
             {
-                for (size_t j = 0; j < pixelEnergyCalculator_.getNumColorChannels(); j++)
+                for (size_t j = 0; j < pixelEnergyCalculator_->getNumColorChannels(); j++)
                 {
                     bgr[j].at<uchar>(row, column - numSeamsRemoved) = bgr[j].at<uchar>(row, column);
                 }
@@ -402,7 +392,7 @@ void cv::VerticalSeamCarver::removeSeams()
     }
 
     /*** SHRINK IMAGE BY REMOVING SEAMS ***/
-    size_t numColorChannels = pixelEnergyCalculator_.getNumColorChannels();
+    size_t numColorChannels = pixelEnergyCalculator_->getNumColorChannels();
     for (size_t channel = 0; channel < numColorChannels; channel++)
     {
         bgr[channel] = bgr[channel].colRange(0, numColumns_ - numSeamsRemoved);

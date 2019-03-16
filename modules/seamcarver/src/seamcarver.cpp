@@ -40,25 +40,60 @@
 //M*/
 
 #include "opencv2/seamcarver/seamcarver.hpp"
+#include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
 using std::vector;
 
-cv::SeamCarver::SeamCarver(double marginEnergy) :
-    marginEnergy_(marginEnergy),
-    pixelEnergyCalculator_(marginEnergy)
-{}
+cv::SeamCarver::~SeamCarver()
+{
+    if (pixelEnergyCalculator_)
+    {
+        delete pixelEnergyCalculator_;
+        pixelEnergyCalculator_ = nullptr;
+    }
+}
+
+cv::SeamCarver::SeamCarver(double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
+    marginEnergy_(marginEnergy)
+{
+    if (pPixelEnergy2D)
+    {
+        pixelEnergyCalculator_ = pPixelEnergy2D;
+    }
+    else
+    {
+        pixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+    }
+}
 
 cv::SeamCarver::SeamCarver(size_t numRows,
                            size_t numColumns,
                            size_t numColorChannels,
-                           double marginEnergy) :
-    marginEnergy_(marginEnergy),
-    pixelEnergyCalculator_(numColumns, numRows, numColorChannels, marginEnergy)
-{}
+                           double marginEnergy,
+                           PixelEnergy2D* pPixelEnergy2D) : marginEnergy_(marginEnergy)
+{
+    if (pPixelEnergy2D)
+    {
+        pixelEnergyCalculator_ = pPixelEnergy2D;
+    }
+    else
+    {
+        pixelEnergyCalculator_ =
+            new GradientPixelEnergy2D(numColumns, numRows, numColorChannels, marginEnergy);
+    }
+}
 
-cv::SeamCarver::SeamCarver(const cv::Mat& img, double marginEnergy) :
-    marginEnergy_(marginEnergy),
-    pixelEnergyCalculator_(img, marginEnergy)
-{}
+cv::SeamCarver::SeamCarver(const cv::Mat& img, double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
+    marginEnergy_(marginEnergy)
+{
+    if (pPixelEnergy2D)
+    {
+        pixelEnergyCalculator_ = pPixelEnergy2D;
+    }
+    else
+    {
+        pixelEnergyCalculator_ = new GradientPixelEnergy2D(img, marginEnergy);
+    }
+}
 
 size_t cv::SeamCarver::getNumberOfColumns() const
 {
@@ -128,14 +163,14 @@ void cv::SeamCarver::init(size_t numRows,
 {
     try
     {
-        if (!pixelEnergyCalculator_.areDimensionsSet())
+        if (!pixelEnergyCalculator_->areDimensionsSet())
         {
-            pixelEnergyCalculator_.setDimensions(numColumns, numRows);
+            pixelEnergyCalculator_->setDimensions(numColumns, numRows);
         }
 
-        if (!pixelEnergyCalculator_.isNumColorChannelsSet())
+        if (!pixelEnergyCalculator_->isNumColorChannelsSet())
         {
-            pixelEnergyCalculator_.setNumColorChannels(numColorChannels);
+            pixelEnergyCalculator_->setNumColorChannels(numColorChannels);
         }
     }
     catch (...)
@@ -180,7 +215,7 @@ void cv::SeamCarver::initializeLocalVectors()
     currentSeam.resize(seamLength_);
     discoveredSeams.resize(seamLength_);
 
-    bgr.resize(pixelEnergyCalculator_.getNumColorChannels());
+    bgr.resize(pixelEnergyCalculator_->getNumColorChannels());
 }
 
 void cv::SeamCarver::resetLocalVectors(size_t numSeams)

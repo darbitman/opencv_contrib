@@ -66,13 +66,10 @@ namespace cv
          * @param numSeams: number of vertical seams to remove
          * @param img: input image
          * @param outImg: output image parameter
-         * @param computeEnergyFunction: pointer to a user-defined energy function.
-         *                               If one is not provided, internal one will be used
          */
         virtual void runSeamRemover(size_t numSeams,
                                     const cv::Mat& img,
-                                    cv::Mat& outImg,
-                                    cv::energyFunc computeEnergyFunction = nullptr) override;
+                                    cv::Mat& outImg) override;
 
         // Deleted/defaulted
         VerticalSeamCarver(const VerticalSeamCarver& rhs) = delete;
@@ -91,8 +88,7 @@ namespace cv
          */
         virtual void findAndRemoveSeams(const size_t& numSeams,
                                         const cv::Mat& img,
-                                        cv::Mat& outImg,
-                                        cv::energyFunc computeEnergyFunction) override;
+                                        cv::Mat& outImg) override;
 
         /**
          * @brief calculates the energy required to reach bottom row

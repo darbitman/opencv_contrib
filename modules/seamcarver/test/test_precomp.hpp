@@ -5,7 +5,7 @@
 #define __OPENCV_TEST_PRECOMP_HPP__
 
 #include "opencv2/ts.hpp"
-#include "opencv2/seamcarver/pixelenergy2d.hpp"
+#include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
 #include "opencv2/seamcarver/constsizeminbinaryheap.hpp"
 #include "opencv2/seamcarver/resizablepriorityqueue.hpp"
 #include "opencv2/seamcarver/verticalseamcarver.hpp"

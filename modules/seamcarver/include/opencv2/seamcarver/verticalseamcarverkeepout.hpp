@@ -80,8 +80,7 @@ namespace cv
 
         virtual void runSeamRemover(size_t numSeams,
                                     const cv::Mat& img,
-                                    cv::Mat& outImg,
-                                    cv::energyFunc computeEnergyFunction = nullptr) override;
+                                    cv::Mat& outImg) override;
 
         virtual void setKeepoutRegion(size_t startingRow,
                                       size_t startingColumn,

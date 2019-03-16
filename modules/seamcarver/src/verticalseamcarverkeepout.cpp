@@ -31,8 +31,7 @@ cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(const cv::Mat& img,
 
 void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
                                                    const cv::Mat& img,
-                                                   cv::Mat& outImg,
-                                                   cv::energyFunc computeEnergyFunction)
+                                                   cv::Mat& outImg)
 {
     try
     {
@@ -69,7 +68,7 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
 
         resetLocalVectors(numSeams);
 
-        findAndRemoveSeams(numSeams, img, outImg, computeEnergyFunction);
+        findAndRemoveSeams(numSeams, img, outImg);
     }
     catch (...)
     {

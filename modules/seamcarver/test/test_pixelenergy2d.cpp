@@ -54,14 +54,14 @@ namespace opencv_test
 
         cv::Mat img = cv::imread("eagle.jpg");
 
-        TEST(PixelEnergy2D, CanOpenImage)
+        TEST(GradientPixelEnergy2D, CanOpenImage)
         {
             EXPECT_EQ(img.empty(), false);
         }
 
-        TEST(PixelEnergy2D, DefaultCtor)
+        TEST(GradientPixelEnergy2D, DefaultCtor)
         {
-            cv::PixelEnergy2D pixelEnergyCalculator(initialMarginEnergy);
+            cv::GradientPixelEnergy2D pixelEnergyCalculator(initialMarginEnergy);
 
             EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), false);
             EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), false);
@@ -80,9 +80,9 @@ namespace opencv_test
             EXPECT_EQ(initialNumRows, imageDimensions.numRows_);
         }
 
-        TEST(PixelEnergy2D, DimsCtor)
+        TEST(GradientPixelEnergy2D, DimsCtor)
         {
-            cv::PixelEnergy2D pixelEnergyCalculator(initialNumColumns,
+            cv::GradientPixelEnergy2D pixelEnergyCalculator(initialNumColumns,
                                                     initialNumRows,
                                                     initialNumChannels,
                                                     initialMarginEnergy);
@@ -98,11 +98,11 @@ namespace opencv_test
             EXPECT_EQ(initialNumRows, imageDimensions.numRows_);
         }
 
-        TEST(PixelEnergy2D, ImgCtor)
+        TEST(GradientPixelEnergy2D, ImgCtor)
         {
             cv::Mat testImage(initialNumRows, initialNumColumns, CV_8U);
 
-            cv::PixelEnergy2D pixelEnergyCalculator(testImage, initialMarginEnergy);
+            cv::GradientPixelEnergy2D pixelEnergyCalculator(testImage, initialMarginEnergy);
 
             EXPECT_EQ(pixelEnergyCalculator.areDimensionsSet(), true);
             EXPECT_EQ(pixelEnergyCalculator.isNumColorChannelsSet(), true);
@@ -115,12 +115,12 @@ namespace opencv_test
             EXPECT_EQ(initialNumRows, imageDimensions.numRows_);
         }
 
-        TEST(PixelEnergy2D, CheckingExceptions)
+        TEST(GradientPixelEnergy2D, CheckingExceptions)
         {
             // setting negative margin energy
             try
             {
-                cv::PixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergy2D pixelEnergyCalculator;
                 pixelEnergyCalculator.setMarginEnergy(-3.0);
             }
             catch (const cv::Exception& e)
@@ -131,7 +131,7 @@ namespace opencv_test
             // check uninitialized dimensions
             try
             {
-                cv::PixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergy2D pixelEnergyCalculator;
                 pixelEnergyCalculator.getDimensions();
             }
             catch (const cv::Exception& e)
@@ -142,7 +142,7 @@ namespace opencv_test
             // check if number of color channels uninitialized
             try
             {
-                cv::PixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergy2D pixelEnergyCalculator;
                 pixelEnergyCalculator.getNumColorChannels();
             }
             catch (const cv::Exception& e)
@@ -153,7 +153,7 @@ namespace opencv_test
             // setting dimension of 0 size
             try
             {
-                cv::PixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergy2D pixelEnergyCalculator;
                 pixelEnergyCalculator.setDimensions(0, 10);
             }
             catch (const cv::Exception& e)
@@ -164,7 +164,7 @@ namespace opencv_test
             // setting dimension of 0 size
             try
             {
-                cv::PixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergy2D pixelEnergyCalculator;
                 pixelEnergyCalculator.setDimensions(10, 0);
             }
             catch (const cv::Exception& e)
@@ -175,7 +175,7 @@ namespace opencv_test
             // setting invalid number of color channels
             try
             {
-                cv::PixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergy2D pixelEnergyCalculator;
                 pixelEnergyCalculator.setNumColorChannels(2);
             }
             catch (const cv::Exception& e)
@@ -187,7 +187,7 @@ namespace opencv_test
             {
                 cv::Mat testImage(initialNumRows, initialNumColumns, CV_8U);
 
-                cv::PixelEnergy2D pixelEnergyCalculator(initialNumColumns - 1,
+                cv::GradientPixelEnergy2D pixelEnergyCalculator(initialNumColumns - 1,
                                                         initialNumRows - 1,
                                                         testImage.channels());
 
@@ -207,9 +207,9 @@ namespace opencv_test
             }
         }
 
-        //TEST(PixelEnergy2D, DisplayCalculatedEnergy)
+        //TEST(GradientPixelEnergy2D, DisplayCalculatedEnergy)
         //{
-        //    cv::PixelEnergy2D pixelEnergyCalculator(img, initialMarginEnergy);
+        //    cv::GradientPixelEnergy2D pixelEnergyCalculator(img, initialMarginEnergy);
 
         //    cv::namedWindow("Original Image");
         //    cv::imshow("Original Image", img);
