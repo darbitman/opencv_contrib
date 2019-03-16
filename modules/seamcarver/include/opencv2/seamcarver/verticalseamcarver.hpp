@@ -74,6 +74,12 @@ namespace cv
                                     cv::Mat& outImg,
                                     cv::energyFunc computeEnergyFunction = nullptr) override;
 
+        // Deleted/defaulted
+        VerticalSeamCarver(const VerticalSeamCarver& rhs) = delete;
+        VerticalSeamCarver(const VerticalSeamCarver&& rhs) = delete;
+        virtual VerticalSeamCarver& operator=(const VerticalSeamCarver& rhs) = delete;
+        virtual VerticalSeamCarver& operator=(const VerticalSeamCarver&& rhs) = delete;
+
     protected:
         /**
          * @brief find then remove remove vertical seams
