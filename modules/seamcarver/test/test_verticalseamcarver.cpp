@@ -81,7 +81,7 @@ namespace opencv_test
             EXPECT_EQ(vSeamCarver.getNumberOfColumns(), (size_t)img.cols);
         }
 
-        TEST(VerticalSeamCarver, CheckRunSeamCarverThrows)
+        TEST(VerticalSeamCarver, CheckRunSeamRemoverThrows)
         {
             VerticalSeamCarver vSeamCarver(initialMarginEnergy);
 
@@ -111,13 +111,13 @@ namespace opencv_test
             EXPECT_EQ(outImg.rows, img.rows);
             EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
 
-            DebugDisplay d;
-            d.displayMatrix(outImg);
+            //DebugDisplay d;
+            //d.displayMatrix(outImg);
         }
 
         TEST(VerticalSeamCarver, RemoveMultipleVerticalSeams)
         {
-            size_t numSeamsToRemove = 13;
+            size_t numSeamsToRemove = 3;
             VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
 
             try
@@ -131,8 +131,8 @@ namespace opencv_test
             EXPECT_EQ(outImg.rows, img.rows);
             EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
 
-            DebugDisplay d;
-            d.displayMatrix(outImg);
+            //DebugDisplay d;
+            //d.displayMatrix(outImg);
         }
     }
 }
