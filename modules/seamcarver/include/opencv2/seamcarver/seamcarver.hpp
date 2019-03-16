@@ -43,7 +43,6 @@
 #define OPENCV_SEAMCARVER_SEAMCARVER_HPP
 
 #include <opencv2/core.hpp>
-//#include "pixelenergy2d.hpp"
 #include "constsizeminbinaryheap.hpp"
 
 namespace cv
@@ -64,36 +63,77 @@ namespace cv
          * @param numSeams: number of seams to remove
          * @param img: input image
          * @param outImg: output image parameter
-         * @param computeEnergyFunction: pointer to a user-defined energy function.
-         *                               If one is not provided, internal one will be used
          */
         virtual void runSeamRemover(size_t numSeams,
                                     const cv::Mat& img,
                                     cv::Mat& outImg) = 0;
 
+        /**
+         * @brief return the image width expected
+         * @return size_t
+         */
         virtual size_t getNumberOfColumns() const;
 
+        /**
+         * @brief return the image height expected
+         * @return size_t
+         */
         virtual size_t getNumberOfRows() const;
 
+        /**
+         * @brief set the expected image dimensions
+         * @param numRows: image height
+         * @param numColumns: image width
+         * @param numColorChannels: number of color channels in image
+         */
         virtual void setDimensions(size_t numRows, size_t numColumns, size_t numColorChannels);
 
+        /**
+         * @brief set the expected image dimensions based on a sample image
+         * @param img: sample of the expected image
+         */
         virtual void setDimensions(const cv::Mat& img);
 
+        /**
+         * @brief return true if dimensions have been set
+         * @param return bool
+         */
         virtual bool areDimensionsInitialized() const;
 
-        // delete/defaulted functions
+        // Deleted/defaulted functions
         SeamCarver(const SeamCarver& rhs) = delete;
         SeamCarver(const SeamCarver&& rhs) = delete;
+        virtual SeamCarver& operator=(const SeamCarver& rhs) = delete;
+        virtual SeamCarver& operator=(const SeamCarver&& rhs) = delete;
 
     protected:
+        /**
+         * @brief default ctor
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
         SeamCarver(double marginEnergy = 390150.0, PixelEnergy2D* pPixelEnergy2D = nullptr);
 
+        /**
+         * @brief ctor based on dimensions
+         * @param numRows: image height
+         * @param numColumns: image width
+         * @param numColorChannels: number of color channels in image
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
         SeamCarver(size_t numRows,
                    size_t numColumns,
                    size_t numColorChannels,
                    double marginEnergy = 390150.0,
                    PixelEnergy2D* pPixelEnergy2D = nullptr);
 
+        /**
+         * @brief ctor based on a sample image
+         * @param img: sample image
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
         SeamCarver(const cv::Mat& img,
                    double marginEnergy = 390150.0,
                    PixelEnergy2D* pPixelEnergy2D = nullptr);
@@ -196,6 +236,7 @@ namespace cv
         // default energy at the borders of the image
         const double marginEnergy_;
 
+        // image dimensions
         size_t numRows_  = 0;
         size_t numColumns_ = 0;
         size_t bottomRow_ = 0;

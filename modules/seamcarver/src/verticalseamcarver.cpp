@@ -43,19 +43,23 @@
 #include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
 
 
-cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy) : SeamCarver(marginEnergy) {}
+cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
+    SeamCarver(marginEnergy, pPixelEnergy2D) {}
 
 cv::VerticalSeamCarver::VerticalSeamCarver(size_t numRows,
                                            size_t numColumns,
                                            size_t numColorChannels,
-                                           double marginEnergy) :
-    SeamCarver(numRows, numColumns, numColorChannels, marginEnergy)
+                                           double marginEnergy,
+                                           PixelEnergy2D* pPixelEnergy2D) :
+    SeamCarver(numRows, numColumns, numColorChannels, marginEnergy, pPixelEnergy2D)
 {
     init(numRows, numColumns, numColorChannels, numRows);
 }
 
-cv::VerticalSeamCarver::VerticalSeamCarver(const cv::Mat& img, double marginEnergy) :
-    SeamCarver(marginEnergy)
+cv::VerticalSeamCarver::VerticalSeamCarver(const cv::Mat& img,
+                                           double marginEnergy,
+                                           PixelEnergy2D* pPixelEnergy2D) :
+    SeamCarver(marginEnergy, pPixelEnergy2D)
 {
     init(img, (size_t)img.rows);
 }

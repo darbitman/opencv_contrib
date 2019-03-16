@@ -58,8 +58,26 @@ namespace cv
     class CV_EXPORTS VerticalSeamCarverKeepout : public VerticalSeamCarver
     {
     public:
-        VerticalSeamCarverKeepout(double marginEnergy = 390150.0);
+        /**
+         * @brief default ctor
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarverKeepout(double marginEnergy = 390150.0,
+                                  PixelEnergy2D* pPixelEnergy2D = nullptr);
 
+        /**
+         * @brief ctor based on dimensions
+         * @param numRows: image height
+         * @param numColumns: image width
+         * @param numColorChannels: number of color channels in image
+         * @param startingRow: starting row of keepout region
+         * @param startingColumn: starting column of keepout region
+         * @param regionWidth: keepout region width
+         * @param regionHeight: keepout region height
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
         VerticalSeamCarverKeepout(size_t numRows,
                                   size_t numColumns,
                                   size_t numColorChannels,
@@ -67,21 +85,46 @@ namespace cv
                                   size_t startingColumn,
                                   size_t regionWidth,
                                   size_t regionHeight,
-                                  double marginEnergy = 390150.0);
+                                  double marginEnergy = 390150.0,
+                                  PixelEnergy2D* pPixelEnergy2D = nullptr);
 
+        /**
+         * @brief ctor based on sample image
+         * @param img: sample image
+         * @param startingRow: starting row of keepout region
+         * @param startingColumn: starting column of keepout region
+         * @param regionWidth: keepout region width
+         * @param regionHeight: keepout region height
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
         VerticalSeamCarverKeepout(const cv::Mat& img,
                                   size_t startingRow,
                                   size_t startingColumn,
                                   size_t regionWidth,
                                   size_t regionHeight,
-                                  double marginEnergy = 390150.0);
+                                  double marginEnergy = 390150.0,
+                                  PixelEnergy2D* pPixelEnergy2D = nullptr);
 
         virtual ~VerticalSeamCarverKeepout() {}
 
+        /**
+         * @brief run the vertical seam remover algorithm avoiding the keepout region
+         * @param numSeams: number of vertical seams to remove
+         * @param img: input image
+         * @param outImg: output image parameter
+         */
         virtual void runSeamRemover(size_t numSeams,
                                     const cv::Mat& img,
                                     cv::Mat& outImg) override;
 
+        /**
+         * @brief set the keepout region dimensions
+         * @param startingRow: starting row of keepout region
+         * @param startingColumn: starting column of keepout region
+         * @param regionWidth: keepout region width
+         * @param regionHeight: keepout region height
+         */
         virtual void setKeepoutRegion(size_t startingRow,
                                       size_t startingColumn,
                                       size_t width,
@@ -90,7 +133,7 @@ namespace cv
         virtual bool isKeepoutRegionDefined() const;
 
 
-        // Deleted/defaulted
+        // Deleted/defaulted functions
         VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout& rhs) = delete;
         VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout&& rhs) = delete;
         virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout& rhs) = delete;

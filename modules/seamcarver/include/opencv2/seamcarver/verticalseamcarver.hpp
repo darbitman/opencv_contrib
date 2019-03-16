@@ -50,14 +50,36 @@ namespace cv
     class CV_EXPORTS VerticalSeamCarver : public SeamCarver
     {
     public:
-        VerticalSeamCarver(double marginEnergy = 390150.0);
+        /**
+         * @brief default ctor
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarver(double marginEnergy = 390150.0, PixelEnergy2D* pPixelEnergy2D = nullptr);
 
+        /**
+         * @brief ctor based on dimensions
+         * @param numRows: image height
+         * @param numColumns: image width
+         * @param numColorChannels: number of color channels in image
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
         VerticalSeamCarver(size_t numRows,
                            size_t numColumns,
                            size_t numColorChannels,
-                           double marginEnergy = 390150.0);
+                           double marginEnergy = 390150.0,
+                           PixelEnergy2D* pPixelEnergy2D = nullptr);
 
-        VerticalSeamCarver(const cv::Mat& img, double marginEnergy = 390150.0);
+        /**
+         * @brief ctor based on a sample image
+         * @param img: sample image
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarver(const cv::Mat& img,
+                           double marginEnergy = 390150.0,
+                           PixelEnergy2D* pPixelEnergy2D = nullptr);
 
         virtual ~VerticalSeamCarver() {}
 
@@ -71,7 +93,7 @@ namespace cv
                                     const cv::Mat& img,
                                     cv::Mat& outImg) override;
 
-        // Deleted/defaulted
+        // Deleted/defaulted functions
         VerticalSeamCarver(const VerticalSeamCarver& rhs) = delete;
         VerticalSeamCarver(const VerticalSeamCarver&& rhs) = delete;
         virtual VerticalSeamCarver& operator=(const VerticalSeamCarver& rhs) = delete;

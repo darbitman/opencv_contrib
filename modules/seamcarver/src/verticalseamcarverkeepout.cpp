@@ -1,19 +1,20 @@
 #include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(double marginEnergy) :
-    VerticalSeamCarver(marginEnergy)
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(double marginEnergy,
+                                                         PixelEnergy2D* pPixelEnergy2D) :
+    VerticalSeamCarver(marginEnergy, pPixelEnergy2D)
 {}
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
-    size_t numRows,
-    size_t numColumns,
-    size_t numColorChannels,
-    size_t startingRow,
-    size_t startingColumn,
-    size_t regionWidth,
-    size_t regionHeight,
-    double marginEnergy) :
-    VerticalSeamCarver(numRows, numColumns, numColorChannels, marginEnergy)
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(size_t numRows,
+                                                         size_t numColumns,
+                                                         size_t numColorChannels,
+                                                         size_t startingRow,
+                                                         size_t startingColumn,
+                                                         size_t regionWidth,
+                                                         size_t regionHeight,
+                                                         double marginEnergy,
+                                                         PixelEnergy2D* pPixelEnergy2D) :
+    VerticalSeamCarver(numRows, numColumns, numColorChannels, marginEnergy, pPixelEnergy2D)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }
@@ -23,8 +24,9 @@ cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(const cv::Mat& img,
                                                          size_t startingColumn,
                                                          size_t regionWidth,
                                                          size_t regionHeight,
-                                                         double marginEnergy) :
-    VerticalSeamCarver(img, marginEnergy)
+                                                         double marginEnergy,
+                                                         PixelEnergy2D* pPixelEnergy2D) :
+    VerticalSeamCarver(img, marginEnergy, pPixelEnergy2D)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }
