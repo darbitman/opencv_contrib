@@ -115,6 +115,23 @@ namespace opencv_test
             //d.displayMatrix(outImg);
         }
 
+        TEST(VerticalSeamCarver, RemoveSingleVerticalSeamImgCtor)
+        {
+            size_t numSeamsToRemove = 1;
+            VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
+
+            try
+            {
+                vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+            }
+            EXPECT_EQ(outImg.rows, img.rows);
+            EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
+        }
+
         TEST(VerticalSeamCarver, RemoveMultipleVerticalSeams)
         {
             size_t numSeamsToRemove = 3;
