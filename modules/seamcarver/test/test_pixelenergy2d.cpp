@@ -52,11 +52,11 @@ namespace opencv_test
         size_t initialNumRows = 1080;
         size_t initialNumChannels = 3;
 
-        cv::Mat img = cv::imread("eagle.jpg");
+        cv::Mat img = cv::imread("../../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
 
         TEST(GradientPixelEnergy2D, CanOpenImage)
         {
-            EXPECT_EQ(img.empty(), false);
+            ASSERT_EQ(img.empty(), false);
         }
 
         TEST(GradientPixelEnergy2D, DefaultCtor)

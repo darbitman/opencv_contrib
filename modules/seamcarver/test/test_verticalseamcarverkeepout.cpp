@@ -53,13 +53,13 @@ namespace opencv_test
         size_t keepoutRegionWidth = 100;
         size_t keepoutRegionHeight = 500;
 
-        cv::Mat img = cv::imread("eagle.jpg");
+        cv::Mat img = cv::imread("../../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
 
         cv::Mat outImg;
 
         TEST(VerticalSeamCarverKeepoutKeepout, CanOpenImage)
         {
-            EXPECT_EQ(img.empty(), false);
+            ASSERT_EQ(img.empty(), false);
         }
 
         TEST(VerticalSeamCarverKeepoutKeepout, DefaultCtor)
