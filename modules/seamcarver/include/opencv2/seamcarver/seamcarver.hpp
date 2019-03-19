@@ -160,9 +160,7 @@ namespace cv
          * @param numColumns: number of columns in the image (width)
          * @param seamLength: number of pixels per seam
          */
-        virtual void init(size_t numRows,
-                          size_t numColumns,
-                          size_t seamLength);
+        virtual void init(size_t numRows, size_t numColumns, size_t seamLength);
 
         /**
          * @brief initializes local member variables
@@ -185,6 +183,7 @@ namespace cv
 
         /**
          * @brief reset vectors to their starting state
+         * @param numSeams: number of seams to remove
          */
         virtual void resetLocalVectors(size_t numSeams);
 

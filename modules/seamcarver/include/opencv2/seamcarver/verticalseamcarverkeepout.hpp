@@ -128,6 +128,10 @@ namespace cv
                                       size_t width,
                                       size_t height);
 
+        /**
+         * @brief returns true if a keepout region has been defined
+         * @return bool
+         */
         virtual bool isKeepoutRegionDefined() const;
 
 
@@ -138,6 +142,10 @@ namespace cv
         virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout&& rhs)= delete;
 
     protected:
+        /**
+         * @brief reset vectors to their starting state
+         * @param numSeams: number of seams to remove
+         */
         virtual void resetLocalVectors(size_t numSeams) override;
 
         bool bKeepoutRegionDefined = false;
