@@ -121,13 +121,10 @@ namespace cv
 
         /**
          * @brief find and remove seams
-         * @param numSeams: number of seams to remove
          * @param img: input image
          * @param outImg: output image parameter
          */
-        virtual void findAndRemoveSeams(const size_t& numSeams,
-                                        const cv::Mat& img,
-                                        cv::Mat& outImg) = 0;
+        virtual void findAndRemoveSeams(const cv::Mat& img, cv::Mat& outImg) = 0;
 
         /**
          * @brief calculates the energy required to reach the end
@@ -136,14 +133,11 @@ namespace cv
 
         /**
          * @brief find seams for later removal
-         * @param numSeams: number of seams to discover for removal
          */
-        virtual void findSeams(size_t numSeams) = 0;
+        virtual void findSeams() = 0;
 
         /**
          * @brief remove seams from img given by column locations stored in seam
-         * @param bgr: image separate into 3 channels (BLUE GREEN RED)
-         * @param seams: vector of priority queues that hold the locations of the pixels to remove
          */
         virtual void removeSeams() = 0;
 
@@ -183,9 +177,8 @@ namespace cv
 
         /**
          * @brief reset vectors to their starting state
-         * @param numSeams: number of seams to remove
          */
-        virtual void resetLocalVectors(size_t numSeams);
+        virtual void resetLocalVectors();
 
         // vector to store pixels that have been previously markedPixels for removal
         // will ignore these markedPixels pixels when searching for a new seam
@@ -220,6 +213,9 @@ namespace cv
         size_t bottomRow_ = 0;
         size_t rightColumn_ = 0;
         size_t numColorChannels_ = 0;
+
+        // number of seams to remove (updated every run)
+        size_t numSeams_ = 0;
 
         // number of pixels per seam
         size_t seamLength_ = 0;

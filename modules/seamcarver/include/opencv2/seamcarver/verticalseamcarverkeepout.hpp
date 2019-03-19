@@ -144,9 +144,8 @@ namespace cv
     protected:
         /**
          * @brief reset vectors to their starting state
-         * @param numSeams: number of seams to remove
          */
-        virtual void resetLocalVectors(size_t numSeams) override;
+        virtual void resetLocalVectors() override;
 
         bool bKeepoutRegionDefined = false;
 

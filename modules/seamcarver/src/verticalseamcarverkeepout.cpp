@@ -67,9 +67,9 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
             CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
         }
 
-        resetLocalVectors(numSeams);
+        resetLocalVectors();
 
-        findAndRemoveSeams(numSeams, img, outImg);
+        findAndRemoveSeams(img, outImg);
     }
     catch (...)
     {
@@ -77,9 +77,9 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
     }
 }
 
-void cv::VerticalSeamCarverKeepout::resetLocalVectors(size_t numSeams)
+void cv::VerticalSeamCarverKeepout::resetLocalVectors()
 {
-    VerticalSeamCarver::resetLocalVectors(numSeams);
+    VerticalSeamCarver::resetLocalVectors();
 
     for (size_t row = keepoutRegionDimensions_.row_;
          row < keepoutRegionDimensions_.row_ + keepoutRegionDimensions_.height_; row++)

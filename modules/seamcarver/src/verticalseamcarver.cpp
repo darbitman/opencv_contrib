@@ -80,9 +80,12 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
             CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
         }
 
-        resetLocalVectors(numSeams);
+        // set number of seams to remove this pass
+        numSeams_ = numSeams;
 
-        findAndRemoveSeams(numSeams, img, outImg);
+        resetLocalVectors();
+
+        findAndRemoveSeams(img, outImg);
     }
     catch (...)
     {
@@ -90,9 +93,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
     }
 }
 
-void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
-                                                const cv::Mat& img,
-                                                cv::Mat& outImg)
+void cv::VerticalSeamCarver::findAndRemoveSeams(const cv::Mat& img, cv::Mat& outImg)
 {
     numColorChannels_ = (size_t)img.channels();
 
@@ -125,7 +126,7 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
         pixelEnergyCalculator_->calculatePixelEnergy(img, pixelEnergy);
 
         // find all vertical seams
-        findSeams(numSeams);
+        findSeams();
 
         // remove all found seams, least cumulative energy first
         removeSeams();
@@ -141,7 +142,7 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
 }
 
 
-void cv::VerticalSeamCarver::findSeams(size_t numSeams)
+void cv::VerticalSeamCarver::findSeams()
 {
     if (pixelEnergy.size() == 0)
     {
@@ -165,7 +166,7 @@ void cv::VerticalSeamCarver::findSeams(size_t numSeams)
     bool restartSeamDiscovery = false;   // seam discovery needs to be restarted for currentSeam
 
     /*** RUN SEAM DISCOVERY ***/
-    for (size_t n = 0; n < numSeams; n++)
+    for (size_t n = 0; n < numSeams_; n++)
     {
         // initialize total energy to +INF and run linear search for a pixel of least cumulative
         //      energy (if one exists) in the bottom row
@@ -248,7 +249,7 @@ void cv::VerticalSeamCarver::findSeams(size_t numSeams)
                 markedPixels[row][prevCol] = true;
             }
         }
-    }  // for (size_t n = 0; n < numSeams; n++)
+    }  // for (size_t n = 0; n < numSeams_; n++)
 }
 
 void cv::VerticalSeamCarver::calculateCumulativePathEnergy()

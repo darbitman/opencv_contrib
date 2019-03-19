@@ -181,7 +181,7 @@ void cv::SeamCarver::initializeLocalVectors()
     discoveredSeams.resize(seamLength_);
 }
 
-void cv::SeamCarver::resetLocalVectors(size_t numSeams)
+void cv::SeamCarver::resetLocalVectors()
 {
     for (size_t row = 0; row < numRows_; row++)
     {
@@ -195,9 +195,9 @@ void cv::SeamCarver::resetLocalVectors(size_t numSeams)
     for (size_t seamNum = 0; seamNum < seamLength_; seamNum++)
     {
         // ensure priority queue has at least numSeams capacity
-        if (numSeams > discoveredSeams[seamNum].capacity())
+        if (numSeams_ > discoveredSeams[seamNum].capacity())
         {
-            discoveredSeams[seamNum].allocate(numSeams);
+            discoveredSeams[seamNum].allocate(numSeams_);
         }
 
         // reset priority queue since it could be filled from a previous run
