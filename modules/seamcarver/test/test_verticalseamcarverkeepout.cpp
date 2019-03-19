@@ -87,7 +87,6 @@ namespace opencv_test
         {
             VerticalSeamCarverKeepout vsck((size_t)img.rows,
                                            (size_t)img.cols,
-                                           (size_t)img.channels(),
                                            keepoutRegionStartingRow,
                                            keepoutRegionStartingColumn,
                                            keepoutRegionWidth,

@@ -66,7 +66,6 @@ namespace opencv_test
         {
             VerticalSeamCarver vSeamCarver((size_t)img.rows,
                                            (size_t)img.cols,
-                                           (size_t)img.channels(),
                                            (size_t)initialMarginEnergy);
 
             EXPECT_EQ(vSeamCarver.getNumberOfRows(), (size_t)img.rows);

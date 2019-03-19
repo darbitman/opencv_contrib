@@ -61,13 +61,11 @@ namespace cv
          * @brief ctor based on dimensions
          * @param numRows: image height
          * @param numColumns: image width
-         * @param numColorChannels: number of color channels in image
          * @param marginEnergy: defines the edge pixel energy
          * @param pPixelEnergy2D: pointer to a pixel energy calculator
          */
         VerticalSeamCarver(size_t numRows,
                            size_t numColumns,
-                           size_t numColorChannels,
                            double marginEnergy = 390150.0,
                            PixelEnergy2D* pPixelEnergy2D = nullptr);
 

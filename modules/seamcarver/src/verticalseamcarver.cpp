@@ -48,18 +48,17 @@ cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy, PixelEnergy2D* p
 
 cv::VerticalSeamCarver::VerticalSeamCarver(size_t numRows,
                                            size_t numColumns,
-                                           size_t numColorChannels,
                                            double marginEnergy,
                                            PixelEnergy2D* pPixelEnergy2D) :
-    SeamCarver(numRows, numColumns, numColorChannels, marginEnergy, pPixelEnergy2D)
+                                           SeamCarver(marginEnergy, pPixelEnergy2D)
 {
-    init(numRows, numColumns, numColorChannels, numRows);
+    init(numRows, numColumns, numRows);
 }
 
 cv::VerticalSeamCarver::VerticalSeamCarver(const cv::Mat& img,
                                            double marginEnergy,
                                            PixelEnergy2D* pPixelEnergy2D) :
-    SeamCarver(marginEnergy, pPixelEnergy2D)
+                                           SeamCarver(marginEnergy, pPixelEnergy2D)
 {
     init(img, (size_t)img.rows);
 }
@@ -95,12 +94,24 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const size_t& numSeams,
                                                 const cv::Mat& img,
                                                 cv::Mat& outImg)
 {
-    if (pixelEnergyCalculator_->getNumColorChannels() == 3 && img.channels() == 3)
+    numColorChannels_ = (size_t)img.channels();
+
+    if (numColorChannels_ == 3)
     {
+        if (bgr.size() != 3)
+        {
+            bgr.resize(3);
+        }
+
         cv::split(img, bgr);
     }
-    else if (pixelEnergyCalculator_->getNumColorChannels() == 1 && img.channels() == 1)
+    else if (numColorChannels_ == 1)
     {
+        if (bgr.size() != 1)
+        {
+            bgr.resize(1);
+        }
+
         cv::extractChannel(img, bgr[0], 0);
     }
     else
@@ -237,7 +248,7 @@ void cv::VerticalSeamCarver::findSeams(size_t numSeams)
                 markedPixels[row][prevCol] = true;
             }
         }
-    }   // for (size_t n = 0; n < numSeams; n++)
+    }  // for (size_t n = 0; n < numSeams; n++)
 }
 
 void cv::VerticalSeamCarver::calculateCumulativePathEnergy()
@@ -386,7 +397,7 @@ void cv::VerticalSeamCarver::removeSeams()
             //      to remove whichever comes first
             for (size_t column = colToRemove + 1; column < rightColBorder; column++)
             {
-                for (size_t j = 0; j < pixelEnergyCalculator_->getNumColorChannels(); j++)
+                for (size_t j = 0; j < numColorChannels_; j++)
                 {
                     bgr[j].at<uchar>(row, column - numSeamsRemoved) = bgr[j].at<uchar>(row, column);
                 }
@@ -396,8 +407,7 @@ void cv::VerticalSeamCarver::removeSeams()
     }
 
     /*** SHRINK IMAGE BY REMOVING SEAMS ***/
-    size_t numColorChannels = pixelEnergyCalculator_->getNumColorChannels();
-    for (size_t channel = 0; channel < numColorChannels; channel++)
+    for (size_t channel = 0; channel < numColorChannels_; channel++)
     {
         bgr[channel] = bgr[channel].colRange(0, numColumns_ - numSeamsRemoved);
     }

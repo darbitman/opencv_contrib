@@ -70,7 +70,6 @@ namespace cv
          * @brief ctor based on dimensions
          * @param numRows: image height
          * @param numColumns: image width
-         * @param numColorChannels: number of color channels in image
          * @param startingRow: starting row of keepout region
          * @param startingColumn: starting column of keepout region
          * @param regionWidth: keepout region width
@@ -80,7 +79,6 @@ namespace cv
          */
         VerticalSeamCarverKeepout(size_t numRows,
                                   size_t numColumns,
-                                  size_t numColorChannels,
                                   size_t startingRow,
                                   size_t startingColumn,
                                   size_t regionWidth,

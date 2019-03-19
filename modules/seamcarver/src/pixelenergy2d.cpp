@@ -55,37 +55,6 @@ cv::PixelEnergy2D::PixelEnergy2D(double marginEnergy)
     }
 }
 
-cv::PixelEnergy2D::PixelEnergy2D(size_t numColumns,
-                                 size_t numRows,
-                                 size_t numColorChannels,
-                                 double marginEnergy)
-{
-    try
-    {
-        setDimensions(numColumns, numRows);
-        setMarginEnergy(marginEnergy);
-        setNumColorChannels(numColorChannels);
-    }
-    catch (...)
-    {
-        throw;
-    }
-}
-
-cv::PixelEnergy2D::PixelEnergy2D(const cv::Mat& image, double marginEnergy)
-{
-    try
-    {
-        setDimensions((size_t)image.cols, (size_t)image.rows);
-        setMarginEnergy(marginEnergy);
-        setNumColorChannels((size_t)image.channels());
-    }
-    catch (...)
-    {
-        throw;
-    }
-}
-
 cv::PixelEnergy2D::~PixelEnergy2D() {}
 
 void cv::PixelEnergy2D::setMarginEnergy(double marginEnergy)
@@ -98,64 +67,8 @@ void cv::PixelEnergy2D::setMarginEnergy(double marginEnergy)
     marginEnergy_ = marginEnergy;
 }
 
-void cv::PixelEnergy2D::setDimensions(size_t numColumns, size_t numRows)
-{
-    if (numColumns <= 0 || numRows <= 0)
-    {
-        CV_Error(Error::Code::StsInternal,
-                 "PixelEnergy2D::setDimensions() failed due to invalid input dimensions");
-    }
-
-    imageDimensions_.numColumns_ = numColumns;
-    imageDimensions_.numRows_ = numRows;
-    bDimensionsInitialized = true;
-}
-
-void cv::PixelEnergy2D::setNumColorChannels(size_t numColorChannels)
-{
-    if (!(numColorChannels == 1 || numColorChannels == 3))
-    {
-        CV_Error(Error::Code::StsInternal,
-                 "PixelEnergy2D::setDimensions() failed due to incorrect color channels");
-    }
-
-    numColorChannels_ = numColorChannels;
-    bNumColorChannelsInitialized = true;
-}
 
 double cv::PixelEnergy2D::getMarginEnergy() const
 {
     return marginEnergy_;
-}
-
-cv::ImageDimensionStruct cv::PixelEnergy2D::getDimensions() const
-{
-    if (!bDimensionsInitialized)
-    {
-        CV_Error(Error::Code::StsInternal,
-                 "Uninitialized internal dimensions");
-    }
-
-    return imageDimensions_;
-}
-
-size_t cv::PixelEnergy2D::getNumColorChannels() const
-{
-    if (!bNumColorChannelsInitialized)
-    {
-        CV_Error(Error::Code::StsInternal,
-                 "Uninitialized number of color channels");
-    }
-
-    return numColorChannels_;
-}
-
-bool cv::PixelEnergy2D::areDimensionsSet() const
-{
-    return bDimensionsInitialized;
-}
-
-bool cv::PixelEnergy2D::isNumColorChannelsSet() const
-{
-    return bNumColorChannelsInitialized;
 }

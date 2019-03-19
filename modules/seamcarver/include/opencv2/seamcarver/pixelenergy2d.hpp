@@ -47,12 +47,6 @@
 
 namespace cv
 {
-    struct CV_EXPORTS ImageDimensionStruct
-    {
-        size_t numColumns_ = 0;
-        size_t numRows_ = 0;
-    };
-
     class CV_EXPORTS PixelEnergy2D
     {
     public:
@@ -65,47 +59,10 @@ namespace cv
         virtual void setMarginEnergy(double marginEnergy);
 
         /**
-         * @brief sets the image dimensions
-         * @param numColumns: width of the image in pixels
-         * @param numRows: height of the image in pixels
-         */
-        virtual void setDimensions(size_t numColumns, size_t numRows);
-
-        /**
-         * @brief sets the number of color channels in an image
-         * @param numColorChannels: number of color channels in an image
-         */
-        virtual void setNumColorChannels(size_t numColorChannels);
-
-        /**
          * @brief returns the marginEnergy associated with this calculator
          * @return double
          */
         virtual double getMarginEnergy() const;
-
-        /**
-         * @brief returns the image dimensions
-         * @return cv::ImageDimensionStruct
-         */
-        virtual cv::ImageDimensionStruct getDimensions() const;
-
-        /**
-         * @brief returns the number of color channels
-         * @return size_t
-         */
-        virtual size_t getNumColorChannels() const;
-
-        /**
-         * @brief have the dimensions been set?
-         * @return bool
-         */
-        virtual bool areDimensionsSet() const;
-
-        /**
-         * @brief have the number of colors channels been set?
-         * @return bool
-         */
-        virtual bool isNumColorChannelsSet() const;
 
         /**
          * @brief
@@ -129,43 +86,15 @@ namespace cv
          */
         explicit PixelEnergy2D(double marginEnergy = 390150.0);
 
-        /**
-         * @brief ctor that will initialize all image dimensions
-         * @param numColumns: width of the image in pixels
-         * @param numRows: height of the image in pixels
-         * @param numColorChannels: how many color channels an image has
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit PixelEnergy2D(size_t numColumns,
-                               size_t numRows,
-                               size_t numColorChannels,
-                               double marginEnergy = 390150.0);
-
-        /**
-         * @brief ctor that will initialize image dimensions based on the image itself
-         * @param image: the image whose dimensions will be extracted
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit PixelEnergy2D(const cv::Mat& image, double marginEnergy = 390150.0);
-
-        // stores number of columns, rows
-        cv::ImageDimensionStruct imageDimensions_;
-
-        size_t numColorChannels_ = 0;
-
         // energy at the borders of an image
         double marginEnergy_ = 0.0;
 
-        // indicates whether image dimensions and memory has already been allocated
-        bool bDimensionsInitialized = false;
-
-        // color channels initialized
-        bool bNumColorChannelsInitialized = false;
-
-        // store an exception if a thread throws it
-        //std::exception_ptr threadExceptionPtr = nullptr;
-
-        //std::mutex threadExceptionPtrMutex;
+        // image dimensions
+        size_t numRows_ = 0;
+        size_t numColumns_ = 0;
+        size_t bottomRow_ = 0;
+        size_t rightColumn_ = 0;
+        size_t numColorChannels_ = 0;
     };
 }
 

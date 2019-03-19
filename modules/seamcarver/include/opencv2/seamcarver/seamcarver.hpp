@@ -84,15 +84,20 @@ namespace cv
          * @brief set the expected image dimensions
          * @param numRows: image height
          * @param numColumns: image width
-         * @param numColorChannels: number of color channels in image
          */
-        virtual void setDimensions(size_t numRows, size_t numColumns, size_t numColorChannels);
+        virtual void setDimensions(size_t numRows, size_t numColumns);
 
         /**
          * @brief set the expected image dimensions based on a sample image
          * @param img: sample of the expected image
          */
         virtual void setDimensions(const cv::Mat& img);
+
+        /**
+         * @brief sets a new pixel energy calculator
+         * @param pNewPixelEnergyCalculator: pointer to a new pixel energy calculator
+         */
+        virtual void setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalculator);
 
         /**
          * @brief return true if dimensions have been set
@@ -113,30 +118,6 @@ namespace cv
          * @param pPixelEnergy2D: pointer to a pixel energy calculator
          */
         SeamCarver(double marginEnergy = 390150.0, PixelEnergy2D* pPixelEnergy2D = nullptr);
-
-        /**
-         * @brief ctor based on dimensions
-         * @param numRows: image height
-         * @param numColumns: image width
-         * @param numColorChannels: number of color channels in image
-         * @param marginEnergy: defines the edge pixel energy
-         * @param pPixelEnergy2D: pointer to a pixel energy calculator
-         */
-        SeamCarver(size_t numRows,
-                   size_t numColumns,
-                   size_t numColorChannels,
-                   double marginEnergy = 390150.0,
-                   PixelEnergy2D* pPixelEnergy2D = nullptr);
-
-        /**
-         * @brief ctor based on a sample image
-         * @param img: sample image
-         * @param marginEnergy: defines the edge pixel energy
-         * @param pPixelEnergy2D: pointer to a pixel energy calculator
-         */
-        SeamCarver(const cv::Mat& img,
-                   double marginEnergy = 390150.0,
-                   PixelEnergy2D* pPixelEnergy2D = nullptr);
 
         /**
          * @brief find and remove seams
@@ -177,12 +158,10 @@ namespace cv
          * @brief initilizes member data using image dimensions
          * @param numRows: number of rows in the image (height)
          * @param numColumns: number of columns in the image (width)
-         * @param numColorChannels: number of color channels in an image
          * @param seamLength: number of pixels per seam
          */
         virtual void init(size_t numRows,
                           size_t numColumns,
-                          size_t numColorChannels,
                           size_t seamLength);
 
         /**
@@ -241,6 +220,7 @@ namespace cv
         size_t numColumns_ = 0;
         size_t bottomRow_ = 0;
         size_t rightColumn_ = 0;
+        size_t numColorChannels_ = 0;
 
         // number of pixels per seam
         size_t seamLength_ = 0;

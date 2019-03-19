@@ -57,35 +57,16 @@ namespace cv
          */
         explicit GradientPixelEnergy2D(double marginEnergy = 390150.0);
 
-        /**
-         * @brief ctor that will initialize all image dimensions
-         * @param numColumns: width of the image in pixels
-         * @param numRows: height of the image in pixels
-         * @param numColorChannels: how many color channels an image has
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit GradientPixelEnergy2D(size_t numColumns,
-                                       size_t numRows,
-                                       size_t numColorChannels,
-                                       double marginEnergy = 390150.0);
-
-        /**
-         * @brief ctor that will initialize image dimensions based on the image itself
-         * @param image: the image whose dimensions will be extracted
-         * @param marginEnergy: energy defined for border pixels
-         */
-        explicit GradientPixelEnergy2D(const cv::Mat& image, double marginEnergy = 390150.0);
-
         virtual ~GradientPixelEnergy2D();
 
         /**
-         * @brief
+         * @brief calculate energy for every pixel in image
          * @param image: 2D matrix representation of the image
          * @param outPixelEnergy: Out parameter, 2D vector of calculated pixel energies
          * @return bool: indicates if the operation was successful
          */
         virtual void calculatePixelEnergy(const cv::Mat& image,
-                                          std::vector<std::vector<double>>& outPixelEnergy);
+                                         std::vector<std::vector<double>>& outPixelEnergy) override;
 
         // Deleted/defaulted
         GradientPixelEnergy2D(const GradientPixelEnergy2D&) = delete;

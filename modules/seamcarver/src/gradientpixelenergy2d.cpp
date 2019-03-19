@@ -44,49 +44,7 @@
 using std::vector;
 
 cv::GradientPixelEnergy2D::GradientPixelEnergy2D(double marginEnergy) : PixelEnergy2D(marginEnergy)
-{
-    try
-    {
-        setMarginEnergy(marginEnergy);
-    }
-    catch (...)
-    {
-        throw;
-    }
-}
-
-cv::GradientPixelEnergy2D::GradientPixelEnergy2D(size_t numColumns,
-                                                 size_t numRows,
-                                                 size_t numColorChannels,
-                                                 double marginEnergy) :
-    PixelEnergy2D(numColumns, numRows, numColorChannels, marginEnergy)
-{
-    try
-    {
-        setDimensions(numColumns, numRows);
-        setMarginEnergy(marginEnergy);
-        setNumColorChannels(numColorChannels);
-    }
-    catch (...)
-    {
-        throw;
-    }
-}
-
-cv::GradientPixelEnergy2D::GradientPixelEnergy2D(const cv::Mat& image, double marginEnergy) :
-    PixelEnergy2D(image, marginEnergy)
-{
-    try
-    {
-        setDimensions((size_t)image.cols, (size_t)image.rows);
-        setMarginEnergy(marginEnergy);
-        setNumColorChannels((size_t)image.channels());
-    }
-    catch (...)
-    {
-        throw;
-    }
-}
+{}
 
 cv::GradientPixelEnergy2D::~GradientPixelEnergy2D() {}
 
@@ -100,41 +58,28 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
                  "GradientPixelEnergy2D::calculatePixelEnergyForEveryRow() failed due to empty image");
     }
 
-    if (!bDimensionsInitialized)
-    {
-        setDimensions((size_t)image.cols, (size_t)image.rows);
-    }
+    numRows_ = (size_t)image.rows;
+    numColumns_ = (size_t)image.cols;
+    bottomRow_ = numRows_ - 1;
+    rightColumn_ = numColumns_ - 1;
+    numColorChannels_ = (size_t)image.channels();
 
-    if (!bNumColorChannelsInitialized)
-    {
-        setNumColorChannels((size_t)image.channels());
-    }
-
-    if (imageDimensions_.numColumns_ != (size_t)image.cols)
-    {
-        imageDimensions_.numColumns_ = (size_t)image.cols;
-    }
-
-    if (imageDimensions_.numRows_ != (size_t)image.rows)
-    {
-        imageDimensions_.numRows_ = (size_t)image.rows;
-    }
 
     // ensure outPixelEnergy has the right dimensions (resize locally if necessary)
-    if (!(outPixelEnergy.size() == (size_t)imageDimensions_.numRows_))
+    if (!(outPixelEnergy.size() == numRows_))
     {
-        outPixelEnergy.resize(imageDimensions_.numRows_);
+        outPixelEnergy.resize(numRows_);
     }
-    for (size_t row = 0; row < imageDimensions_.numRows_; row++)
+    for (size_t row = 0; row < numRows_; row++)
     {
-        if (!(outPixelEnergy[row].size() == (size_t)imageDimensions_.numColumns_))
+        if (!(outPixelEnergy[row].size() == numColumns_))
         {
-            outPixelEnergy[row].resize(imageDimensions_.numColumns_);
+            outPixelEnergy[row].resize(numColumns_);
         }
     }
 
     // if more columns, split calculation into 2 operations to calculate for every row
-    if (imageDimensions_.numColumns_ >= imageDimensions_.numRows_)
+    if (numColumns_ >= numRows_)
     {
         std::thread thread1(&cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow,
                             this, std::ref(image),
@@ -172,15 +117,13 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
     }
 }
 
-void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
-                                                                vector<vector<double>>& outPixelEnergy,
-                                                                bool bDoOddColumns)
+void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(
+    const cv::Mat& image,
+    vector<vector<double>>& outPixelEnergy,
+    bool bDoOddColumns)
 {
     try
     {
-        size_t bottomRow = imageDimensions_.numRows_ - 1;
-        size_t rightColumn = imageDimensions_.numColumns_ - 1;
-
         vector<cv::Mat> imageByChannel;
         imageByChannel.resize(numColorChannels_);
 
@@ -197,8 +140,8 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& i
         else
         {
             CV_Error(Error::Code::StsInternal,
-                     "GradientPixelEnergy2D::calculatePixelEnergyForEveryRow() failed due to incorrect \
-                 number of channels");
+                     "GradientPixelEnergy2D::calculatePixelEnergyForEveryRow() failed due to \
+                      incorrect number of channels");
         }
 
         // Establish vectors whose size is equal to the number of channels
@@ -225,7 +168,7 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& i
         // compute energy for every row
         // do odd columns and even columns separately in order to leverage cached values to prevent
             // multiple memory accesses
-        for (size_t row = 0; row < imageDimensions_.numRows_; row++)
+        for (size_t row = 0; row < numRows_; row++)
         {
             /***** ODD COLUMNS *****/
             if (bDoOddColumns)
@@ -241,9 +184,9 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& i
 
                 // Compute energy of odd columns
                 for (/* column already initialized */;
-                     column < imageDimensions_.numColumns_; column += 2)
+                     column < numColumns_; column += 2)
                 {
-                    if (row == 0 || column == 0 || row == bottomRow || column == rightColumn)
+                    if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
                     {
                         outPixelEnergy[row][column] = marginEnergy_;
                     }
@@ -294,9 +237,9 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& i
 
                 // Compute energy of odd columns
                 for (/* column already initialized */;
-                     column < imageDimensions_.numColumns_; column += 2)
+                     column < numColumns_; column += 2)
                 {
-                    if (row == 0 || column == 0 || row == bottomRow || column == rightColumn)
+                    if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
                     {
                         outPixelEnergy[row][column] = marginEnergy_;
                     }
@@ -348,15 +291,13 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(const cv::Mat& i
     }
 }
 
-void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat& image,
-                                                                   vector<vector<double>>& outPixelEnergy,
-                                                                   bool bDoOddRows)
+void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(
+    const cv::Mat& image,
+    vector<vector<double>>& outPixelEnergy,
+    bool bDoOddRows)
 {
     try
     {
-        size_t bottomRow = imageDimensions_.numRows_ - 1;
-        size_t rightColumn = imageDimensions_.numColumns_ - 1;
-
         vector<cv::Mat> imageByChannel;
         imageByChannel.resize(numColorChannels_);
 
@@ -373,8 +314,8 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat
         else
         {
             CV_Error(Error::Code::StsInternal,
-                     "GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn() failed due to incorrect \
-                      number of channels");
+                     "GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn() failed due to \
+                      incorrect number of channels");
         }
 
         // Establish vectors whose size is equal to the number of channels
@@ -401,7 +342,7 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat
         // compute energy for every column
         // do odd rows and even rows separately in order to leverage cached values
             // to prevent multiple memory accesses
-        for (size_t column = 0; column < imageDimensions_.numColumns_; column++)
+        for (size_t column = 0; column < numColumns_; column++)
         {
             /***** ODD ROWS *****/
             if (bDoOddRows)
@@ -416,9 +357,9 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat
                 }
 
                 // Compute energy of odd rows
-                for (/* row was already initialized */; row < imageDimensions_.numRows_; row += 2)
+                for (/* row was already initialized */; row < numRows_; row += 2)
                 {
-                    if (row == 0 || column == 0 || row == bottomRow || column == rightColumn)
+                    if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
                     {
                         outPixelEnergy[row][column] = marginEnergy_;
                     }
@@ -468,9 +409,9 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(const cv::Mat
                 }
 
                 // Compute energy of odd rows
-                for (/* row was already initialized */; row < imageDimensions_.numRows_; row += 2)
+                for (/* row was already initialized */; row < numRows_; row += 2)
                 {
-                    if (row == 0 || column == 0 || row == bottomRow || column == rightColumn)
+                    if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
                     {
                         outPixelEnergy[row][column] = marginEnergy_;
                     }

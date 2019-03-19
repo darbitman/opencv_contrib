@@ -7,14 +7,13 @@ cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(double marginEnergy,
 
 cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(size_t numRows,
                                                          size_t numColumns,
-                                                         size_t numColorChannels,
                                                          size_t startingRow,
                                                          size_t startingColumn,
                                                          size_t regionWidth,
                                                          size_t regionHeight,
                                                          double marginEnergy,
                                                          PixelEnergy2D* pPixelEnergy2D) :
-    VerticalSeamCarver(numRows, numColumns, numColorChannels, marginEnergy, pPixelEnergy2D)
+    VerticalSeamCarver(numRows, numColumns, marginEnergy, pPixelEnergy2D)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }

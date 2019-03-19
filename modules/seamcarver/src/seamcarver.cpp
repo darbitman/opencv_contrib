@@ -43,15 +43,6 @@
 #include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
 using std::vector;
 
-cv::SeamCarver::~SeamCarver()
-{
-    if (pixelEnergyCalculator_)
-    {
-        delete pixelEnergyCalculator_;
-        pixelEnergyCalculator_ = nullptr;
-    }
-}
-
 cv::SeamCarver::SeamCarver(double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
     marginEnergy_(marginEnergy)
 {
@@ -65,33 +56,12 @@ cv::SeamCarver::SeamCarver(double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
     }
 }
 
-cv::SeamCarver::SeamCarver(size_t numRows,
-                           size_t numColumns,
-                           size_t numColorChannels,
-                           double marginEnergy,
-                           PixelEnergy2D* pPixelEnergy2D) : marginEnergy_(marginEnergy)
+cv::SeamCarver::~SeamCarver()
 {
-    if (pPixelEnergy2D)
+    if (pixelEnergyCalculator_)
     {
-        pixelEnergyCalculator_ = pPixelEnergy2D;
-    }
-    else
-    {
-        pixelEnergyCalculator_ =
-            new GradientPixelEnergy2D(numColumns, numRows, numColorChannels, marginEnergy);
-    }
-}
-
-cv::SeamCarver::SeamCarver(const cv::Mat& img, double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
-    marginEnergy_(marginEnergy)
-{
-    if (pPixelEnergy2D)
-    {
-        pixelEnergyCalculator_ = pPixelEnergy2D;
-    }
-    else
-    {
-        pixelEnergyCalculator_ = new GradientPixelEnergy2D(img, marginEnergy);
+        delete pixelEnergyCalculator_;
+        pixelEnergyCalculator_ = nullptr;
     }
 }
 
@@ -105,16 +75,16 @@ size_t cv::SeamCarver::getNumberOfRows() const
     return numRows_;
 }
 
-void cv::SeamCarver::setDimensions(size_t numRows, size_t numColumns, size_t numColorChannels)
+void cv::SeamCarver::setDimensions(size_t numRows, size_t numColumns)
 {
-    if (numRows == 0 || numColumns == 0 || !(numColorChannels == 1 || numColorChannels == 3))
+    if (numRows == 0 || numColumns == 0)
     {
         CV_Error(Error::Code::StsBadArg, "setDimensions failed due bad dimensions");
     }
 
     try
     {
-        init(numRows, numColumns, numColorChannels, numRows);
+        init(numRows, numColumns, numRows);
     }
     catch (...)
     {
@@ -131,12 +101,25 @@ void cv::SeamCarver::setDimensions(const cv::Mat& img)
 
     try
     {
-        setDimensions((size_t)img.rows, (size_t)img.cols, (size_t)img.channels());
+        setDimensions((size_t)img.rows, (size_t)img.cols);
     }
     catch (...)
     {
         throw;
     }
+}
+
+void cv::SeamCarver::setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalculator)
+{
+    if (pNewPixelEnergyCalculator == nullptr)
+    {
+        CV_Error(Error::Code::StsBadArg, "setNewPixelEnergyCalculator failed due to nullptr arg");
+    }
+    if (pixelEnergyCalculator_)
+    {
+        delete pixelEnergyCalculator_;
+    }
+    pixelEnergyCalculator_ = pNewPixelEnergyCalculator;
 }
 
 inline bool cv::SeamCarver::areDimensionsInitialized() const
@@ -148,7 +131,7 @@ void cv::SeamCarver::init(const cv::Mat& img, size_t seamLength)
 {
     try
     {
-        init((size_t)img.rows, (size_t)img.cols, (size_t)img.channels(), seamLength);
+        init((size_t)img.rows, (size_t)img.cols, seamLength);
     }
     catch (...)
     {
@@ -158,26 +141,8 @@ void cv::SeamCarver::init(const cv::Mat& img, size_t seamLength)
 
 void cv::SeamCarver::init(size_t numRows,
                           size_t numColumns,
-                          size_t numColorChannels,
                           size_t seamLength)
 {
-    try
-    {
-        if (!pixelEnergyCalculator_->areDimensionsSet())
-        {
-            pixelEnergyCalculator_->setDimensions(numColumns, numRows);
-        }
-
-        if (!pixelEnergyCalculator_->isNumColorChannelsSet())
-        {
-            pixelEnergyCalculator_->setNumColorChannels(numColorChannels);
-        }
-    }
-    catch (...)
-    {
-        throw;
-    }
-
     initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1, seamLength);
     initializeLocalVectors();
 
@@ -214,8 +179,6 @@ void cv::SeamCarver::initializeLocalVectors()
 
     currentSeam.resize(seamLength_);
     discoveredSeams.resize(seamLength_);
-
-    bgr.resize(pixelEnergyCalculator_->getNumColorChannels());
 }
 
 void cv::SeamCarver::resetLocalVectors(size_t numSeams)
