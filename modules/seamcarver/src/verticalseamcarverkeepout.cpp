@@ -1,8 +1,8 @@
 #include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
 
 cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(double marginEnergy,
-                                                         PixelEnergy2D* pPixelEnergy2D) :
-    VerticalSeamCarver(marginEnergy, pPixelEnergy2D)
+                                                         PixelEnergy2D* pNewPixelEnergyCalculator) :
+    VerticalSeamCarver(marginEnergy, pNewPixelEnergyCalculator)
 {}
 
 cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(size_t numRows,
@@ -12,8 +12,8 @@ cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(size_t numRows,
                                                          size_t regionWidth,
                                                          size_t regionHeight,
                                                          double marginEnergy,
-                                                         PixelEnergy2D* pPixelEnergy2D) :
-    VerticalSeamCarver(numRows, numColumns, marginEnergy, pPixelEnergy2D)
+                                                         PixelEnergy2D* pNewPixelEnergyCalculator) :
+    VerticalSeamCarver(numRows, numColumns, marginEnergy, pNewPixelEnergyCalculator)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }
@@ -24,8 +24,8 @@ cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(const cv::Mat& img,
                                                          size_t regionWidth,
                                                          size_t regionHeight,
                                                          double marginEnergy,
-                                                         PixelEnergy2D* pPixelEnergy2D) :
-    VerticalSeamCarver(img, marginEnergy, pPixelEnergy2D)
+                                                         PixelEnergy2D* pNewPixelEnergyCalculator) :
+    VerticalSeamCarver(img, marginEnergy, pNewPixelEnergyCalculator)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }

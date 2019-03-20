@@ -43,7 +43,6 @@
 #define OPENCV_SEAMCARVER_SEAMCARVER_HPP
 
 #include <opencv2/core.hpp>
-#include "constsizeminbinaryheap.hpp"
 
 namespace cv
 {
@@ -53,163 +52,16 @@ namespace cv
     class CV_EXPORTS SeamCarver
     {
     public:
-        virtual ~SeamCarver();
-
         /**
          * @brief run the seam remover algorithm
-         * @param numSeams: number of seams to remove
-         * @param img: input image
-         * @param outImg: output image parameter
+         * @param numSeamsToRemove: number of seams to remove
+         * @param image: input image
+         * @param outImage: output image parameter
          */
-        virtual void runSeamRemover(size_t numSeams,
-                                    const cv::Mat& img,
-                                    cv::Mat& outImg) = 0;
-
-        /**
-         * @brief set the expected image dimensions
-         * @param numRows: image height
-         * @param numColumns: image width
-         */
-        virtual void setDimensions(size_t numRows, size_t numColumns);
-
-        /**
-         * @brief set the expected image dimensions based on a sample image
-         * @param img: sample of the expected image
-         */
-        virtual void setDimensions(const cv::Mat& img);
-
-        /**
-         * @brief sets a new pixel energy calculator
-         * @param pNewPixelEnergyCalculator: pointer to a new pixel energy calculator
-         */
-        virtual void setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalculator);
-
-        /**
-         * @brief return true if dimensions have been set
-         * @param return bool
-         */
-        virtual bool areDimensionsInitialized() const;
-
-        // Deleted/defaulted functions
-        SeamCarver(const SeamCarver& rhs) = delete;
-        SeamCarver(const SeamCarver&& rhs) = delete;
-        virtual SeamCarver& operator=(const SeamCarver& rhs) = delete;
-        virtual SeamCarver& operator=(const SeamCarver&& rhs) = delete;
-
-    protected:
-        /**
-         * @brief default ctor
-         * @param marginEnergy: defines the edge pixel energy
-         * @param pPixelEnergy2D: pointer to a pixel energy calculator
-         */
-        SeamCarver(double marginEnergy = 390150.0, PixelEnergy2D* pPixelEnergy2D = nullptr);
-
-        /**
-         * @brief find and remove seams
-         * @param img: input image
-         * @param outImg: output image parameter
-         */
-        virtual void findAndRemoveSeams(const cv::Mat& img, cv::Mat& outImg) = 0;
-
-        /**
-         * @brief calculates the energy required to reach the end
-         */
-        virtual void calculateCumulativePathEnergy() = 0;
-
-        /**
-         * @brief find seams for later removal
-         */
-        virtual void findSeams() = 0;
-
-        /**
-         * @brief remove seams from img given by column locations stored in seam
-         */
-        virtual void removeSeams() = 0;
-
-        /**
-         * @brief initializes member data using image dimensions
-         * @param img: a sample frame from which dimensions are extracted
-         * @param seamLength: number of pixels per seam
-         */
-        virtual void init(const cv::Mat& img, size_t seamLength);
-
-        /**
-         * @brief initilizes member data using image dimensions
-         * @param numRows: number of rows in the image (height)
-         * @param numColumns: number of columns in the image (width)
-         * @param seamLength: number of pixels per seam
-         */
-        virtual void init(size_t numRows, size_t numColumns, size_t seamLength);
-
-        /**
-         * @brief initializes local member variables
-         * @param numRows: number of rows in the image
-         * @param numColumns: number of columns in the image
-         * @param bottomRow: index of the bottom row
-         * @param rightColumn: index of the right column
-         * @param seamLength: number of pixels per seam
-         */
-        virtual void initializeLocalVariables(size_t numRows,
-                                              size_t numColumns,
-                                              size_t bottomRow,
-                                              size_t rightColumn,
-                                              size_t seamLength);
-
-        /**
-         * @brief initializes memory for all local vectors used part of the algorithm
-         */
-        virtual void initializeLocalVectors();
-
-        /**
-         * @brief reset vectors to their starting state
-         */
-        virtual void resetLocalVectors();
-
-        // vector to store pixels that have been previously markedPixels for removal
-        // will ignore these markedPixels pixels when searching for a new seam
-        std::vector<std::vector<bool>> markedPixels;
-
-        // individual pixel energy
-        std::vector<std::vector<double>> pixelEnergy;
-
-        // vector of min oriented priority queues that store the location of the pixels to remove
-        std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> discoveredSeams;
-
-        // store cumulative energy to each pixel
-        std::vector<std::vector<double>> totalEnergyTo;
-
-        // store the location (column or row) of the previous pixel to get to the current pixel
-        std::vector<std::vector<int32_t>> previousLocationTo;
-
-        // store the current seam being discovered
-        std::vector<size_t> currentSeam;
-
-        // vector to hold image color channels separately
-        std::vector<cv::Mat> bgr;
-
-        bool bNeedToInitializeLocalData = true;
-
-        // default energy at the borders of the image
-        const double marginEnergy_;
-
-        // image dimensions
-        size_t numRows_  = 0;
-        size_t numColumns_ = 0;
-        size_t bottomRow_ = 0;
-        size_t rightColumn_ = 0;
-        size_t numColorChannels_ = 0;
-
-        // number of seams to remove (updated every run)
-        size_t numSeamsToRemove_ = 0;
-
-        // number of pixels per seam
-        size_t seamLength_ = 0;
-
-        double posInf_ = std::numeric_limits<double>::max();
-
-        cv::PixelEnergy2D* pPixelEnergyCalculator_ = nullptr;
+        virtual void runSeamRemover(size_t numSeamsToRemove,
+                                    const cv::Mat& image,
+                                    cv::Mat& outImage) = 0;
     };
-
 }
 
 #endif

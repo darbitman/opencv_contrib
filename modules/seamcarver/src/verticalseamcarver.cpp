@@ -42,56 +42,227 @@
 #include "opencv2/seamcarver/verticalseamcarver.hpp"
 #include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
 
-
-cv::VerticalSeamCarver::VerticalSeamCarver(double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
-    SeamCarver(marginEnergy, pPixelEnergy2D)
-{}
-
-cv::VerticalSeamCarver::VerticalSeamCarver(size_t numRows,
-                                           size_t numColumns,
-                                           double marginEnergy,
-                                           PixelEnergy2D* pPixelEnergy2D) :
-    SeamCarver(marginEnergy, pPixelEnergy2D)
+cv::VerticalSeamCarver::VerticalSeamCarver(
+    double marginEnergy,
+    PixelEnergy2D* pNewPixelEnergyCalculator) :
+    marginEnergy_(marginEnergy)
 {
+    if (pNewPixelEnergyCalculator)
+    {
+        pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
+    }
+    else
+    {
+        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+    }
+}
+
+cv::VerticalSeamCarver::VerticalSeamCarver(
+    size_t numRows,
+    size_t numColumns,
+    double marginEnergy,
+    PixelEnergy2D* pNewPixelEnergyCalculator) :
+    marginEnergy_(marginEnergy)
+{
+    if (pNewPixelEnergyCalculator)
+    {
+        pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
+    }
+    else
+    {
+        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+    }
+
     init(numRows, numColumns, numRows);
 }
 
-cv::VerticalSeamCarver::VerticalSeamCarver(const cv::Mat& img,
-                                           double marginEnergy,
-                                           PixelEnergy2D* pPixelEnergy2D) :
-    SeamCarver(marginEnergy, pPixelEnergy2D)
+cv::VerticalSeamCarver::VerticalSeamCarver(
+    const cv::Mat& img,
+    double marginEnergy,
+    PixelEnergy2D* pNewPixelEnergyCalculator) :
+    marginEnergy_(marginEnergy)
 {
+    if (pNewPixelEnergyCalculator)
+    {
+        pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
+    }
+    else
+    {
+        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+    }
+
     init(img, (size_t)img.rows);
 }
 
-void cv::VerticalSeamCarver::runSeamRemover(size_t numSeams,
-                                            const cv::Mat& img,
-                                            cv::Mat& outImg)
+cv::VerticalSeamCarver::~VerticalSeamCarver()
+{
+    if (pPixelEnergyCalculator_)
+    {
+        delete pPixelEnergyCalculator_;
+        pPixelEnergyCalculator_ = nullptr;
+    }
+}
+
+void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
+                                            const cv::Mat& image,
+                                            cv::Mat& outImage)
 {
     try
     {
         if (bNeedToInitializeLocalData)
         {
-            init(img, img.rows);
+            init(image, image.rows);
         }
 
         // check if removing more seams than columns available
-        if (numSeams > numColumns_)
+        if (numSeamsToRemove > numColumns_)
         {
             CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
         }
 
         // set number of seams to remove this pass
-        numSeamsToRemove_ = numSeams;
+        numSeamsToRemove_ = numSeamsToRemove;
 
         // reset vectors to their clean state
         resetLocalVectors();
 
-        findAndRemoveSeams(img, outImg);
+        findAndRemoveSeams(image, outImage);
     }
     catch (...)
     {
         throw;
+    }
+}
+
+void cv::VerticalSeamCarver::setDimensions(size_t numRows, size_t numColumns)
+{
+    if (numRows == 0 || numColumns == 0)
+    {
+        CV_Error(Error::Code::StsBadArg, "setDimensions failed due bad dimensions");
+    }
+
+    try
+    {
+        init(numRows, numColumns, numRows);
+    }
+    catch (...)
+    {
+        throw;
+    }
+}
+
+void cv::VerticalSeamCarver::setDimensions(const cv::Mat& image)
+{
+    if (image.empty())
+    {
+        CV_Error(Error::Code::StsBadArg, "setDimensions failed due to empty image");
+    }
+
+    try
+    {
+        setDimensions((size_t)image.rows, (size_t)image.cols);
+    }
+    catch (...)
+    {
+        throw;
+    }
+}
+
+inline bool cv::VerticalSeamCarver::areDimensionsInitialized() const
+{
+    return !bNeedToInitializeLocalData;
+}
+
+void cv::VerticalSeamCarver::setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalculator)
+{
+    if (pNewPixelEnergyCalculator == nullptr)
+    {
+        CV_Error(Error::Code::StsBadArg, "setNewPixelEnergyCalculator failed due to nullptr arg");
+    }
+
+    if (pPixelEnergyCalculator_)
+    {
+        delete pPixelEnergyCalculator_;
+    }
+
+    pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
+}
+
+void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength)
+{
+    try
+    {
+        init((size_t)img.rows, (size_t)img.cols, seamLength);
+    }
+    catch (...)
+    {
+        throw;
+    }
+}
+
+void cv::VerticalSeamCarver::init(size_t numRows, size_t numColumns, size_t seamLength)
+{
+    initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1, seamLength);
+    initializeLocalVectors();
+    bNeedToInitializeLocalData = false;
+}
+
+inline void cv::VerticalSeamCarver::initializeLocalVariables(size_t numRows,
+                                                             size_t numColumns,
+                                                             size_t bottomRow,
+                                                             size_t rightColumn,
+                                                             size_t seamLength)
+{
+    numRows_ = numRows;
+    numColumns_ = numColumns;
+    bottomRow_ = bottomRow;
+    rightColumn_ = rightColumn;
+    seamLength_ = seamLength;
+}
+
+void cv::VerticalSeamCarver::initializeLocalVectors()
+{
+    pixelEnergy.resize(numRows_);
+    markedPixels.resize(numRows_);
+    totalEnergyTo.resize(numRows_);
+    previousLocationTo.resize(numRows_);
+
+    for (size_t row = 0; row < numRows_; row++)
+    {
+        pixelEnergy[row].resize(numColumns_);
+        markedPixels[row].resize(numColumns_);
+        totalEnergyTo[row].resize(numColumns_);
+        previousLocationTo[row].resize(numColumns_);
+    }
+
+    currentSeam.resize(seamLength_);
+    discoveredSeams.resize(seamLength_);
+}
+
+void cv::VerticalSeamCarver::resetLocalVectors()
+{
+    for (size_t row = 0; row < numRows_; row++)
+    {
+        // set marked pixels to false for new run
+        for (size_t column = 0; column < numColumns_; column++)
+        {
+            markedPixels[row][column] = false;
+        }
+    }
+
+    for (size_t seamNum = 0; seamNum < seamLength_; seamNum++)
+    {
+        // ensure priority queue has at least numSeams capacity
+        if (numSeamsToRemove_ > discoveredSeams[seamNum].capacity())
+        {
+            discoveredSeams[seamNum].allocate(numSeamsToRemove_);
+        }
+
+        // reset priority queue since it could be filled from a previous run
+        if (discoveredSeams[seamNum].size() > 0)
+        {
+            discoveredSeams[seamNum].resetHeap();
+        }
     }
 }
 
@@ -253,7 +424,7 @@ void cv::VerticalSeamCarver::findSeams()
                 markedPixels[row][prevCol] = true;
             }
         }
-    }  // for (size_t n = 0; n < numSeamsToRemove_; n++)
+    }   // for (int32_t n = 0; n < (int32_t)numSeamsToRemove_; n++)
 }
 
 void cv::VerticalSeamCarver::calculateCumulativePathEnergy()

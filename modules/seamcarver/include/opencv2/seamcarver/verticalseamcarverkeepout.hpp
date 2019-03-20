@@ -61,10 +61,10 @@ namespace cv
         /**
          * @brief default ctor
          * @param marginEnergy: defines the edge pixel energy
-         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarverKeepout(double marginEnergy = 390150.0,
-                                  PixelEnergy2D* pPixelEnergy2D = nullptr);
+                                  PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on dimensions
@@ -75,7 +75,7 @@ namespace cv
          * @param regionWidth: keepout region width
          * @param regionHeight: keepout region height
          * @param marginEnergy: defines the edge pixel energy
-         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarverKeepout(size_t numRows,
                                   size_t numColumns,
@@ -84,7 +84,7 @@ namespace cv
                                   size_t regionWidth,
                                   size_t regionHeight,
                                   double marginEnergy = 390150.0,
-                                  PixelEnergy2D* pPixelEnergy2D = nullptr);
+                                  PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on sample image
@@ -94,7 +94,7 @@ namespace cv
          * @param regionWidth: keepout region width
          * @param regionHeight: keepout region height
          * @param marginEnergy: defines the edge pixel energy
-         * @param pPixelEnergy2D: pointer to a pixel energy calculator
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarverKeepout(const cv::Mat& img,
                                   size_t startingRow,
@@ -102,7 +102,7 @@ namespace cv
                                   size_t regionWidth,
                                   size_t regionHeight,
                                   double marginEnergy = 390150.0,
-                                  PixelEnergy2D* pPixelEnergy2D = nullptr);
+                                  PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
 
         virtual ~VerticalSeamCarverKeepout() {}
 
