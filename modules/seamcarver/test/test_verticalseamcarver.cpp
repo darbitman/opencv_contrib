@@ -67,17 +67,11 @@ namespace opencv_test
             VerticalSeamCarver vSeamCarver((size_t)img.rows,
                                            (size_t)img.cols,
                                            (size_t)initialMarginEnergy);
-
-            EXPECT_EQ(vSeamCarver.getNumberOfRows(), (size_t)img.rows);
-            EXPECT_EQ(vSeamCarver.getNumberOfColumns(), (size_t)img.cols);
         }
 
         TEST(VerticalSeamCarver, ImgCtor)
         {
             VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
-
-            EXPECT_EQ(vSeamCarver.getNumberOfRows(), (size_t)img.rows);
-            EXPECT_EQ(vSeamCarver.getNumberOfColumns(), (size_t)img.cols);
         }
 
         TEST(VerticalSeamCarver, CheckRunSeamRemoverThrows)

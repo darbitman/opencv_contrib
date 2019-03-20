@@ -72,8 +72,6 @@ namespace opencv_test
             vsck.setDimensions(img);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
-            EXPECT_EQ(vsck.getNumberOfColumns(), (size_t)img.cols);
-            EXPECT_EQ(vsck.getNumberOfRows(), (size_t)img.rows);
 
             vsck.setKeepoutRegion(keepoutRegionStartingRow,
                                   keepoutRegionStartingColumn,
@@ -95,8 +93,6 @@ namespace opencv_test
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
-            EXPECT_EQ(vsck.getNumberOfRows(), (size_t)img.rows);
-            EXPECT_EQ(vsck.getNumberOfColumns(), (size_t)img.cols);
         }
 
         TEST(VerticalSeamCarverKeepoutKeepout, ImgCtor)
@@ -110,8 +106,6 @@ namespace opencv_test
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
-            EXPECT_EQ(vsck.getNumberOfRows(), (size_t)img.rows);
-            EXPECT_EQ(vsck.getNumberOfColumns(), (size_t)img.cols);
         }
 
         TEST(VerticalSeamCarverKeepout, CheckExceptions)

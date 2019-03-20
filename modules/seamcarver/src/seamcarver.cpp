@@ -48,31 +48,21 @@ cv::SeamCarver::SeamCarver(double marginEnergy, PixelEnergy2D* pPixelEnergy2D) :
 {
     if (pPixelEnergy2D)
     {
-        pixelEnergyCalculator_ = pPixelEnergy2D;
+        pPixelEnergyCalculator_ = pPixelEnergy2D;
     }
     else
     {
-        pixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
     }
 }
 
 cv::SeamCarver::~SeamCarver()
 {
-    if (pixelEnergyCalculator_)
+    if (pPixelEnergyCalculator_)
     {
-        delete pixelEnergyCalculator_;
-        pixelEnergyCalculator_ = nullptr;
+        delete pPixelEnergyCalculator_;
+        pPixelEnergyCalculator_ = nullptr;
     }
-}
-
-size_t cv::SeamCarver::getNumberOfColumns() const
-{
-    return numColumns_;
-}
-
-size_t cv::SeamCarver::getNumberOfRows() const
-{
-    return numRows_;
 }
 
 void cv::SeamCarver::setDimensions(size_t numRows, size_t numColumns)
@@ -115,16 +105,18 @@ void cv::SeamCarver::setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalc
     {
         CV_Error(Error::Code::StsBadArg, "setNewPixelEnergyCalculator failed due to nullptr arg");
     }
-    if (pixelEnergyCalculator_)
+
+    if (pPixelEnergyCalculator_)
     {
-        delete pixelEnergyCalculator_;
+        delete pPixelEnergyCalculator_;
     }
-    pixelEnergyCalculator_ = pNewPixelEnergyCalculator;
+
+    pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
 }
 
 inline bool cv::SeamCarver::areDimensionsInitialized() const
 {
-    return !needToInitializeLocalData;
+    return !bNeedToInitializeLocalData;
 }
 
 void cv::SeamCarver::init(const cv::Mat& img, size_t seamLength)
@@ -139,14 +131,11 @@ void cv::SeamCarver::init(const cv::Mat& img, size_t seamLength)
     }
 }
 
-void cv::SeamCarver::init(size_t numRows,
-                          size_t numColumns,
-                          size_t seamLength)
+void cv::SeamCarver::init(size_t numRows, size_t numColumns, size_t seamLength)
 {
     initializeLocalVariables(numRows, numColumns, numRows - 1, numColumns - 1, seamLength);
     initializeLocalVectors();
-
-    needToInitializeLocalData = false;
+    bNeedToInitializeLocalData = false;
 }
 
 inline void cv::SeamCarver::initializeLocalVariables(size_t numRows,
@@ -195,9 +184,9 @@ void cv::SeamCarver::resetLocalVectors()
     for (size_t seamNum = 0; seamNum < seamLength_; seamNum++)
     {
         // ensure priority queue has at least numSeams capacity
-        if (numSeams_ > discoveredSeams[seamNum].capacity())
+        if (numSeamsToRemove_ > discoveredSeams[seamNum].capacity())
         {
-            discoveredSeams[seamNum].allocate(numSeams_);
+            discoveredSeams[seamNum].allocate(numSeamsToRemove_);
         }
 
         // reset priority queue since it could be filled from a previous run

@@ -47,9 +47,6 @@
 
 namespace cv
 {
-    typedef void(*energyFunc)(const cv::Mat& img, std::vector<std::vector<double>>& outPixelEnergy);
-    typedef std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> vectorOfMinOrientedPQ;
-
     // forward declare
     class PixelEnergy2D;
 
@@ -67,18 +64,6 @@ namespace cv
         virtual void runSeamRemover(size_t numSeams,
                                     const cv::Mat& img,
                                     cv::Mat& outImg) = 0;
-
-        /**
-         * @brief return the image width expected
-         * @return size_t
-         */
-        virtual size_t getNumberOfColumns() const;
-
-        /**
-         * @brief return the image height expected
-         * @return size_t
-         */
-        virtual size_t getNumberOfRows() const;
 
         /**
          * @brief set the expected image dimensions
@@ -188,7 +173,7 @@ namespace cv
         std::vector<std::vector<double>> pixelEnergy;
 
         // vector of min oriented priority queues that store the location of the pixels to remove
-        vectorOfMinOrientedPQ discoveredSeams;
+        std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> discoveredSeams;
 
         // store cumulative energy to each pixel
         std::vector<std::vector<double>> totalEnergyTo;
@@ -202,7 +187,7 @@ namespace cv
         // vector to hold image color channels separately
         std::vector<cv::Mat> bgr;
 
-        bool needToInitializeLocalData = true;
+        bool bNeedToInitializeLocalData = true;
 
         // default energy at the borders of the image
         const double marginEnergy_;
@@ -215,14 +200,14 @@ namespace cv
         size_t numColorChannels_ = 0;
 
         // number of seams to remove (updated every run)
-        size_t numSeams_ = 0;
+        size_t numSeamsToRemove_ = 0;
 
         // number of pixels per seam
         size_t seamLength_ = 0;
 
         double posInf_ = std::numeric_limits<double>::max();
 
-        cv::PixelEnergy2D* pixelEnergyCalculator_ = nullptr;
+        cv::PixelEnergy2D* pPixelEnergyCalculator_ = nullptr;
     };
 
 }

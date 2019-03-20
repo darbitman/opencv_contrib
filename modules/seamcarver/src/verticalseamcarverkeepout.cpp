@@ -43,7 +43,7 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
         }
         else
         {
-            if (needToInitializeLocalData)
+            if (bNeedToInitializeLocalData)
             {
                 init(img, img.rows);
             }
@@ -103,7 +103,7 @@ void cv::VerticalSeamCarverKeepout::setKeepoutRegion(size_t startingRow,
         CV_Error(Error::Code::StsBadArg, "Zero size keepout region");
     }
 
-    if (areDimensionsInitialized())
+    if (!bNeedToInitializeLocalData)
     {
         if (startingColumn > rightColumn_)
         {
