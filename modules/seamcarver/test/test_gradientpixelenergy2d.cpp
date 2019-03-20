@@ -48,8 +48,6 @@ namespace opencv_test
     namespace
     {
         double initialMarginEnergy = 390150.0;
-        size_t initialNumColumns = 1920;
-        size_t initialNumRows = 1080;
 
         cv::Mat img = cv::imread("../../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
 
@@ -57,6 +55,9 @@ namespace opencv_test
         {
             ASSERT_EQ(img.empty(), false);
         }
+
+        size_t initialNumColumns = (size_t)img.cols;
+        size_t initialNumRows = (size_t)img.rows;
 
         TEST(GradientPixelEnergy2D, DefaultCtor)
         {
@@ -75,18 +76,36 @@ namespace opencv_test
             }
             catch (const cv::Exception& e)
             {
-                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
             }
 
-            // check if number of color channels uninitialized
+            // calculating pixel energy for an empty image
             try
             {
+                cv::Mat emptyImage;
+                ASSERT_EQ(emptyImage.empty(), true);
+
+                std::vector<std::vector<double>> calculatedPixelEnergy;
+
                 cv::GradientPixelEnergy2D pixelEnergyCalculator;
+                pixelEnergyCalculator.calculatePixelEnergy(emptyImage, calculatedPixelEnergy);
             }
             catch (const cv::Exception& e)
             {
-                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
             }
+        }
+
+        TEST(GradientPixelEnergy2D, CalculatePixelEnergy)
+        {
+            cv::GradientPixelEnergy2D pixelEnergyCalculator;
+
+            std::vector<std::vector<double>> calculatedPixelEnergy;
+
+            pixelEnergyCalculator.calculatePixelEnergy(img, calculatedPixelEnergy);
+
+            //DebugDisplay d;
+            //d.Display2DVector<double>(calculatedPixelEnergy, initialMarginEnergy);
         }
     }
 }

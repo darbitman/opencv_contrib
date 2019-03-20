@@ -43,7 +43,7 @@
 #include <thread>
 using std::vector;
 
-cv::GradientPixelEnergy2D::GradientPixelEnergy2D(double marginEnergy) : PixelEnergy2D(marginEnergy)
+cv::GradientPixelEnergy2D::GradientPixelEnergy2D(double marginEnergy) : marginEnergy_(marginEnergy)
 {}
 
 cv::GradientPixelEnergy2D::~GradientPixelEnergy2D() {}
@@ -139,7 +139,7 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(
         }
         else
         {
-            CV_Error(Error::Code::StsInternal,
+            CV_Error(Error::Code::StsBadArg,
                      "GradientPixelEnergy2D::calculatePixelEnergyForEveryRow() failed due to \
                       incorrect number of channels");
         }
@@ -313,7 +313,7 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(
         }
         else
         {
-            CV_Error(Error::Code::StsInternal,
+            CV_Error(Error::Code::StsBadArg,
                      "GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn() failed due to \
                       incorrect number of channels");
         }

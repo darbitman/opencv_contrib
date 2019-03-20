@@ -40,7 +40,6 @@
 //M*/
 
 #include "opencv2/seamcarver/pixelenergy2d.hpp"
-#include <thread>
 using std::vector;
 
 cv::PixelEnergy2D::PixelEnergy2D(double marginEnergy)
@@ -61,7 +60,7 @@ void cv::PixelEnergy2D::setMarginEnergy(double marginEnergy)
 {
     if (marginEnergy < 0.0)
     {
-        CV_Error(Error::Code::StsInternal, "Can't set negative margin energy");
+        CV_Error(Error::Code::StsBadArg, "Can't set negative margin energy");
     }
 
     marginEnergy_ = marginEnergy;

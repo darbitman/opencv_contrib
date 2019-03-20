@@ -50,11 +50,14 @@ namespace cv
     class CV_EXPORTS PixelEnergy2D
     {
     public:
+        /**
+         * @brief dtor
+         */
         virtual ~PixelEnergy2D();
 
         /**
-         * @brief sets the marginEnergy (positive only)
-         * @param marginEnergy: energy of the edge pixels
+         * @brief sets the energy of the border pixels
+         * @param marginEnergy: energy of the border pixels
          */
         virtual void setMarginEnergy(double marginEnergy);
 
@@ -65,10 +68,9 @@ namespace cv
         virtual double getMarginEnergy() const;
 
         /**
-         * @brief
+         * @brief run the pixel energy calculation
          * @param image: 2D matrix representation of the image
-         * @param outPixelEnergy: Out parameter, 2D vector of calculated pixel energies
-         * @return bool: indicates if the operation was successful
+         * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
          */
         virtual void calculatePixelEnergy(const cv::Mat& image,
                                           std::vector<std::vector<double>>& outPixelEnergy) = 0;
@@ -81,20 +83,13 @@ namespace cv
 
     protected:
         /**
-         * @brief Default ctor, where the default pixel energy at the edges is 390150.0
-         * @param marginEnergy: energy defined for border pixels
+         * @brief default ctor
+         * @param marginEnergy: energy of the border pixels
          */
         explicit PixelEnergy2D(double marginEnergy = 390150.0);
 
         // energy at the borders of an image
         double marginEnergy_ = 0.0;
-
-        // image dimensions
-        size_t numRows_ = 0;
-        size_t numColumns_ = 0;
-        size_t bottomRow_ = 0;
-        size_t rightColumn_ = 0;
-        size_t numColorChannels_ = 0;
     };
 }
 

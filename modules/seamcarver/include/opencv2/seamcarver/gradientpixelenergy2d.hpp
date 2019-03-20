@@ -42,8 +42,8 @@
 #ifndef OPENCV_SEAMCARVER_GRADIENTPIXELENERGY2D_HPP
 #define OPENCV_SEAMCARVER_GRADIENTPIXELENERGY2D_HPP
 
-#include "opencv2/seamcarver/pixelenergy2d.hpp"
 #include <opencv2/core.hpp>
+#include "opencv2/seamcarver/pixelenergy2d.hpp"
 #include <vector>
 
 namespace cv
@@ -57,6 +57,9 @@ namespace cv
          */
         explicit GradientPixelEnergy2D(double marginEnergy = 390150.0);
 
+        /**
+         * @brief dtor
+         */
         virtual ~GradientPixelEnergy2D();
 
         /**
@@ -76,9 +79,9 @@ namespace cv
 
     protected:
         /**
-         * @brief
-         * @param Image: 2D matrix representation of the image
-         * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
+         * @brief calculate pixel energy for all rows (but either odd or even columns)
+         * @param image: 2D matrix representation of the image
+         * @param outPixelEnergy: Out parameter, 2D vector of calculated pixel energies
          * @param bDoOddColumns: Indicates whether odd or even columns are done
          * @return bool: indicates if the operation was successful
          */
@@ -88,10 +91,10 @@ namespace cv
             bool bDoOddColumns);
 
         /**
-         * @brief
-         * @param Image: 2D matrix representation of the image
-         * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
-         * @param bDoOddRows: Indicates whether odd or even rows are done
+         * @brief calculate pixel energy for all columns (but either odd or even rows)
+         * @param image: 2D matrix representation of the image
+         * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
+         * @param bDoOddRows: indicates whether odd or even rows are done
          * @return bool: indicates if the operation was successful
          */
         virtual void calculatePixelEnergyForEveryColumn(
@@ -102,7 +105,18 @@ namespace cv
         // store an exception if a thread throws it
         std::exception_ptr threadExceptionPtr = nullptr;
 
+        // mutex to protect the exception ptr above
         std::mutex threadExceptionPtrMutex;
+
+        // energy at the borders of an image
+        double marginEnergy_ = 0.0;
+
+        // image dimensions
+        size_t numRows_ = 0;
+        size_t numColumns_ = 0;
+        size_t bottomRow_ = 0;
+        size_t rightColumn_ = 0;
+        size_t numColorChannels_ = 0;
     };
 }
 
