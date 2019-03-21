@@ -48,6 +48,9 @@
 
 namespace cv
 {
+    // forward declare class;
+    class PixelEnergy2D;
+
     class CV_EXPORTS VerticalSeamCarver : public SeamCarver
     {
     public:
