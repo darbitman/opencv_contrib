@@ -64,7 +64,7 @@ namespace cv
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarverKeepout(double marginEnergy = 390150.0,
-                                  PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
+                                  cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on dimensions
@@ -84,7 +84,7 @@ namespace cv
                                   size_t regionWidth,
                                   size_t regionHeight,
                                   double marginEnergy = 390150.0,
-                                  PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
+                                  cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on sample image
@@ -102,7 +102,7 @@ namespace cv
                                   size_t regionWidth,
                                   size_t regionHeight,
                                   double marginEnergy = 390150.0,
-                                  PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
+                                  cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
         virtual ~VerticalSeamCarverKeepout() {}
 

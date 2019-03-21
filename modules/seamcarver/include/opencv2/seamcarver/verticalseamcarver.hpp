@@ -60,7 +60,7 @@ namespace cv
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarver(double marginEnergy = 390150.0,
-                           PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
+                           cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on dimensions
@@ -72,7 +72,7 @@ namespace cv
         VerticalSeamCarver(size_t numRows,
                            size_t numColumns,
                            double marginEnergy = 390150.0,
-                           PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
+                           cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on a sample image
@@ -82,7 +82,7 @@ namespace cv
          */
         VerticalSeamCarver(const cv::Mat& img,
                            double marginEnergy = 390150.0,
-                           PixelEnergy2D* pNewPixelEnergyCalculator = nullptr);
+                           cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
         /**
          * @brief dtor
          */
@@ -121,7 +121,7 @@ namespace cv
          * @brief sets a new pixel energy calculator
          * @param pNewPixelEnergyCalculator: pointer to a new pixel energy calculator
          */
-        virtual void setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalculator);
+        virtual void setPixelEnergyCalculator(cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator);
 
         // Deleted/defaulted functions
         VerticalSeamCarver(const VerticalSeamCarver& rhs) = delete;
@@ -235,7 +235,7 @@ namespace cv
         size_t numSeamsToRemove_ = 0;
 
         // pointer to an object that calculates pixel energy
-        cv::PixelEnergy2D* pPixelEnergyCalculator_ = nullptr;
+        cv::Ptr<PixelEnergy2D> pPixelEnergyCalculator_ = nullptr;
 
         // default energy at the borders of the image
         const double marginEnergy_;

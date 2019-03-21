@@ -44,16 +44,16 @@
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
     double marginEnergy,
-    PixelEnergy2D* pNewPixelEnergyCalculator) :
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     marginEnergy_(marginEnergy)
 {
-    if (pNewPixelEnergyCalculator)
+    if (pNewPixelEnergyCalculator != nullptr)
     {
         pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
     }
     else
     {
-        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+        pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
     }
 }
 
@@ -61,16 +61,16 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
     size_t numRows,
     size_t numColumns,
     double marginEnergy,
-    PixelEnergy2D* pNewPixelEnergyCalculator) :
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     marginEnergy_(marginEnergy)
 {
-    if (pNewPixelEnergyCalculator)
+    if (pNewPixelEnergyCalculator != nullptr)
     {
         pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
     }
     else
     {
-        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+        pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
     }
 
     init(numRows, numColumns, numRows);
@@ -79,29 +79,22 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
 cv::VerticalSeamCarver::VerticalSeamCarver(
     const cv::Mat& img,
     double marginEnergy,
-    PixelEnergy2D* pNewPixelEnergyCalculator) :
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     marginEnergy_(marginEnergy)
 {
-    if (pNewPixelEnergyCalculator)
+    if (pNewPixelEnergyCalculator != nullptr)
     {
         pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;
     }
     else
     {
-        pPixelEnergyCalculator_ = new GradientPixelEnergy2D(marginEnergy);
+        pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
     }
 
     init(img, (size_t)img.rows);
 }
 
-cv::VerticalSeamCarver::~VerticalSeamCarver()
-{
-    if (pPixelEnergyCalculator_)
-    {
-        delete pPixelEnergyCalculator_;
-        pPixelEnergyCalculator_ = nullptr;
-    }
-}
+cv::VerticalSeamCarver::~VerticalSeamCarver() {}
 
 void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
                                             const cv::Mat& image,
@@ -173,16 +166,12 @@ inline bool cv::VerticalSeamCarver::areDimensionsInitialized() const
     return !bNeedToInitializeLocalData;
 }
 
-void cv::VerticalSeamCarver::setPixelEnergyCalculator(PixelEnergy2D* pNewPixelEnergyCalculator)
+void cv::VerticalSeamCarver::setPixelEnergyCalculator(
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator)
 {
     if (pNewPixelEnergyCalculator == nullptr)
     {
         CV_Error(Error::Code::StsBadArg, "setNewPixelEnergyCalculator failed due to nullptr arg");
-    }
-
-    if (pPixelEnergyCalculator_)
-    {
-        delete pPixelEnergyCalculator_;
     }
 
     pPixelEnergyCalculator_ = pNewPixelEnergyCalculator;

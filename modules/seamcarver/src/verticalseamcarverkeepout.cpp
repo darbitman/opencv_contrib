@@ -1,30 +1,33 @@
 #include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(double marginEnergy,
-                                                         PixelEnergy2D* pNewPixelEnergyCalculator) :
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
+    double marginEnergy,
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     VerticalSeamCarver(marginEnergy, pNewPixelEnergyCalculator)
 {}
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(size_t numRows,
-                                                         size_t numColumns,
-                                                         size_t startingRow,
-                                                         size_t startingColumn,
-                                                         size_t regionWidth,
-                                                         size_t regionHeight,
-                                                         double marginEnergy,
-                                                         PixelEnergy2D* pNewPixelEnergyCalculator) :
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
+    size_t numRows,
+    size_t numColumns,
+    size_t startingRow,
+    size_t startingColumn,
+    size_t regionWidth,
+    size_t regionHeight,
+    double marginEnergy,
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     VerticalSeamCarver(numRows, numColumns, marginEnergy, pNewPixelEnergyCalculator)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
 }
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(const cv::Mat& img,
-                                                         size_t startingRow,
-                                                         size_t startingColumn,
-                                                         size_t regionWidth,
-                                                         size_t regionHeight,
-                                                         double marginEnergy,
-                                                         PixelEnergy2D* pNewPixelEnergyCalculator) :
+cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
+    const cv::Mat& img,
+    size_t startingRow,
+    size_t startingColumn,
+    size_t regionWidth,
+    size_t regionHeight,
+    double marginEnergy,
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     VerticalSeamCarver(img, marginEnergy, pNewPixelEnergyCalculator)
 {
     setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);

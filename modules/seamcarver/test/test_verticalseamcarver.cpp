@@ -65,7 +65,7 @@ namespace opencv_test
         TEST(VerticalSeamCarver, DimsCtor)
         {
             VerticalSeamCarver vSeamCarver((size_t)img.rows,
-                                           (size_t)img.cols,
+                (size_t)img.cols,
                                            (size_t)initialMarginEnergy);
         }
 
@@ -143,6 +143,16 @@ namespace opencv_test
 
             //DebugDisplay d;
             //d.displayMatrix(outImg);
+        }
+
+        TEST(VerticalSeamCarver, NonDefaultPixelEnergyCalculator)
+        {
+            cv::Ptr<PixelEnergy2D> pNewGradientPixelEnergy =
+                cv::makePtr<GradientPixelEnergy2D>(initialMarginEnergy);
+
+            VerticalSeamCarver vSeamCarver(img, initialMarginEnergy, pNewGradientPixelEnergy);
+
+            EXPECT_EQ(pNewGradientPixelEnergy.use_count(), 2);
         }
     }
 }
