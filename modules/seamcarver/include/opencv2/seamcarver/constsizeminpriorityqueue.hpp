@@ -57,7 +57,7 @@ namespace cv
         explicit ConstSizeMinPriorityQueue(size_t capacity);
 
         /**
-         * @brief default ctor to initialize to null values
+         * @brief default ctor
          */
         ConstSizeMinPriorityQueue();
 
@@ -67,19 +67,19 @@ namespace cv
         virtual ~ConstSizeMinPriorityQueue();
 
         /**
-         * @brief initialize data members and allocate memory for new heap
-         * @param capacity maximum number of elements
+         * @brief change capacity and reset priority queue
+         * @param newCapacity: maximum number of elements
          */
-        virtual void allocate(size_t capacity);
+        virtual void changeCapacity(size_t newCapacity);
 
         /**
-         * @brief resets heap to starting position
+         * @brief resets priority queue to clean state
          */
-        virtual void resetHeap();
+        virtual void resetPriorityQueue();
 
         /**
          * @brief insert new element
-         * @param element element to insert
+         * @param element: element to insert
          */
         virtual void push(_Tp element) override;
 
@@ -97,7 +97,7 @@ namespace cv
 
         /**
          * @brief return the number of elements in the queue
-         * @return uint32_t number of elements in the queue
+         * @return size_t
          */
         virtual size_t size() const override;
 
@@ -109,7 +109,7 @@ namespace cv
 
         /**
          * @brief check if the queue is empty
-         * @return bool returns true if queue is empty
+         * @return bool
          */
         virtual bool empty() const override;
 
@@ -122,20 +122,20 @@ namespace cv
     protected:
         /**
          * @brief promote element k if less than its parent
-         * @param k index of element to promote
+         * @param k: index of element to promote
          */
         virtual void swim(uint32_t k);
 
         /**
          * @brief demote element k if greater than its parent
-         * @param k index of element to demote
+         * @param k: index of element to demote
          */
         virtual void sink(uint32_t k);
 
         /**
          * @brief swap 2 elements
-         * @param j index of the first element
-         * @param k index of the second element
+         * @param j: index of the first element
+         * @param k: index of the second element
          */
         virtual void exch(uint32_t j, uint32_t k);
 
@@ -143,13 +143,9 @@ namespace cv
         size_t capacity_ = 0;
 
         // position of last element
-        // also the number of elements (size)
         size_t N_ = 0;
 
-        // TODO remove raw ptr
-        // pointer to where the raw data will be stored
-        //_Tp* heap_ = nullptr;
-
+        // underlying storage container for elements in priority queue
         std::vector<_Tp> heap_;
     };
 
@@ -177,21 +173,20 @@ namespace cv
     ConstSizeMinPriorityQueue<_Tp>::~ConstSizeMinPriorityQueue() {}
 
     template<typename _Tp>
-    void ConstSizeMinPriorityQueue<_Tp>::allocate(size_t capacity)
+    void ConstSizeMinPriorityQueue<_Tp>::changeCapacity(size_t newCapacity)
     {
-        // only need to allocate if increasing size
-        // if new allocation has to be smaller, just change capacity
-        if (capacity > capacity_)
+        // only need to change capacity if increasing size
+        if (newCapacity > capacity_)
         {
-            capacity_ = capacity;
+            capacity_ = newCapacity;
             heap_.resize(capacity_ + 1);
         }
 
-        resetHeap();
+        resetPriorityQueue();
     }
 
     template<typename _Tp>
-    inline void ConstSizeMinPriorityQueue<_Tp>::resetHeap()
+    inline void ConstSizeMinPriorityQueue<_Tp>::resetPriorityQueue()
     {
         N_ = 0;
     }
@@ -200,17 +195,15 @@ namespace cv
     template<typename _Tp>
     void ConstSizeMinPriorityQueue<_Tp>::push(_Tp element)
     {
-        // verify that capacity is non-zero and positive
+        // verify that capacity is non-zero
         // check if queue full
         if (capacity_ == 0 || heap_.size() == 0)
         {
-            CV_Error(Error::Code::StsInternal,
-                     "ConstSizeMinPriorityQueue::push() failed due to zero capacity");
+            CV_Error(Error::Code::StsInternal, "push() failed due to zero capacity");
         }
         else if (N_ >= capacity_)
         {
-            CV_Error(Error::Code::StsInternal,
-                     "ConstSizeMinPriorityQueue::push() failed due to full PQ");
+            CV_Error(Error::Code::StsInternal, "push() failed due to full PQ");
         }
         else
         {
@@ -226,8 +219,7 @@ namespace cv
         // verify there's a valid item to return
         if (N_ == 0)
         {
-            CV_Error(Error::Code::StsInternal,
-                     "ConstSizeMinPriorityQueue::pop() failed because PQ is empty");
+            CV_Error(Error::Code::StsInternal, "pop() failed because PQ is empty");
         }
 
         // save root element
@@ -245,8 +237,7 @@ namespace cv
     {
         if (N_ == 0)
         {
-            CV_Error(Error::Code::StsInternal,
-                     "ConstSizeMinPriorityQueue::top() failed because PQ is empty");
+            CV_Error(Error::Code::StsInternal, "top() failed because PQ is empty");
         }
 
         return heap_[1];

@@ -244,13 +244,13 @@ void cv::VerticalSeamCarver::resetLocalVectors()
         // ensure priority queue has at least numSeams capacity
         if (numSeamsToRemove_ > discoveredSeams[seamNum].capacity())
         {
-            discoveredSeams[seamNum].allocate(numSeamsToRemove_);
+            discoveredSeams[seamNum].changeCapacity(numSeamsToRemove_);
         }
 
         // reset priority queue since it could be filled from a previous run
         if (discoveredSeams[seamNum].size() > 0)
         {
-            discoveredSeams[seamNum].resetHeap();
+            discoveredSeams[seamNum].resetPriorityQueue();
         }
     }
 }

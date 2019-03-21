@@ -59,7 +59,7 @@ namespace opencv_test
             EXPECT_EQ(ex.code, Error::Code::StsInternal);
         }
 
-        // pushing one more element than the internal capacity allows
+        // pushing more elements than capacity
         try
         {
             uint32_t capacity = 1;
@@ -133,7 +133,7 @@ namespace opencv_test
         ConstSizeMinPriorityQueue<uint32_t> minHeap;
         EXPECT_EQ(minHeap.capacity(), ZERO);
 
-        minHeap.allocate(capacity);
+        minHeap.changeCapacity(capacity);
         EXPECT_EQ(minHeap.capacity(), capacity);
 
         EXPECT_EQ(minHeap.size(), ZERO);
@@ -163,7 +163,7 @@ namespace opencv_test
             EXPECT_EQ(greatestToLeast[currentIndex], minHeap.pop());
         }
 
-        minHeap.allocate(capacity + capacity);
+        minHeap.changeCapacity(capacity + capacity);
         EXPECT_EQ(minHeap.capacity(), capacity + capacity);
         EXPECT_EQ(minHeap.size(), ZERO);
     }
@@ -202,7 +202,7 @@ namespace opencv_test
             EXPECT_EQ(greatestToLeast[currentIndex], minHeap.pop());
         }
 
-        minHeap.allocate(capacity + capacity);
+        minHeap.changeCapacity(capacity + capacity);
         EXPECT_EQ(minHeap.capacity(), capacity + capacity);
         EXPECT_EQ(minHeap.size(), ZERO);
     }
@@ -225,7 +225,7 @@ namespace opencv_test
             EXPECT_EQ(minHeap.size(), i + 1);
         }
 
-        minHeap.resetHeap();
+        minHeap.resetPriorityQueue();
         EXPECT_EQ(minHeap.capacity(), capacity);
         EXPECT_EQ(minHeap.size(), ZERO);
     }
