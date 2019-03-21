@@ -204,13 +204,15 @@ namespace cv
         std::vector<std::vector<double>> pixelEnergy;
 
         // vector of min oriented priority queues that store the location of the pixels to remove
+        // the index to the vector corresponds to the rows
+        // the column index is stored in the PQ
         std::vector<cv::ConstSizeMinPriorityQueue<int32_t>> discoveredSeams;
 
         // store cumulative energy to each pixel
         std::vector<std::vector<double>> totalEnergyTo;
 
-        // store the location (column or row) of the previous pixel to get to the current pixel
-        std::vector<std::vector<int32_t>> previousLocationTo;
+        // store the column of the pixel in the "previous" row to get to the current pixel
+        std::vector<std::vector<int32_t>> columnTo;
 
         // store the current seam being discovered
         std::vector<size_t> currentSeam;
