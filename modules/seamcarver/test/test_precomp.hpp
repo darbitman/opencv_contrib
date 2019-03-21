@@ -6,7 +6,7 @@
 
 #include "opencv2/ts.hpp"
 #include "opencv2/seamcarver/gradientpixelenergy2d.hpp"
-#include "opencv2/seamcarver/constsizeminbinaryheap.hpp"
+#include "opencv2/seamcarver/constsizeminpriorityqueue.hpp"
 #include "opencv2/seamcarver/verticalseamcarver.hpp"
 #include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
 

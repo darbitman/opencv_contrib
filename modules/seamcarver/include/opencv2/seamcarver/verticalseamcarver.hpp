@@ -44,7 +44,7 @@
 
 #include <opencv2/core.hpp>
 #include "seamcarver.hpp"
-#include "constsizeminbinaryheap.hpp"
+#include "constsizeminpriorityqueue.hpp"
 
 namespace cv
 {
@@ -204,7 +204,7 @@ namespace cv
         std::vector<std::vector<double>> pixelEnergy;
 
         // vector of min oriented priority queues that store the location of the pixels to remove
-        std::vector<cv::ConstSizeMinBinaryHeap<int32_t>> discoveredSeams;
+        std::vector<cv::ConstSizeMinPriorityQueue<int32_t>> discoveredSeams;
 
         // store cumulative energy to each pixel
         std::vector<std::vector<double>> totalEnergyTo;

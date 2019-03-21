@@ -46,12 +46,12 @@ namespace opencv_test
     const size_t ZERO = 0;
 
 
-    TEST(ConstSizeMinBinaryHeap, CheckPushThrows)
+    TEST(ConstSizeMinPriorityQueue, CheckPushThrows)
     {
         // check uninitialized internal memory
         try
         {
-            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            ConstSizeMinPriorityQueue<uint32_t> minHeap;
             minHeap.push(10);
         }
         catch (cv::Exception& ex)
@@ -63,7 +63,7 @@ namespace opencv_test
         try
         {
             uint32_t capacity = 1;
-            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            ConstSizeMinPriorityQueue<uint32_t> minHeap(capacity);
             minHeap.push(10);
             minHeap.push(10);
         }
@@ -73,12 +73,12 @@ namespace opencv_test
         }
     }
 
-    TEST(ConstSizeMinBinaryHeap, CheckPopThrows)
+    TEST(ConstSizeMinPriorityQueue, CheckPopThrows)
     {
         // check uninitialized internal memory
         try
         {
-            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            ConstSizeMinPriorityQueue<uint32_t> minHeap;
             minHeap.pop();
         }
         catch (cv::Exception& ex)
@@ -90,7 +90,7 @@ namespace opencv_test
         try
         {
             size_t capacity = 1;
-            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            ConstSizeMinPriorityQueue<uint32_t> minHeap(capacity);
             minHeap.push(1);
             minHeap.pop();
             minHeap.pop();
@@ -101,12 +101,12 @@ namespace opencv_test
         }
     }
 
-    TEST(ConstSizeMinBinaryHeap, CheckTopThrows)
+    TEST(ConstSizeMinPriorityQueue, CheckTopThrows)
     {
         // check uninitialized internal memory has no elements
         try
         {
-            ConstSizeMinBinaryHeap<uint32_t> minHeap;
+            ConstSizeMinPriorityQueue<uint32_t> minHeap;
             minHeap.top();
         }
         catch (cv::Exception& ex)
@@ -118,7 +118,7 @@ namespace opencv_test
         try
         {
             size_t capacity = 1;
-            ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+            ConstSizeMinPriorityQueue<uint32_t> minHeap(capacity);
             minHeap.top();
         }
         catch (cv::Exception& ex)
@@ -127,10 +127,10 @@ namespace opencv_test
         }
     }
 
-    TEST(ConstSizeMinBinaryHeap, DefaultCtor)
+    TEST(ConstSizeMinPriorityQueue, DefaultCtor)
     {
         size_t capacity = 10;
-        ConstSizeMinBinaryHeap<uint32_t> minHeap;
+        ConstSizeMinPriorityQueue<uint32_t> minHeap;
         EXPECT_EQ(minHeap.capacity(), ZERO);
 
         minHeap.allocate(capacity);
@@ -168,10 +168,10 @@ namespace opencv_test
         EXPECT_EQ(minHeap.size(), ZERO);
     }
 
-    TEST(ConstSizeMinBinaryHeap, InitializeCtor)
+    TEST(ConstSizeMinPriorityQueue, InitializeCtor)
     {
         size_t capacity = 10;
-        ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+        ConstSizeMinPriorityQueue<uint32_t> minHeap(capacity);
 
         EXPECT_EQ(minHeap.capacity(), capacity);
 
@@ -207,10 +207,10 @@ namespace opencv_test
         EXPECT_EQ(minHeap.size(), ZERO);
     }
 
-    TEST(ConstSizeMinBinaryHeap, CheckResetHeap)
+    TEST(ConstSizeMinPriorityQueue, CheckResetHeap)
     {
         size_t capacity = 10;
-        ConstSizeMinBinaryHeap<uint32_t> minHeap(capacity);
+        ConstSizeMinPriorityQueue<uint32_t> minHeap(capacity);
         EXPECT_EQ(minHeap.capacity(), capacity);
 
         EXPECT_EQ(minHeap.size(), ZERO);
