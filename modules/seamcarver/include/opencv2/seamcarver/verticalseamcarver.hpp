@@ -168,12 +168,12 @@ namespace cv
 
         /**
          * @brief find then remove remove vertical seams
-         * @param img: input image
-         * @param outImg: output image parameter
+         * @param image: input image
+         * @param outImage: output image parameter
          * @param computeEnergyFunction: pointer to a user-defined energy function.
          *                               If one is not provided, internal one will be used
          */
-        virtual void findAndRemoveSeams(const cv::Mat& img, cv::Mat& outImg);
+        virtual void findAndRemoveSeams(const cv::Mat& image, cv::Mat& outImage);
 
         /**
          * @brief calculates the energy required to reach bottom row
