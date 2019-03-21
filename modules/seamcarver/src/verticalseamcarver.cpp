@@ -104,7 +104,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
     {
         if (bNeedToInitializeLocalData)
         {
-            init(image, image.rows);
+            init(image, (size_t)image.rows);
         }
 
         // check if removing more seams than columns available
