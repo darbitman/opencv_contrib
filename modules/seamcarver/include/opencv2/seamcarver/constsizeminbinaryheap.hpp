@@ -68,7 +68,7 @@ namespace cv
          * @brief copy constructor to perform deep copy
          * @param rhs source of deep copy
          */
-        ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>& rhs);
+        explicit ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>& rhs);
 
         /**
          * @brief initialize data members and allocate memory for new heap
@@ -117,10 +117,9 @@ namespace cv
          */
         virtual bool empty() const;
 
+        // default/deleted
         ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>&& rhs) = default;
-
         virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap<_Tp>& rhs) = delete;
-
         virtual ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap<_Tp>&& rhs) = delete;
 
     protected:
@@ -161,11 +160,11 @@ namespace cv
         // make sure allocating a heap of at least 1 element
         if (capacity_ < 1)
         {
-            CV_Error(Error::Code::StsBadArg, "MinPQ capacity is not a positive integer");
+            CV_Error(Error::Code::StsBadArg, "MinPQ bad capacity argument");
         }
         else
         {
-            // binary heap functions do not use element 0
+            // binary heaps do not use element 0
             // so need an extra element in array
             heap_ = new _Tp[capacity_ + 1];
         }
