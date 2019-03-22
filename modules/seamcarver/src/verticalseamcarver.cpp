@@ -472,7 +472,7 @@ void cv::VerticalSeamCarver::calculateCumulativePathEnergy()
             minEnergyColumn = -1;
 
             // save some cycles by not doing any comparisons if the current pixel has been
-            //      previously markedPixels
+            //      previously marked
             if (!markedPixels[row][column])
             {
                 // check above
@@ -552,9 +552,9 @@ void cv::VerticalSeamCarver::removeSeams()
         while (!discoveredSeams[row].empty())
         {
             numSeamsRemoved++;
-            // column location of pixel to remove in row row
+            // column location of pixel to remove in row
             colToRemove = discoveredSeams[row].pop();
-            //seams[row].pop();
+
             // mark right endpoint/next pixel column
             size_t rightColBorder = (discoveredSeams[row].empty() ?
                                      numColumns_ : discoveredSeams[row].top());
@@ -572,7 +572,7 @@ void cv::VerticalSeamCarver::removeSeams()
         }
     }
 
-    /*** SHRINK IMAGE BY REMOVING SEAMS ***/
+    /*** SHRINK IMAGE SINCE THE IMPORTANT SEAMS WERE SHIFTED LEFT ***/
     for (size_t channel = 0; channel < numColorChannels_; channel++)
     {
         bgr[channel] = bgr[channel].colRange(0, numColumns_ - numSeamsRemoved);
