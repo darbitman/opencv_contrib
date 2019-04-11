@@ -1,46 +1,40 @@
-#include "opencv2/seamcarver/verticalseamcarverkeepout.hpp"
+#include "opencv2/seamcarver/verticalseamcarversquarekeepout.hpp"
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
-    double marginEnergy,
-    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
-    VerticalSeamCarver(marginEnergy, pNewPixelEnergyCalculator)
-{}
-
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
+cv::VerticalSeamCarverSquareKeepout::VerticalSeamCarverSquareKeepout(
     size_t numRows,
     size_t numColumns,
     size_t startingRow,
     size_t startingColumn,
-    size_t regionWidth,
-    size_t regionHeight,
+    size_t keepoutWidth,
+    size_t keepoutHeight,
     double marginEnergy,
     cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     VerticalSeamCarver(numRows, numColumns, marginEnergy, pNewPixelEnergyCalculator)
 {
-    setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
+    setKeepoutRegion(startingRow, startingColumn, keepoutWidth, keepoutHeight);
 }
 
-cv::VerticalSeamCarverKeepout::VerticalSeamCarverKeepout(
-    const cv::Mat& img,
+cv::VerticalSeamCarverSquareKeepout::VerticalSeamCarverSquareKeepout(
+    const cv::Mat& image,
     size_t startingRow,
     size_t startingColumn,
-    size_t regionWidth,
-    size_t regionHeight,
+    size_t keepoutWidth,
+    size_t keepoutHeight,
     double marginEnergy,
     cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
-    VerticalSeamCarver(img, marginEnergy, pNewPixelEnergyCalculator)
+    VerticalSeamCarver(image, marginEnergy, pNewPixelEnergyCalculator)
 {
-    setKeepoutRegion(startingRow, startingColumn, regionHeight, regionWidth);
+    setKeepoutRegion(startingRow, startingColumn, keepoutWidth, keepoutHeight);
 }
 
-void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
-                                                   const cv::Mat& img,
-                                                   cv::Mat& outImg)
+void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeams,
+                                                         const cv::Mat& image,
+                                                         cv::Mat& outImage)
 {
     try
     {
         // verify keepout region dimensions
-        if (!bKeepoutRegionDefined)
+        if (!bSquareKeepoutRegionDefined)
         {
             CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
         }
@@ -48,7 +42,7 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
         {
             if (bNeedToInitializeLocalData)
             {
-                init(img, img.rows);
+                init(image, image.rows);
             }
 
             if (keepoutRegionDimensions_.column_ > rightColumn_ ||
@@ -72,7 +66,7 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
 
         resetLocalVectors();
 
-        findAndRemoveSeams(img, outImg);
+        findAndRemoveSeams(image, outImage);
     }
     catch (...)
     {
@@ -80,7 +74,7 @@ void cv::VerticalSeamCarverKeepout::runSeamRemover(size_t numSeams,
     }
 }
 
-void cv::VerticalSeamCarverKeepout::resetLocalVectors()
+void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
 {
     VerticalSeamCarver::resetLocalVectors();
 
@@ -96,10 +90,10 @@ void cv::VerticalSeamCarverKeepout::resetLocalVectors()
     }
 }
 
-void cv::VerticalSeamCarverKeepout::setKeepoutRegion(size_t startingRow,
-                                                     size_t startingColumn,
-                                                     size_t width,
-                                                     size_t height)
+void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
+                                                           size_t startingColumn,
+                                                           size_t width,
+                                                           size_t height)
 {
     if (height == 0 || width == 0)
     {
@@ -122,10 +116,10 @@ void cv::VerticalSeamCarverKeepout::setKeepoutRegion(size_t startingRow,
     keepoutRegionDimensions_.column_ = startingColumn;
     keepoutRegionDimensions_.height_ = height;
     keepoutRegionDimensions_.width_ = width;
-    bKeepoutRegionDefined = true;
+    bSquareKeepoutRegionDefined = true;
 }
 
-bool cv::VerticalSeamCarverKeepout::isKeepoutRegionDefined() const
+bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
 {
-    return bKeepoutRegionDefined;
+    return bSquareKeepoutRegionDefined;
 }

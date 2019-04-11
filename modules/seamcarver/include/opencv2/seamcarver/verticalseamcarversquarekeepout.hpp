@@ -39,8 +39,8 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_VERTICALSEAMCARVERKEEPOUT_HPP
-#define OPENCV_SEAMCARVER_VERTICALSEAMCARVERKEEPOUT_HPP
+#ifndef OPENCV_SEAMCARVER_VERTICALSEAMCARVERSQUAREKEEPOUT_HPP
+#define OPENCV_SEAMCARVER_VERTICALSEAMCARVERSQUAREKEEPOUT_HPP
 
 #include <opencv2/core.hpp>
 #include "opencv2/seamcarver/verticalseamcarver.hpp"
@@ -55,66 +55,58 @@ namespace cv
         size_t width_ = 0;
     };
 
-    class CV_EXPORTS VerticalSeamCarverKeepout : public VerticalSeamCarver
+    class CV_EXPORTS VerticalSeamCarverSquareKeepout : public VerticalSeamCarver
     {
     public:
-        /**
-         * @brief default ctor
-         * @param marginEnergy: defines the edge pixel energy
-         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
-         */
-        VerticalSeamCarverKeepout(double marginEnergy = 390150.0,
-                                  cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
-
         /**
          * @brief ctor based on dimensions
          * @param numRows: image height
          * @param numColumns: image width
          * @param startingRow: starting row of keepout region
          * @param startingColumn: starting column of keepout region
-         * @param regionWidth: keepout region width
-         * @param regionHeight: keepout region height
+         * @param keepoutWidth: keepout region width
+         * @param keepoutHeight: keepout region height
          * @param marginEnergy: defines the edge pixel energy
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
-        VerticalSeamCarverKeepout(size_t numRows,
-                                  size_t numColumns,
-                                  size_t startingRow,
-                                  size_t startingColumn,
-                                  size_t regionWidth,
-                                  size_t regionHeight,
-                                  double marginEnergy = 390150.0,
-                                  cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+        VerticalSeamCarverSquareKeepout(size_t numRows,
+                                        size_t numColumns,
+                                        size_t startingRow,
+                                        size_t startingColumn,
+                                        size_t keepoutWidth,
+                                        size_t keepoutHeight,
+                                        double marginEnergy = 390150.0,
+                                        cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on sample image
-         * @param img: sample image
+         * @param image: sample image
          * @param startingRow: starting row of keepout region
          * @param startingColumn: starting column of keepout region
-         * @param regionWidth: keepout region width
-         * @param regionHeight: keepout region height
+         * @param keepoutWidth: keepout region width
+         * @param keepoutHeight: keepout region height
          * @param marginEnergy: defines the edge pixel energy
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
-        VerticalSeamCarverKeepout(const cv::Mat& img,
-                                  size_t startingRow,
-                                  size_t startingColumn,
-                                  size_t regionWidth,
-                                  size_t regionHeight,
-                                  double marginEnergy = 390150.0,
-                                  cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+        VerticalSeamCarverSquareKeepout(const cv::Mat& image,
+                                        size_t startingRow,
+                                        size_t startingColumn,
+                                        size_t keepoutWidth,
+                                        size_t keepoutHeight,
+                                        double marginEnergy = 390150.0,
+                                        cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
 
-        virtual ~VerticalSeamCarverKeepout() {}
+        virtual ~VerticalSeamCarverSquareKeepout() {}
 
         /**
          * @brief run the vertical seam remover algorithm avoiding the keepout region
          * @param numSeams: number of vertical seams to remove
-         * @param img: input image
-         * @param outImg: output image parameter
+         * @param image: input image
+         * @param outImage: output image parameter
          */
         virtual void runSeamRemover(size_t numSeams,
-                                    const cv::Mat& img,
-                                    cv::Mat& outImg) override;
+                                    const cv::Mat& image,
+                                    cv::Mat& outImage) override;
 
         /**
          * @brief set the keepout region dimensions
@@ -136,10 +128,10 @@ namespace cv
 
 
         // Deleted/defaulted functions
-        VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout& rhs) = delete;
-        VerticalSeamCarverKeepout(const VerticalSeamCarverKeepout&& rhs) = delete;
-        virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout& rhs) = delete;
-        virtual VerticalSeamCarverKeepout& operator=(const VerticalSeamCarverKeepout&& rhs)= delete;
+        VerticalSeamCarverSquareKeepout(const VerticalSeamCarverSquareKeepout& rhs) = delete;
+        VerticalSeamCarverSquareKeepout(const VerticalSeamCarverSquareKeepout&& rhs) = delete;
+        virtual VerticalSeamCarverSquareKeepout& operator=(const VerticalSeamCarverSquareKeepout& rhs) = delete;
+        virtual VerticalSeamCarverSquareKeepout& operator=(const VerticalSeamCarverSquareKeepout&& rhs) = delete;
 
     protected:
         /**
@@ -147,11 +139,11 @@ namespace cv
          */
         virtual void resetLocalVectors() override;
 
-        bool bKeepoutRegionDefined = false;
+        // flag that indicates whether a square bounding box has been used to set the keepout region
+        bool bSquareKeepoutRegionDefined = false;
 
         keepoutRegionDimensionsStruct keepoutRegionDimensions_;
     };
-
 }
 
 #endif

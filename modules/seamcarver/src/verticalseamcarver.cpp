@@ -77,7 +77,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
 }
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
-    const cv::Mat& img,
+    const cv::Mat& image,
     double marginEnergy,
     cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
     marginEnergy_(marginEnergy)
@@ -91,7 +91,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
         pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
     }
 
-    init(img, (size_t)img.rows);
+    init(image, (size_t)image.rows);
 }
 
 cv::VerticalSeamCarver::~VerticalSeamCarver() {}

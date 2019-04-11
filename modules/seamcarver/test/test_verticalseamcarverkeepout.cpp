@@ -64,7 +64,7 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverKeepoutKeepout, DefaultCtor)
         {
-            VerticalSeamCarverKeepout vsck(initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), false);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), false);
@@ -83,7 +83,7 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverKeepoutKeepout, DimsCtor)
         {
-            VerticalSeamCarverKeepout vsck((size_t)img.rows,
+            VerticalSeamCarverSquareKeepout vsck((size_t)img.rows,
                                            (size_t)img.cols,
                                            keepoutRegionStartingRow,
                                            keepoutRegionStartingColumn,
@@ -97,7 +97,7 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverKeepoutKeepout, ImgCtor)
         {
-            VerticalSeamCarverKeepout vsck(img,
+            VerticalSeamCarverSquareKeepout vsck(img,
                                            keepoutRegionStartingRow,
                                            keepoutRegionStartingColumn,
                                            keepoutRegionWidth,
@@ -108,9 +108,9 @@ namespace opencv_test
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepout, CheckExceptions)
+        TEST(VerticalSeamCarverSquareKeepout, CheckExceptions)
         {
-            VerticalSeamCarverKeepout vsck(initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
             try
             {
@@ -140,9 +140,9 @@ namespace opencv_test
             }
         }
 
-        TEST(VerticalSeamCarverKeepout, CheckRunSeamRemoverThrows)
+        TEST(VerticalSeamCarverSquareKeepout, CheckRunSeamRemoverThrows)
         {
-            VerticalSeamCarverKeepout vsck(initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
             size_t numSeamsToRemove = 1;
 
             try

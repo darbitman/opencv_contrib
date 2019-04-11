@@ -76,11 +76,11 @@ namespace cv
 
         /**
          * @brief ctor based on a sample image
-         * @param img: sample image
+         * @param image: sample image
          * @param marginEnergy: defines the edge pixel energy
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
-        VerticalSeamCarver(const cv::Mat& img,
+        VerticalSeamCarver(const cv::Mat& image,
                            double marginEnergy = 390150.0,
                            cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
         /**
