@@ -29,6 +29,10 @@ void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
             findAndRemoveSeams(image, outImage);
         }
     }
+    catch (...)
+    {
+        
+    }
 }
 
 void cv::VerticalSeamCarverArbitraryKeepout::resetLocalVectors()

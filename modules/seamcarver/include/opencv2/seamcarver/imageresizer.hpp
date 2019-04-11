@@ -60,6 +60,8 @@ namespace cv
                                        size_t numRowsToReduceBy,
                                        const cv::Mat& image,
                                        cv::Mat& outImage) = 0;
+
+        virtual ~ImageResizer() {}
     };
 }
 

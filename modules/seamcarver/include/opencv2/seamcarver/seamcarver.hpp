@@ -58,6 +58,8 @@ namespace cv
         virtual void runSeamRemover(size_t numSeamsToRemove,
                                     const cv::Mat& image,
                                     cv::Mat& outImage) = 0;
+
+        virtual ~SeamCarver() {}
     };
 }
 
