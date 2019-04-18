@@ -35,7 +35,41 @@ void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
     }
 }
 
+void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegion(const std::vector<std::vector<size_t>>& keepoutRegion)
+{
+    // save a local copy
+    keepoutRegion_ = keepoutRegion;
+
+    setKeepoutRegionFromLocalData();
+
+    bArbitraryKeepoutRegionDefined = true;
+}
+
 void cv::VerticalSeamCarverArbitraryKeepout::resetLocalVectors()
 {
-    // TODO implement
+    VerticalSeamCarver::resetLocalVectors();
+
+    setKeepoutRegionFromLocalData();
+}
+
+bool cv::VerticalSeamCarverArbitraryKeepout::isKeepoutRegionDefined() const
+{
+    return bArbitraryKeepoutRegionDefined;
+}
+
+inline void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegionFromLocalData()
+{
+    size_t numRows = keepoutRegion_.size();
+
+    // number of columns to mark in current row
+    size_t numColumnIndices = 0;
+
+    for (size_t row = 0; row < numRows; row++)
+    {
+        numColumnIndices = keepoutRegion_[row].size();
+        for(size_t index = 0; index < numColumnIndices; index++)
+        {
+            markedPixels[row][ keepoutRegion_[row][index] ] = true;
+        }
+    }
 }

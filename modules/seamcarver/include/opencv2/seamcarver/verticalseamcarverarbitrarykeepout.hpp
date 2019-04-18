@@ -64,8 +64,16 @@ namespace cv
 
         /**
          * @brief set the keepout region dimensions
+         * @param keepoutRegion: 2D vector of pixels to avoid. Every row has a vector of the columns to mark
          */
-        // TODO implement setKeepoutRegion function and define parameters
+        virtual void setKeepoutRegion(const std::vector<std::vector<size_t>>& keepoutRegion);
+
+        /**
+         * @brief returns true if a keepout region has been defined
+         * @return bool
+         */
+        virtual bool isKeepoutRegionDefined() const;
+
 
         // Deleted/defaulted functions
         VerticalSeamCarverArbitraryKeepout(const VerticalSeamCarverArbitraryKeepout& rhs) = delete;
@@ -79,8 +87,19 @@ namespace cv
          */
         virtual void resetLocalVectors() override;
 
+        /**
+         * @brief marks pixels based on the local keepout region
+         */
+        virtual void setKeepoutRegionFromLocalData();
+
         // flag that indicates whether an arbitrarily-shaped keepout region has been set
         bool bArbitraryKeepoutRegionDefined = false;
+
+        // store locations to avoid in seam carving
+        // first dimension is a vector of vectors
+        // 2nd dimension stores the actual column indices
+        // i.e. to get the column for some row, just iterate over keepoutRegion_[row]
+        std::vector<std::vector<size_t>> keepoutRegion_;
     };
 }
 

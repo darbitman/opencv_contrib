@@ -74,22 +74,6 @@ void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeams,
     }
 }
 
-void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
-{
-    VerticalSeamCarver::resetLocalVectors();
-
-    for (size_t row = keepoutRegionDimensions_.row_;
-         row < keepoutRegionDimensions_.row_ + keepoutRegionDimensions_.height_; row++)
-    {
-        for (size_t column = keepoutRegionDimensions_.column_;
-             column < keepoutRegionDimensions_.column_ + keepoutRegionDimensions_.width_;
-             column++)
-        {
-            markedPixels[row][column] = true;
-        }
-    }
-}
-
 void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
                                                            size_t startingColumn,
                                                            size_t width,
@@ -122,4 +106,20 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
 bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
 {
     return bSquareKeepoutRegionDefined;
+}
+
+void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
+{
+    VerticalSeamCarver::resetLocalVectors();
+
+    for (size_t row = keepoutRegionDimensions_.row_;
+         row < keepoutRegionDimensions_.row_ + keepoutRegionDimensions_.height_; row++)
+    {
+        for (size_t column = keepoutRegionDimensions_.column_;
+             column < keepoutRegionDimensions_.column_ + keepoutRegionDimensions_.width_;
+             column++)
+        {
+            markedPixels[row][column] = true;
+        }
+    }
 }
