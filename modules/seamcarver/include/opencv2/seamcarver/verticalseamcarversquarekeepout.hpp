@@ -59,6 +59,15 @@ namespace cv
     {
     public:
         /**
+         * @brief default ctor
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarverSquareKeepout(
+            double marginEnergy = 390150.0,
+            cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+
+        /**
          * @brief ctor based on dimensions
          * @param numRows: image height
          * @param numColumns: image width

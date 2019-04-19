@@ -1,5 +1,32 @@
 #include "opencv2/seamcarver/verticalseamcarverarbitrarykeepout.hpp"
 
+cv::VerticalSeamCarverArbitraryKeepout::VerticalSeamCarverArbitraryKeepout(
+    double marginEnergy,
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
+    VerticalSeamCarver(marginEnergy, pNewPixelEnergyCalculator)
+{}
+
+cv::VerticalSeamCarverArbitraryKeepout::VerticalSeamCarverArbitraryKeepout(
+    size_t numRows,
+    size_t numColumns,
+    const std::vector<std::vector<size_t>>& keepoutRegion,
+    double marginEnergy,
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
+    VerticalSeamCarver(numRows, numColumns, marginEnergy, pNewPixelEnergyCalculator)
+{
+    setKeepoutRegion(keepoutRegion);
+}
+
+cv::VerticalSeamCarverArbitraryKeepout::VerticalSeamCarverArbitraryKeepout(
+            const cv::Mat& image,
+            const std::vector<std::vector<size_t>>& keepoutRegion,
+            double marginEnergy,
+            cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
+            VerticalSeamCarver(image, marginEnergy, pNewPixelEnergyCalculator)
+{
+    setKeepoutRegion(keepoutRegion);
+}
+
 void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
                                                             const cv::Mat& image,
                                                             cv::Mat& outImage)

@@ -50,6 +50,42 @@ namespace cv
     class CV_EXPORTS VerticalSeamCarverArbitraryKeepout : public VerticalSeamCarver
     {
     public:
+        /**
+         * @brief default ctor
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarverArbitraryKeepout(
+            double marginEnergy = 390150.0,
+            cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+
+        /**
+         * @brief ctor based on image dimensions
+         * @param numRows: image height
+         * @param numColumns: image width
+         * @param keepoutRegion: 2D vector where each row represents a vector of column indices to avoid
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarverArbitraryKeepout(
+            size_t numRows,
+            size_t numColumns,
+            const std::vector<std::vector<size_t>>& keepoutRegion,
+            double marginEnergy = 390150.0,
+            cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+
+        /**
+         * @brief ctor based on sample image
+         * @param keepoutRegion: 2D vector where each row represents a vector of column indices to avoid
+         * @param marginEnergy: defines the edge pixel energy
+         * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
+         */
+        VerticalSeamCarverArbitraryKeepout(
+            const cv::Mat& image,
+            const std::vector<std::vector<size_t>>& keepoutRegion,
+            double marginEnergy = 390150.0,
+            cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+
         virtual ~VerticalSeamCarverArbitraryKeepout() {}
 
         /**

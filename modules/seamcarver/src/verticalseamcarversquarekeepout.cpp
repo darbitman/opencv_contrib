@@ -1,6 +1,12 @@
 #include "opencv2/seamcarver/verticalseamcarversquarekeepout.hpp"
 
 cv::VerticalSeamCarverSquareKeepout::VerticalSeamCarverSquareKeepout(
+    double marginEnergy,
+    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator) :
+    VerticalSeamCarver(marginEnergy, pNewPixelEnergyCalculator)
+{}
+
+cv::VerticalSeamCarverSquareKeepout::VerticalSeamCarverSquareKeepout(
     size_t numRows,
     size_t numColumns,
     size_t startingRow,
