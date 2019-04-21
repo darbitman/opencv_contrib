@@ -46,5 +46,96 @@ namespace opencv_test
 {
     namespace
     {
+        double initialMarginEnergy = 390150.0;
+
+        cv::Mat img = cv::imread("../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
+        
+        cv::Mat outImg;
+
+        std::vector<std::vector<size_t>> newKeepoutRegion;
+
+        TEST(VerticalSeamCarverArbitraryKeepout, CanOpenImage)
+        {
+            ASSERT_EQ(img.empty(), false);
+        }
+
+        TEST(VerticalSeamCarverArbitraryKeepout, DefaultCtor)
+        {
+            VerticalSeamCarverArbitraryKeepout vsck(initialMarginEnergy);
+
+            EXPECT_EQ(vsck.areDimensionsInitialized(), false);
+            EXPECT_EQ(vsck.isKeepoutRegionDefined(), false);
+
+            vsck.setDimensions(img);
+
+            EXPECT_EQ(vsck.areDimensionsInitialized(), true);
+
+            newKeepoutRegion.resize((size_t)img.rows);
+            for(size_t row = 0; row < (size_t)img.rows; ++row)
+            {
+                for (size_t column = 10; column < 50; ++column)
+                {
+                    newKeepoutRegion[row].push_back(column);
+                }
+            }
+
+            vsck.setKeepoutRegion(newKeepoutRegion);
+
+            EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
+        }
+
+        TEST(VerticalSeamCarverArbitraryKeepout, DimsCtor)
+        {
+            VerticalSeamCarverArbitraryKeepout vsck(
+                (size_t)img.rows,
+                (size_t)img.cols,
+                // keepout region defined in previous test
+                newKeepoutRegion,
+                initialMarginEnergy
+            );
+
+            EXPECT_EQ(vsck.areDimensionsInitialized(), true);
+            EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
+        }
+    }
+
+    TEST(VerticalSeamCarverArbitraryKeepout, ImgCtor)
+    {
+        VerticalSeamCarverArbitraryKeepout vsck(
+            img,
+            // keepout region defined in previous test
+            newKeepoutRegion,
+            initialMarginEnergy
+        );
+
+        EXPECT_EQ(vsck.areDimensionsInitialized(), true);
+        EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
+    }
+
+    TEST(VerticalSeamCarverArbitraryKeepout, CheckExceptions)
+    {
+        VerticalSeamCarverArbitraryKeepout vsck(initialMarginEnergy);
+
+        try
+        {
+            vsck.runSeamRemover(0, img, outImg);
+        }
+        catch (const cv::Exception& e)
+        {
+            EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+        }
+        
+        try
+        {
+            // keepout region set in previous test
+            vsck.setKeepoutRegion(newKeepoutRegion);
+
+            vsck.runSeamRemover(img.cols + 1, img, outImg);
+        }
+        catch (const cv::Exception& e)
+        {
+            EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+        }
+        
     }
 }
