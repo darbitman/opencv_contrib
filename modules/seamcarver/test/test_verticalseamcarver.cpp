@@ -48,7 +48,7 @@ namespace opencv_test
     {
         double initialMarginEnergy = 390150.0;
 
-        cv::Mat img = cv::imread("../../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
+        cv::Mat img = cv::imread("../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
 
         cv::Mat outImg;
 

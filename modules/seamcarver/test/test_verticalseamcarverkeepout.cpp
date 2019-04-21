@@ -53,16 +53,16 @@ namespace opencv_test
         size_t keepoutRegionWidth = 100;
         size_t keepoutRegionHeight = 500;
 
-        cv::Mat img = cv::imread("../../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
+        cv::Mat img = cv::imread("../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
 
         cv::Mat outImg;
 
-        TEST(VerticalSeamCarverKeepoutKeepout, CanOpenImage)
+        TEST(VerticalSeamCarverKeepout, CanOpenImage)
         {
             ASSERT_EQ(img.empty(), false);
         }
 
-        TEST(VerticalSeamCarverKeepoutKeepout, DefaultCtor)
+        TEST(VerticalSeamCarverKeepout, DefaultCtor)
         {
             VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
@@ -81,7 +81,7 @@ namespace opencv_test
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepoutKeepout, DimsCtor)
+        TEST(VerticalSeamCarverKeepout, DimsCtor)
         {
             VerticalSeamCarverSquareKeepout vsck((size_t)img.rows,
                                            (size_t)img.cols,
@@ -95,7 +95,7 @@ namespace opencv_test
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepoutKeepout, ImgCtor)
+        TEST(VerticalSeamCarverKeepout, ImgCtor)
         {
             VerticalSeamCarverSquareKeepout vsck(img,
                                            keepoutRegionStartingRow,
