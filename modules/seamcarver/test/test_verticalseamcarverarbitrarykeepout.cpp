@@ -137,5 +137,14 @@ namespace opencv_test
             EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
         }
         
+        try
+        {
+            std::vector<std::vector<size_t>> emptyVector;
+            vsck.setKeepoutRegion(emptyVector);
+        }
+        catch (const cv::Exception& e)
+        {
+            EXPECT_EQ(e.code, cv::Error::StsBadArg);
+        }
     }
 }

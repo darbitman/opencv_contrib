@@ -129,10 +129,12 @@ namespace opencv_test
 
             try
             {
-                vsck.setKeepoutRegion((size_t)img.rows,
+                vsck.setKeepoutRegion(
+                    (size_t)img.rows,
                     (size_t)img.cols,
-                                      keepoutRegionWidth,
-                                      keepoutRegionHeight);
+                    keepoutRegionWidth,
+                    eepoutRegionHeight
+                );
             }
             catch (const cv::Exception& e)
             {
