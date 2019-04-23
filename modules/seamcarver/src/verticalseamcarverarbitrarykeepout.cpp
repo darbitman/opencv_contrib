@@ -64,10 +64,13 @@ void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
 
 void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegion(const std::vector<std::vector<size_t>>& keepoutRegion)
 {
+    if (keepoutRegion.size() == 0)
+    {
+        CV_Error(Error::Code::StsBadArg, "Zero size keepout region");
+    }
+
     // save a local copy
     keepoutRegion_ = keepoutRegion;
-
-    setKeepoutRegionFromLocalData();
 
     bArbitraryKeepoutRegionDefined = true;
 }
