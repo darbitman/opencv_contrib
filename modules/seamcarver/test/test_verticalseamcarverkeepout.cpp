@@ -53,7 +53,7 @@ namespace opencv_test
         size_t keepoutRegionWidth = 100;
         size_t keepoutRegionHeight = 500;
 
-        cv::Mat img = cv::imread("../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
+        cv::Mat img = cv::imread(IMG_PATH);
 
         cv::Mat outImg;
 
@@ -133,7 +133,7 @@ namespace opencv_test
                     (size_t)img.rows,
                     (size_t)img.cols,
                     keepoutRegionWidth,
-                    eepoutRegionHeight
+                    keepoutRegionHeight
                 );
             }
             catch (const cv::Exception& e)
