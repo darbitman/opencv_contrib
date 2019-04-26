@@ -27,7 +27,7 @@ cv::VerticalSeamCarverArbitraryKeepout::VerticalSeamCarverArbitraryKeepout(
     setKeepoutRegion(keepoutRegion);
 }
 
-void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
+void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeamsToRemove,
                                                             const cv::Mat& image,
                                                             cv::Mat& outImage)
 {
@@ -40,25 +40,12 @@ void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
         }
         else
         {
-            if (bNeedToInitializeLocalData)
-            {
-                init(image, (size_t)image.rows);
-            }
-
-            // check if removing more seams than columns available
-            if (numSeams > numColumns_)
-            {
-                CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
-            }
-
-            resetLocalVectors();
-
-            findAndRemoveSeams(image, outImage);
+            VerticalSeamCarver::runSeamRemover(numSeamsToRemove, image, outImage);
         }
     }
     catch (...)
     {
-        
+        throw;
     }
 }
 

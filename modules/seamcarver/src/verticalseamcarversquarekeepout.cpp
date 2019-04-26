@@ -33,7 +33,7 @@ cv::VerticalSeamCarverSquareKeepout::VerticalSeamCarverSquareKeepout(
     setKeepoutRegion(startingRow, startingColumn, keepoutWidth, keepoutHeight);
 }
 
-void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeams,
+void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeamsToRemove,
                                                          const cv::Mat& image,
                                                          cv::Mat& outImage)
 {
@@ -46,6 +46,7 @@ void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeams,
         }
         else
         {
+            /*
             if (bNeedToInitializeLocalData)
             {
                 init(image, image.rows);
@@ -62,8 +63,11 @@ void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeams,
             {
                 CV_Error(Error::Code::StsInternal, "Keepout region extends past borders");
             }
-        }
+            */
 
+            VerticalSeamCarver::runSeamRemover(numSeamsToRemove, image, outImage);
+        }
+        /*
         // check if removing more seams than columns available
         if (numSeams > numColumns_)
         {
@@ -73,6 +77,7 @@ void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeams,
         resetLocalVectors();
 
         findAndRemoveSeams(image, outImage);
+        */
     }
     catch (...)
     {

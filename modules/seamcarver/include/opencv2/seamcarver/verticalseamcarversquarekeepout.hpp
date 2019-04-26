@@ -109,11 +109,11 @@ namespace cv
 
         /**
          * @brief run the vertical seam remover algorithm avoiding the keepout region
-         * @param numSeams: number of vertical seams to remove
+         * @param numSeamsToRemove: number of vertical seams to remove
          * @param image: input image
          * @param outImage: output image parameter
          */
-        virtual void runSeamRemover(size_t numSeams,
+        virtual void runSeamRemover(size_t numSeamsToRemove,
                                     const cv::Mat& image,
                                     cv::Mat& outImage) override;
 
