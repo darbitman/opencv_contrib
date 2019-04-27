@@ -34,13 +34,13 @@ void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeamsToRem
     try
     {
         // verify keepout region has been defined
-        if (!bArbitraryKeepoutRegionDefined)
+        if (bArbitraryKeepoutRegionDefined)
         {
-            CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
+            VerticalSeamCarver::runSeamRemover(numSeamsToRemove, image, outImage);
         }
         else
         {
-            VerticalSeamCarver::runSeamRemover(numSeamsToRemove, image, outImage);
+            CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
         }
     }
     catch (...)
@@ -49,7 +49,8 @@ void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeamsToRem
     }
 }
 
-void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegion(const std::vector<std::vector<size_t>>& keepoutRegion)
+void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegion(
+    const std::vector<std::vector<size_t>>& keepoutRegion)
 {
     if (keepoutRegion.size() == 0)
     {

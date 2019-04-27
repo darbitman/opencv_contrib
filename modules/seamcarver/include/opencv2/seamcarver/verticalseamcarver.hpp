@@ -193,6 +193,13 @@ namespace cv
          */
         virtual void removeSeams();
 
+        /**
+         * @brief check if internal stored dimensions match those of the new image
+         * @param image: input image
+         * @return bool
+         */
+        virtual bool imageDimensionsVerified(const cv::Mat& image) const;
+
         // flag if internal data structures need their memory and values initialized
         bool bNeedToInitializeLocalData = true;
 

@@ -102,10 +102,29 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
 {
     try
     {
-        if (bNeedToInitializeLocalData)
+        while (true)
         {
-            init(image, (size_t)image.rows);
+            // initialize internal data
+            if (bNeedToInitializeLocalData)
+            {
+                init(image, (size_t)image.rows);
+                break;
+            }
+            else
+            {
+                // check if image is of the same dimensions as those used for internal data
+                if (imageDimensionsVerified(image))
+                {
+                    break;
+                }
+                // if image dimensions are different than those of internal data, need to reinitialize data
+                else
+                {
+                    bNeedToInitializeLocalData = true;
+                }
+            }
         }
+        
 
         // check if removing more seams than columns available
         if (numSeamsToRemove > numColumns_)
@@ -576,5 +595,17 @@ void cv::VerticalSeamCarver::removeSeams()
     for (size_t channel = 0; channel < numColorChannels_; channel++)
     {
         bgr[channel] = bgr[channel].colRange(0, numColumns_ - numSeamsRemoved);
+    }
+}
+
+bool cv::VerticalSeamCarver::imageDimensionsVerified(const cv::Mat& image) const
+{
+    if (image.rows == numRows_ && image.cols == numColumns_)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
