@@ -117,7 +117,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
                 {
                     break;
                 }
-                // if image dimensions are different than those of internal data, need to reinitialize data
+                // if image dimensions are different than those of internal data, reinitialize data
                 else
                 {
                     bNeedToInitializeLocalData = true;
@@ -151,6 +151,12 @@ void cv::VerticalSeamCarver::setDimensions(size_t numRows, size_t numColumns)
     if (numRows == 0 || numColumns == 0)
     {
         CV_Error(Error::Code::StsBadArg, "setDimensions failed due bad dimensions");
+    }
+
+    // no need to go through initialization if "new" dimensions are equal to "old" ones
+    if (numRows == numRows_ && numColumns == numColumns_)
+    {
+        return;
     }
 
     try
@@ -600,7 +606,7 @@ void cv::VerticalSeamCarver::removeSeams()
 
 bool cv::VerticalSeamCarver::imageDimensionsVerified(const cv::Mat& image) const
 {
-    if (image.rows == numRows_ && image.cols == numColumns_)
+    if ((size_t)image.rows == numRows_ && (size_t)image.cols == numColumns_)
     {
         return true;
     }
