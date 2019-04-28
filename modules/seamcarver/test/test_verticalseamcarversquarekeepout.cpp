@@ -57,12 +57,12 @@ namespace opencv_test
 
         cv::Mat outImg;
 
-        TEST(VerticalSeamCarverKeepout, CanOpenImage)
+        TEST(VerticalSeamCarverSquareKeepout, CanOpenImage)
         {
             ASSERT_EQ(img.empty(), false);
         }
 
-        TEST(VerticalSeamCarverKeepout, DefaultCtor)
+        TEST(VerticalSeamCarverSquareKeepout, DefaultCtor)
         {
             VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
@@ -81,7 +81,7 @@ namespace opencv_test
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepout, DimsCtor)
+        TEST(VerticalSeamCarverSquareKeepout, DimsCtor)
         {
             VerticalSeamCarverSquareKeepout vsck((size_t)img.rows,
                                            (size_t)img.cols,
@@ -95,7 +95,7 @@ namespace opencv_test
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepout, ImgCtor)
+        TEST(VerticalSeamCarverSquareKeepout, ImgCtor)
         {
             VerticalSeamCarverSquareKeepout vsck(img,
                                            keepoutRegionStartingRow,
