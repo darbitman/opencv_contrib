@@ -94,18 +94,24 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
     {
         CV_Error(Error::Code::StsBadArg, "Zero size keepout region");
     }
-
-    if (!bNeedToInitializeLocalData)
+    if (startingColumn > rightColumn_)
     {
-        if (startingColumn > rightColumn_)
-        {
-            CV_Error(Error::Code::StsBadArg, "Starting column outside of image dimensions");
-        }
-        if (startingRow > bottomRow_)
-        {
-            CV_Error(Error::Code::StsBadArg, "Starting row outside of image dimensions");
-        }
+        CV_Error(Error::Code::StsBadArg, "Starting column outside of image dimensions");
     }
+    if (startingRow > bottomRow_)
+    {
+        CV_Error(Error::Code::StsBadArg, "Starting row outside of image dimensions");
+    }
+    if (startingColumn + width > rightColumn_ + 1)
+    {
+        CV_Error(Error::Code::StsBadArg, "Keepout region extends past the right column");
+    }
+    if (startingRow + height > bottomRow_ + 1)
+    {
+        CV_Error(Error::Code::StsBadArg, "Keepout region extends past the bottom row");
+    }
+
+    // TODO refactor dimension checking
 
     keepoutRegionDimensions_.row_ = startingRow;
     keepoutRegionDimensions_.column_ = startingColumn;
@@ -121,6 +127,9 @@ bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
 
 void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
 {
+    // TODO need to check keepout dimensions so as not to index into local data vectors past their
+    // size
+
     VerticalSeamCarver::resetLocalVectors();
 
     for (size_t row = keepoutRegionDimensions_.row_;

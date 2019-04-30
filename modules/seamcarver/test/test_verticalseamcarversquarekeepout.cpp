@@ -83,13 +83,14 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverSquareKeepout, DimsCtor)
         {
-            VerticalSeamCarverSquareKeepout vsck((size_t)img.rows,
-                                           (size_t)img.cols,
-                                           keepoutRegionStartingRow,
-                                           keepoutRegionStartingColumn,
-                                           keepoutRegionWidth,
-                                           keepoutRegionHeight,
-                                           initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(
+                (size_t)img.rows,
+                (size_t)img.cols,
+                keepoutRegionStartingRow,
+                keepoutRegionStartingColumn,
+                keepoutRegionWidth,
+                keepoutRegionHeight,
+                initialMarginEnergy);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
@@ -97,12 +98,13 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverSquareKeepout, ImgCtor)
         {
-            VerticalSeamCarverSquareKeepout vsck(img,
-                                           keepoutRegionStartingRow,
-                                           keepoutRegionStartingColumn,
-                                           keepoutRegionWidth,
-                                           keepoutRegionHeight,
-                                           initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(
+                img,
+                keepoutRegionStartingRow,
+                keepoutRegionStartingColumn,
+                keepoutRegionWidth,
+                keepoutRegionHeight,
+                initialMarginEnergy);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
@@ -110,35 +112,21 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverSquareKeepout, CheckExceptions)
         {
-            VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
+            {
+                VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
-            try
-            {
-                vsck.setKeepoutRegion((size_t)img.rows - 1,
-                    (size_t)img.cols - 1,
-                                      0,
-                                      0);
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
-            }
-
-            vsck.setKeepoutRegion(0, 0, keepoutRegionWidth, keepoutRegionHeight);
-            vsck.setDimensions(img);
-
-            try
-            {
-                vsck.setKeepoutRegion(
-                    (size_t)img.rows,
-                    (size_t)img.cols,
-                    keepoutRegionWidth,
-                    keepoutRegionHeight
-                );
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                try
+                {
+                    vsck.setKeepoutRegion(
+                        (size_t)img.rows - 1,
+                        (size_t)img.cols - 1,
+                        0,
+                        0);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
             }
         }
 
