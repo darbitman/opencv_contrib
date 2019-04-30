@@ -150,7 +150,7 @@ void cv::VerticalSeamCarver::setDimensions(size_t numRows, size_t numColumns)
 {
     if (numRows == 0 || numColumns == 0)
     {
-        CV_Error(Error::Code::StsBadArg, "setDimensions failed due bad dimensions");
+        CV_Error(Error::Code::StsBadArg, "setDimensions failed due to bad dimensions");
     }
 
     // no need to go through initialization if "new" dimensions are equal to "old" ones

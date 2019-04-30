@@ -155,11 +155,10 @@ namespace cv
          * @param regionWidth: keepout region width
          * @param regionHeight: keepout region height
          */
-        virtual bool areKeepoutDimensionsValid(
-            size_t startingRow,
-            size_t startingColumn,
-            size_t width,
-            size_t height);
+        virtual bool areKeepoutDimensionsValid(size_t startingRow,
+                                               size_t startingColumn,
+                                               size_t width,
+                                               size_t height);
 
         // flag that indicates whether a square bounding box has been used to set the keepout region
         bool bSquareKeepoutRegionDefined = false;

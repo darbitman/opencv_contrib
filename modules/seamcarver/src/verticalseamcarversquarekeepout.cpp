@@ -39,45 +39,15 @@ void cv::VerticalSeamCarverSquareKeepout::runSeamRemover(size_t numSeamsToRemove
 {
     try
     {
-        // verify keepout region dimensions
+        // make sure keepout region is defined
         if (!bSquareKeepoutRegionDefined)
         {
             CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
         }
         else
         {
-            /*
-            if (bNeedToInitializeLocalData)
-            {
-                init(image, image.rows);
-            }
-
-            if (keepoutRegionDimensions_.column_ > rightColumn_ ||
-                keepoutRegionDimensions_.row_ > bottomRow_)
-            {
-                CV_Error(Error::Code::StsInternal, "Keepout region begins past borders");
-            }
-
-            if (keepoutRegionDimensions_.column_ + keepoutRegionDimensions_.width_ >= rightColumn_
-                || keepoutRegionDimensions_.row_ + keepoutRegionDimensions_.height_ >= bottomRow_)
-            {
-                CV_Error(Error::Code::StsInternal, "Keepout region extends past borders");
-            }
-            */
-
             VerticalSeamCarver::runSeamRemover(numSeamsToRemove, image, outImage);
         }
-        /*
-        // check if removing more seams than columns available
-        if (numSeams > numColumns_)
-        {
-            CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
-        }
-
-        resetLocalVectors();
-
-        findAndRemoveSeams(image, outImage);
-        */
     }
     catch (...)
     {
@@ -90,29 +60,6 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
                                                            size_t width,
                                                            size_t height)
 {
-    /*
-    if (height == 0 || width == 0)
-    {
-        CV_Error(Error::Code::StsBadArg, "Zero size keepout region");
-    }
-    if (startingColumn > rightColumn_)
-    {
-        CV_Error(Error::Code::StsBadArg, "Starting column outside of image dimensions");
-    }
-    if (startingRow > bottomRow_)
-    {
-        CV_Error(Error::Code::StsBadArg, "Starting row outside of image dimensions");
-    }
-    if (startingColumn + width > rightColumn_ + 1)
-    {
-        CV_Error(Error::Code::StsBadArg, "Keepout region extends past the right column");
-    }
-    if (startingRow + height > bottomRow_ + 1)
-    {
-        CV_Error(Error::Code::StsBadArg, "Keepout region extends past the bottom row");
-    }
-    */
-
     if (areKeepoutDimensionsValid(startingRow, startingColumn, width, height))
     {
         keepoutRegionDimensions_.row_ = startingRow;
@@ -135,8 +82,14 @@ bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
 
 void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
 {
-    // TODO need to check keepout dimensions so as not to index into local data vectors past their
-    // size
+    // check keepout dimensions so as not to index into local data vectors past their size
+    if (!areKeepoutDimensionsValid(keepoutRegionDimensions_.row,
+                                   keepoutRegionDimensions_.column,
+                                   keepoutRegionDimensions_.width_,
+                                   keepoutRegionDimensions_.height_))
+    {
+        CV_Error(Error::Code::StsBadArg, "Keepout region dimensions invalid");
+    }
 
     VerticalSeamCarver::resetLocalVectors();
 
@@ -152,11 +105,10 @@ void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
     }
 }
 
-bool cv::VerticalSeamCarverSquareKeepout::areKeepoutDimensionsValid(
-    size_t startingRow,
-    size_t startingColumn,
-    size_t width,
-    size_t height)
+bool cv::VerticalSeamCarverSquareKeepout::areKeepoutDimensionsValid(size_t startingRow,
+                                                                    size_t startingColumn,
+                                                                    size_t width,
+                                                                    size_t height)
 {
     if (height == 0 ||
         width == 0 ||
