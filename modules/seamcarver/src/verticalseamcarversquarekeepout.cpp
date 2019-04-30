@@ -90,6 +90,7 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
                                                            size_t width,
                                                            size_t height)
 {
+    /*
     if (height == 0 || width == 0)
     {
         CV_Error(Error::Code::StsBadArg, "Zero size keepout region");
@@ -110,14 +111,21 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
     {
         CV_Error(Error::Code::StsBadArg, "Keepout region extends past the bottom row");
     }
+    */
 
-    // TODO refactor dimension checking
-
-    keepoutRegionDimensions_.row_ = startingRow;
-    keepoutRegionDimensions_.column_ = startingColumn;
-    keepoutRegionDimensions_.height_ = height;
-    keepoutRegionDimensions_.width_ = width;
-    bSquareKeepoutRegionDefined = true;
+    if (areKeepoutDimensionsValid(startingRow, startingColumn, width, height))
+    {
+        keepoutRegionDimensions_.row_ = startingRow;
+        keepoutRegionDimensions_.column_ = startingColumn;
+        keepoutRegionDimensions_.height_ = height;
+        keepoutRegionDimensions_.width_ = width;
+        bSquareKeepoutRegionDefined = true;
+    }
+    else
+    {
+        CV_Error(Error::Code::StsBadArg, "Keepout region dimensions invalid");
+    }
+    
 }
 
 bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
@@ -142,4 +150,23 @@ void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
             markedPixels[row][column] = true;
         }
     }
+}
+
+bool cv::VerticalSeamCarverSquareKeepout::areKeepoutDimensionsValid(
+    size_t startingRow,
+    size_t startingColumn,
+    size_t width,
+    size_t height)
+{
+    if (height == 0 ||
+        width == 0 ||
+        startingColumn > rightColumn_ ||
+        startingRow > bottomRow_ ||
+        (startingColumn + width > rightColumn_ + 1) ||
+        (startingRow + height > bottomRow_ + 1)
+        )
+    {
+        return false;
+    }
+    return true;
 }

@@ -148,6 +148,19 @@ namespace cv
          */
         virtual void resetLocalVectors() override;
 
+        /**
+         * @brief check if the keepout region is within the bounds of the image
+         * @param startingRow: starting row of keepout region
+         * @param startingColumn: starting column of keepout region
+         * @param regionWidth: keepout region width
+         * @param regionHeight: keepout region height
+         */
+        virtual bool areKeepoutDimensionsValid(
+            size_t startingRow,
+            size_t startingColumn,
+            size_t width,
+            size_t height);
+
         // flag that indicates whether a square bounding box has been used to set the keepout region
         bool bSquareKeepoutRegionDefined = false;
 
