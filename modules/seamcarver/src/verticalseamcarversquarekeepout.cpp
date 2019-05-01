@@ -60,6 +60,12 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
                                                            size_t width,
                                                            size_t height)
 {
+    if (bNeedToInitializeLocalData)
+    {
+        CV_Error(Error::Code::StsInternal,
+                 "internal data/dimensions uninitialized. can't verify keepout region");
+    }
+
     if (areKeepoutDimensionsValid(startingRow, startingColumn, width, height))
     {
         keepoutRegionDimensions_.row_ = startingRow;
@@ -72,7 +78,7 @@ void cv::VerticalSeamCarverSquareKeepout::setKeepoutRegion(size_t startingRow,
     {
         CV_Error(Error::Code::StsBadArg, "Keepout region dimensions invalid");
     }
-    
+
 }
 
 bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
@@ -83,8 +89,8 @@ bool cv::VerticalSeamCarverSquareKeepout::isKeepoutRegionDefined() const
 void cv::VerticalSeamCarverSquareKeepout::resetLocalVectors()
 {
     // check keepout dimensions so as not to index into local data vectors past their size
-    if (!areKeepoutDimensionsValid(keepoutRegionDimensions_.row,
-                                   keepoutRegionDimensions_.column,
+    if (!areKeepoutDimensionsValid(keepoutRegionDimensions_.row_,
+                                   keepoutRegionDimensions_.column_,
                                    keepoutRegionDimensions_.width_,
                                    keepoutRegionDimensions_.height_))
     {

@@ -198,7 +198,7 @@ namespace cv
          * @param image: input image
          * @return bool
          */
-        virtual bool imageDimensionsVerified(const cv::Mat& image) const;
+        virtual bool areImageDimensionsVerified(const cv::Mat& image) const;
 
         // flag if internal data structures need their memory and values initialized
         bool bNeedToInitializeLocalData = true;

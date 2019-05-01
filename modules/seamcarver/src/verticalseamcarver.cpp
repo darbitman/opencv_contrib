@@ -113,7 +113,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
             else
             {
                 // check if image is of the same dimensions as those used for internal data
-                if (imageDimensionsVerified(image))
+                if (areImageDimensionsVerified(image))
                 {
                     break;
                 }
@@ -604,7 +604,7 @@ void cv::VerticalSeamCarver::removeSeams()
     }
 }
 
-bool cv::VerticalSeamCarver::imageDimensionsVerified(const cv::Mat& image) const
+bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image) const
 {
     if ((size_t)image.rows == numRows_ && (size_t)image.cols == numColumns_)
     {
