@@ -125,7 +125,6 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
             }
         }
         
-
         // check if removing more seams than columns available
         if (numSeamsToRemove > numColumns_)
         {
