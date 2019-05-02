@@ -109,11 +109,11 @@ namespace cv
 
         /**
          * @brief run the vertical seam remover algorithm avoiding the keepout region
-         * @param numSeams: number of vertical seams to remove
+         * @param numSeamsToRemove: number of vertical seams to remove
          * @param image: input image
          * @param outImage: output image parameter
          */
-        virtual void runSeamRemover(size_t numSeams,
+        virtual void runSeamRemover(size_t numSeamsToRemove,
                                     const cv::Mat& image,
                                     cv::Mat& outImage) override;
 
@@ -147,6 +147,18 @@ namespace cv
          * @brief reset vectors to their starting state
          */
         virtual void resetLocalVectors() override;
+
+        /**
+         * @brief check if the keepout region is within the bounds of the image
+         * @param startingRow: starting row of keepout region
+         * @param startingColumn: starting column of keepout region
+         * @param regionWidth: keepout region width
+         * @param regionHeight: keepout region height
+         */
+        virtual bool areKeepoutDimensionsValid(size_t startingRow,
+                                               size_t startingColumn,
+                                               size_t width,
+                                               size_t height);
 
         // flag that indicates whether a square bounding box has been used to set the keepout region
         bool bSquareKeepoutRegionDefined = false;

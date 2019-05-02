@@ -102,11 +102,29 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
 {
     try
     {
-        if (bNeedToInitializeLocalData)
+        while (true)
         {
-            init(image, (size_t)image.rows);
+            // initialize internal data
+            if (bNeedToInitializeLocalData)
+            {
+                init(image, (size_t)image.rows);
+                break;
+            }
+            else
+            {
+                // check if image is of the same dimensions as those used for internal data
+                if (areImageDimensionsVerified(image))
+                {
+                    break;
+                }
+                // if image dimensions are different than those of internal data, reinitialize data
+                else
+                {
+                    bNeedToInitializeLocalData = true;
+                }
+            }
         }
-
+        
         // check if removing more seams than columns available
         if (numSeamsToRemove > numColumns_)
         {
@@ -131,7 +149,13 @@ void cv::VerticalSeamCarver::setDimensions(size_t numRows, size_t numColumns)
 {
     if (numRows == 0 || numColumns == 0)
     {
-        CV_Error(Error::Code::StsBadArg, "setDimensions failed due bad dimensions");
+        CV_Error(Error::Code::StsBadArg, "setDimensions failed due to bad dimensions");
+    }
+
+    // no need to go through initialization if "new" dimensions are equal to "old" ones
+    if (numRows == numRows_ && numColumns == numColumns_)
+    {
+        return;
     }
 
     try
@@ -576,5 +600,17 @@ void cv::VerticalSeamCarver::removeSeams()
     for (size_t channel = 0; channel < numColorChannels_; channel++)
     {
         bgr[channel] = bgr[channel].colRange(0, numColumns_ - numSeamsRemoved);
+    }
+}
+
+bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image) const
+{
+    if ((size_t)image.rows == numRows_ && (size_t)image.cols == numColumns_)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }

@@ -48,7 +48,7 @@ namespace opencv_test
     {
         double initialMarginEnergy = 390150.0;
 
-        cv::Mat img = cv::imread("../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
+        cv::Mat img = cv::imread(IMG_PATH);
 
         cv::Mat outImg;
 
@@ -60,69 +60,221 @@ namespace opencv_test
         TEST(VerticalSeamCarver, DefaultCtor)
         {
             VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+
+            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), false);
+
+            vSeamCarver.setDimensions(img);
+
+            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
         }
 
         TEST(VerticalSeamCarver, DimsCtor)
         {
-            VerticalSeamCarver vSeamCarver((size_t)img.rows,
+            VerticalSeamCarver vSeamCarver(
+                (size_t)img.rows,
                 (size_t)img.cols,
-                                           (size_t)initialMarginEnergy);
+                (size_t)initialMarginEnergy);
+            
+            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
         }
 
         TEST(VerticalSeamCarver, ImgCtor)
         {
             VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
+            
+            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
         }
 
-        TEST(VerticalSeamCarver, CheckRunSeamRemoverThrows)
+        TEST(VerticalSeamCarver, CheckExceptions)
         {
-            VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+            {
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
 
-            try
-            {
-                vSeamCarver.runSeamRemover((size_t)(img.cols + 1), img, outImg);
+                try
+                {
+                    // try removing more columns than columns available
+                    vSeamCarver.runSeamRemover((size_t)(img.cols + 1), img, outImg);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
             }
-            catch (const cv::Exception& e)
+
             {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+
+                try
+                {
+                    // try setting the number of dimensions to 0
+                    vSeamCarver.setDimensions(0, 1);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+            }
+
+            {
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+
+                try
+                {
+                    // try setting the number of dimensions to 0
+                    vSeamCarver.setDimensions(1, 0);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+            }
+
+            {
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+
+                try
+                {
+                    // try setting dimensions based on an empty image
+                    cv::Mat emptyImage;
+                    vSeamCarver.setDimensions(emptyImage);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+            }
+
+            {
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+
+                try
+                {
+                    // try setting a new pixel energy calculator
+                    cv::Ptr<PixelEnergy2D>ptr;
+                    vSeamCarver.setPixelEnergyCalculator(ptr);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
             }
         }
 
         TEST(VerticalSeamCarver, RemoveSingleVerticalSeam)
         {
             size_t numSeamsToRemove = 1;
-            VerticalSeamCarver vSeamCarver(initialMarginEnergy);
 
-            try
+            // initialize internal dimensions/data when calling method to remove seams
             {
-                vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
-            }
-            EXPECT_EQ(outImg.rows, img.rows);
-            EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
 
-            //DebugDisplay d;
-            //d.displayMatrix(outImg);
-        }
+                EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), false);
 
-        TEST(VerticalSeamCarver, RemoveSingleVerticalSeamImgCtor)
-        {
-            size_t numSeamsToRemove = 1;
-            VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
+                try
+                {
+                    // try removing a single vertical seam
+                    vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+                    EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
 
-            try
-            {
-                vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+                EXPECT_EQ((size_t)outImg.rows, (size_t)img.rows);
+                EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
             }
-            catch (const cv::Exception& e)
+
+            // initialize internal dimensions/data PRIOR to calling method to remove seams
             {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                VerticalSeamCarver vSeamCarver(initialMarginEnergy);
+
+                EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), false);
+
+                try
+                {
+                    // set dimensions prior to removing vertical seam
+                    vSeamCarver.setDimensions(img);
+
+                    EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+
+                    // try removing a single vertical seam
+                    vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+
+                EXPECT_EQ((size_t)outImg.rows, (size_t)img.rows);
+                EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
             }
-            EXPECT_EQ(outImg.rows, img.rows);
-            EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
+
+            // use the image to initialize internal dimensions/data
+            {
+                VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
+
+                EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+
+                try
+                {
+                    vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+
+                EXPECT_EQ((size_t)outImg.rows, (size_t)img.rows);
+                EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
+            }
+
+            // use image dimensions to initialize internal dimensions/data
+            {
+                VerticalSeamCarver vSeamCarver(
+                    (size_t)img.rows,
+                    (size_t)img.cols,
+                    initialMarginEnergy);
+
+                EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+
+                try
+                {
+                    vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+
+                EXPECT_EQ((size_t)outImg.rows, (size_t)img.rows);
+                EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
+            }
+
+            // use image to initialize internal dimensions/data
+            // then change them to mismatch the image
+            // verfiy if the runSeamRemover method adjusts internal dimensions/data to match image
+            {
+                VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
+
+                EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+
+                vSeamCarver.setDimensions((size_t)img.rows + 1, (size_t)img.cols + 1);
+
+                EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+
+                try
+                {
+                    vSeamCarver.runSeamRemover(numSeamsToRemove, img, outImg);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+
+                EXPECT_EQ((size_t)outImg.rows, (size_t)img.rows);
+                EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
+            }
         }
 
         TEST(VerticalSeamCarver, RemoveMultipleVerticalSeams)
@@ -141,7 +293,7 @@ namespace opencv_test
             EXPECT_EQ(outImg.rows, img.rows);
             EXPECT_EQ((size_t)outImg.cols, (size_t)img.cols - numSeamsToRemove);
 
-            //DebugDisplay d;
+            ///home/dmitriy/opencv_dev/opencvDebugDisplay d;
             //d.displayMatrix(outImg);
         }
 
@@ -154,5 +306,7 @@ namespace opencv_test
 
             EXPECT_EQ(pNewGradientPixelEnergy.use_count(), 2);
         }
+
+        // TODO need tests for custom pixelEnergyCalculator
     }
 }

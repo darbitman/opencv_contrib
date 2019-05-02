@@ -27,42 +27,30 @@ cv::VerticalSeamCarverArbitraryKeepout::VerticalSeamCarverArbitraryKeepout(
     setKeepoutRegion(keepoutRegion);
 }
 
-void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeams,
+void cv::VerticalSeamCarverArbitraryKeepout::runSeamRemover(size_t numSeamsToRemove,
                                                             const cv::Mat& image,
                                                             cv::Mat& outImage)
 {
     try
     {
         // verify keepout region has been defined
-        if (!bArbitraryKeepoutRegionDefined)
+        if (bArbitraryKeepoutRegionDefined)
         {
-            CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
+            VerticalSeamCarver::runSeamRemover(numSeamsToRemove, image, outImage);
         }
         else
         {
-            if (bNeedToInitializeLocalData)
-            {
-                init(image, (size_t)image.rows);
-            }
-
-            // check if removing more seams than columns available
-            if (numSeams > numColumns_)
-            {
-                CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
-            }
-
-            resetLocalVectors();
-
-            findAndRemoveSeams(image, outImage);
+            CV_Error(Error::Code::StsInternal, "Keepout region hasn't been defined");
         }
     }
     catch (...)
     {
-        
+        throw;
     }
 }
 
-void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegion(const std::vector<std::vector<size_t>>& keepoutRegion)
+void cv::VerticalSeamCarverArbitraryKeepout::setKeepoutRegion(
+    const std::vector<std::vector<size_t>>& keepoutRegion)
 {
     if (keepoutRegion.size() == 0)
     {

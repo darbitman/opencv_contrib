@@ -53,23 +53,23 @@ namespace opencv_test
         size_t keepoutRegionWidth = 100;
         size_t keepoutRegionHeight = 500;
 
-        cv::Mat img = cv::imread("../../../opencv_contrib/modules/seamcarver/test/eagle.jpg");
+        cv::Mat image = cv::imread(IMG_PATH);
 
         cv::Mat outImg;
 
-        TEST(VerticalSeamCarverKeepout, CanOpenImage)
+        TEST(VerticalSeamCarverSquareKeepout, CanOpenImage)
         {
-            ASSERT_EQ(img.empty(), false);
+            ASSERT_EQ(image.empty(), false);
         }
 
-        TEST(VerticalSeamCarverKeepout, DefaultCtor)
+        TEST(VerticalSeamCarverSquareKeepout, DefaultCtor)
         {
             VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), false);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), false);
 
-            vsck.setDimensions(img);
+            vsck.setDimensions(image);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
 
@@ -81,28 +81,30 @@ namespace opencv_test
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepout, DimsCtor)
+        TEST(VerticalSeamCarverSquareKeepout, DimsCtor)
         {
-            VerticalSeamCarverSquareKeepout vsck((size_t)img.rows,
-                                           (size_t)img.cols,
-                                           keepoutRegionStartingRow,
-                                           keepoutRegionStartingColumn,
-                                           keepoutRegionWidth,
-                                           keepoutRegionHeight,
-                                           initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(
+                (size_t)image.rows,
+                (size_t)image.cols,
+                keepoutRegionStartingRow,
+                keepoutRegionStartingColumn,
+                keepoutRegionWidth,
+                keepoutRegionHeight,
+                initialMarginEnergy);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
 
-        TEST(VerticalSeamCarverKeepout, ImgCtor)
+        TEST(VerticalSeamCarverSquareKeepout, ImgCtor)
         {
-            VerticalSeamCarverSquareKeepout vsck(img,
-                                           keepoutRegionStartingRow,
-                                           keepoutRegionStartingColumn,
-                                           keepoutRegionWidth,
-                                           keepoutRegionHeight,
-                                           initialMarginEnergy);
+            VerticalSeamCarverSquareKeepout vsck(
+                image,
+                keepoutRegionStartingRow,
+                keepoutRegionStartingColumn,
+                keepoutRegionWidth,
+                keepoutRegionHeight,
+                initialMarginEnergy);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
@@ -110,35 +112,35 @@ namespace opencv_test
 
         TEST(VerticalSeamCarverSquareKeepout, CheckExceptions)
         {
-            VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
+            {
+                VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
-            try
-            {
-                vsck.setKeepoutRegion((size_t)img.rows - 1,
-                    (size_t)img.cols - 1,
-                                      0,
-                                      0);
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
-            }
+                try
+                {
+                    // try setting keepout region without setting internal data/dimensions
+                    vsck.setKeepoutRegion(0, 0, 0, 0);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+                }
 
-            vsck.setKeepoutRegion(0, 0, keepoutRegionWidth, keepoutRegionHeight);
-            vsck.setDimensions(img);
+                // set internal data/dimensions using image
+                vsck.setDimensions(image);
 
-            try
-            {
-                vsck.setKeepoutRegion(
-                    (size_t)img.rows,
-                    (size_t)img.cols,
-                    keepoutRegionWidth,
-                    eepoutRegionHeight
-                );
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                try
+                {
+                    vsck.setKeepoutRegion(0,
+                                          0,
+                                          (size_t)image.cols + 1,
+                                          10);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+                
+                
             }
         }
 
@@ -149,7 +151,7 @@ namespace opencv_test
 
             try
             {
-                vsck.runSeamRemover(numSeamsToRemove, img, outImg);
+                vsck.runSeamRemover(numSeamsToRemove, image, outImg);
             }
             catch (const cv::Exception& e)
             {
