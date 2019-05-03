@@ -115,32 +115,76 @@ namespace opencv_test
             {
                 VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
+                // expect an exception since keepout region can't be set if 
+                // internal data/dimensions is uninitialized
                 try
                 {
-                    // try setting keepout region without setting internal data/dimensions
                     vsck.setKeepoutRegion(0, 0, 0, 0);
                 }
                 catch (const cv::Exception& e)
                 {
                     EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
                 }
+            }
+
+            {
+                VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
 
                 // set internal data/dimensions using image
                 vsck.setDimensions(image);
 
+                // expect an exception since keepout region height is 0
                 try
                 {
                     vsck.setKeepoutRegion(0,
                                           0,
-                                          (size_t)image.cols + 1,
-                                          10);
+                                          1,
+                                          0);
                 }
                 catch(const cv::Exception& e)
                 {
                     EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
                 }
-                
-                
+            }
+
+            {
+                VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
+
+                // set internal data/dimensions using image
+                vsck.setDimensions(image);
+
+                // expect an exception since keepout region width is 0
+                try
+                {
+                    vsck.setKeepoutRegion(0,
+                                          0,
+                                          0,
+                                          1);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+            }
+
+            {
+                VerticalSeamCarverSquareKeepout vsck(initialMarginEnergy);
+
+                // set internal data/dimensions using image
+                vsck.setDimensions(image);
+
+                // expect an exception since keepout region starting column is past the end
+                try
+                {
+                    vsck.setKeepoutRegion(0,
+                                          (size_t)image.cols,
+                                          1,
+                                          1);
+                }
+                catch(const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
             }
         }
 
