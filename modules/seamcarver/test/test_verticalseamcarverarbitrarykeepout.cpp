@@ -57,6 +57,15 @@ namespace opencv_test
         TEST(VerticalSeamCarverArbitraryKeepout, CanOpenImage)
         {
             ASSERT_EQ(img.empty(), false);
+
+            newKeepoutRegion.resize((size_t)img.rows);
+            for(size_t row = 0; row < (size_t)img.rows; ++row)
+            {
+                for (size_t column = 10; column < 50; ++column)
+                {
+                    newKeepoutRegion[row].push_back(column);
+                }
+            };
         }
 
         TEST(VerticalSeamCarverArbitraryKeepout, DefaultCtor)
@@ -69,15 +78,6 @@ namespace opencv_test
             vsck.setDimensions(img);
 
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
-
-            newKeepoutRegion.resize((size_t)img.rows);
-            for(size_t row = 0; row < (size_t)img.rows; ++row)
-            {
-                for (size_t column = 10; column < 50; ++column)
-                {
-                    newKeepoutRegion[row].push_back(column);
-                }
-            }
 
             vsck.setKeepoutRegion(newKeepoutRegion);
 
@@ -97,54 +97,44 @@ namespace opencv_test
             EXPECT_EQ(vsck.areDimensionsInitialized(), true);
             EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
         }
-    }
 
-    TEST(VerticalSeamCarverArbitraryKeepout, ImgCtor)
-    {
-        VerticalSeamCarverArbitraryKeepout vsck(
-            img,
-            // keepout region defined in previous test
-            newKeepoutRegion,
-            initialMarginEnergy
-        );
+        TEST(VerticalSeamCarverArbitraryKeepout, ImgCtor)
+        {
+            VerticalSeamCarverArbitraryKeepout vsck(
+                img,
+                // keepout region defined in previous test
+                newKeepoutRegion,
+                initialMarginEnergy
+            );
 
-        EXPECT_EQ(vsck.areDimensionsInitialized(), true);
-        EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
-    }
+            EXPECT_EQ(vsck.areDimensionsInitialized(), true);
+            EXPECT_EQ(vsck.isKeepoutRegionDefined(), true);
+        }
 
-    TEST(VerticalSeamCarverArbitraryKeepout, CheckExceptions)
-    {
-        VerticalSeamCarverArbitraryKeepout vsck(initialMarginEnergy);
+        TEST(VerticalSeamCarverArbitraryKeepout, CheckExceptions)
+        {
+            VerticalSeamCarverArbitraryKeepout vsck(initialMarginEnergy);
 
-        try
-        {
-            vsck.runSeamRemover(0, img, outImg);
-        }
-        catch (const cv::Exception& e)
-        {
-            EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
-        }
-        
-        try
-        {
-            // keepout region set in previous test
-            vsck.setKeepoutRegion(newKeepoutRegion);
+            try
+            {
+                // expect an exception since keepout region hasn't been defined yet
+                vsck.runSeamRemover(0, img, outImg);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::Code::StsInternal);
+            }
 
-            vsck.runSeamRemover(img.cols + 1, img, outImg);
-        }
-        catch (const cv::Exception& e)
-        {
-            EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
-        }
-        
-        try
-        {
-            std::vector<std::vector<size_t>> emptyVector;
-            vsck.setKeepoutRegion(emptyVector);
-        }
-        catch (const cv::Exception& e)
-        {
-            EXPECT_EQ(e.code, cv::Error::StsBadArg);
+            try
+            {
+                // expect an exception since the keepout region can't be empty
+                std::vector<std::vector<size_t>> emptyVector;
+                vsck.setKeepoutRegion(emptyVector);
+            }
+            catch (const cv::Exception& e)
+            {
+                EXPECT_EQ(e.code, cv::Error::StsBadArg);
+            }
         }
     }
 }

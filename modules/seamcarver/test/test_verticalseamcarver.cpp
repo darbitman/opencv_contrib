@@ -92,7 +92,8 @@ namespace opencv_test
 
                 try
                 {
-                    // try removing more columns than columns available
+                    // expect an exception since removing more columns
+                    // than columns available
                     vSeamCarver.runSeamRemover((size_t)(img.cols + 1), img, outImg);
                 }
                 catch (const cv::Exception& e)
@@ -106,7 +107,8 @@ namespace opencv_test
 
                 try
                 {
-                    // try setting the number of dimensions to 0
+                    // expect an exception since can't set a value of zero as a dimension
+                    // try setting the number of rows to 0
                     vSeamCarver.setDimensions(0, 1);
                 }
                 catch(const cv::Exception& e)
@@ -120,7 +122,8 @@ namespace opencv_test
 
                 try
                 {
-                    // try setting the number of dimensions to 0
+                    // expect an exception since can't set a value of zero as a dimension
+                    // try setting the number of columns to 0
                     vSeamCarver.setDimensions(1, 0);
                 }
                 catch(const cv::Exception& e)
@@ -134,7 +137,7 @@ namespace opencv_test
 
                 try
                 {
-                    // try setting dimensions based on an empty image
+                    // expect an exception since an empty image can't be used to set dimensions
                     cv::Mat emptyImage;
                     vSeamCarver.setDimensions(emptyImage);
                 }
@@ -149,13 +152,39 @@ namespace opencv_test
 
                 try
                 {
-                    // try setting a new pixel energy calculator
-                    cv::Ptr<PixelEnergy2D>ptr;
+                    // expect an exception since a a pixel energy calculator pointer can't be null
+                    // try setting a new pixel energy calculator with its pointer = nullptr
+                    cv::Ptr<PixelEnergy2D> ptr = nullptr;
                     vSeamCarver.setPixelEnergyCalculator(ptr);
                 }
-                catch(const cv::Exception& e)
+                catch (const cv::Exception& e)
                 {
                     EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
+                }
+            }
+
+            {
+                int numColorChannels = 4;
+                cv::Mat quadChannelImage(img.rows, img.cols, CV_8UC4);
+
+                EXPECT_EQ(quadChannelImage.channels(), numColorChannels);
+
+                EXPECT_EQ
+                (
+                    img.rows * img.cols * numColorChannels,
+                    quadChannelImage.dataend - quadChannelImage.datastart
+                );
+
+                VerticalSeamCarver vSeamCarver(quadChannelImage);
+
+                try
+                {
+                    // expect an exception since image has 4 channels
+                    vSeamCarver.runSeamRemover(1, quadChannelImage, outImg);
+                }
+                catch (const cv::Exception& e)
+                {
+                    EXPECT_EQ(e.code, Error::Code::StsBadArg);
                 }
             }
         }
