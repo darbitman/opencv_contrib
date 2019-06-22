@@ -102,7 +102,7 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
     try
     {
         std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
-        std::mutex& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
+        std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
 
         // pointer to the data for an image in the queue
         VerticalSeamCarverData* currentData = nullptr;
@@ -246,7 +246,7 @@ void cv::VerticalSeamCarver::resetLocalVectors(VerticalSeamCarverData* data)
 void cv::VerticalSeamCarver::findAndRemoveSeams(const cv::Mat& image, VerticalSeamCarverData* data)
 {
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
-    std::mutex& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
 
     data->numColorChannels_ = (size_t)image.channels();
 
@@ -280,19 +280,19 @@ void cv::VerticalSeamCarver::findAndRemoveSeams(const cv::Mat& image, VerticalSe
     nextQLock.unlock();
 }
 
-void cv::VerticalSeamCarver::calculatePixelEnergy(const cv::Mat& image, std::vector<std::vector<double>>& outPixelEnergy)
+void cv::VerticalSeamCarver::calculatePixelEnergy()
 {
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_2];
-    std::mutex& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
-    std::mutex& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_2];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_2];
 
     while (runThreads)
     {
         if (!currentQ.empty())
         {
             // calculate the pixel energy for the image at the front of the current queue
-            currentQ.front()->pPixelEnergyCalculator_->calculatePixelEnergy(image, outPixelEnergy);
+            currentQ.front()->pPixelEnergyCalculator_->calculatePixelEnergy(*currentQ.front()->outputImage, currentQ.front()->pixelEnergy);
 
             // move data (it's actually the pointer to the data) to next queue
             currentQLock.lock();
@@ -424,8 +424,8 @@ void cv::VerticalSeamCarver::calculateCumulativePathEnergy()
 {
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_2];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_3];
-    std::mutex& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_2];
-    std::mutex& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_3];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_2];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_3];
 
     // pointer to the data for an image in the queue
     VerticalSeamCarverData* data = nullptr;
@@ -454,8 +454,8 @@ void cv::VerticalSeamCarver::findSeams()
 {
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_3];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_4];
-    std::mutex& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_3];
-    std::mutex& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_4];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_3];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_4];
 
     // pointer to the data for an image in the queue
     VerticalSeamCarverData* data = nullptr;
@@ -595,8 +595,8 @@ void cv::VerticalSeamCarver::removeSeams()
 {
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_4];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_5];
-    std::mutex& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_4];
-    std::mutex& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_5];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_4];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_5];
 
     // pointer to the data for an image in the queue
     VerticalSeamCarverData* data = nullptr;
@@ -673,6 +673,11 @@ bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image, Ve
 
 void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator)
 {
+    for (size_t mIndex = 0; mIndex < pipelineDepth; ++mIndex)
+    {
+        queueLocks.emplace_back(mutexes[mIndex], std::defer_lock);
+    }
+
     threads.resize(pipelineDepth);
     localDataQueues.resize(pipelineDepth);
 
@@ -687,7 +692,7 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     {
         currentQ.front()->pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
     }
-    /*
+
     // start pipeline threads
     threads[(uint32_t)pipelineStage::STAGE_1] =
         std::thread(&cv::VerticalSeamCarver::calculatePixelEnergy, this);
@@ -700,5 +705,4 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     
     threads[(uint32_t)pipelineStage::STAGE_4] =
         std::thread(&cv::VerticalSeamCarver::removeSeams, this);
-    */
 }

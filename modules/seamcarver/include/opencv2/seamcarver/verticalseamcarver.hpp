@@ -136,7 +136,7 @@ namespace cv
          * @param image: input image
          * @param outPixelEnergy: output pixel energy parameter
          */
-        virtual void calculatePixelEnergy(const cv::Mat& image, std::vector<std::vector<double>>& outPixelEnergy);
+        virtual void calculatePixelEnergy();
 
         /**
          * @brief calculates the energy required to reach bottom row (non threaded)
@@ -187,9 +187,10 @@ namespace cv
 
         static constexpr size_t pipelineDepth = static_cast<size_t>(pipelineStage::NUM_STAGES);
 
-        std::mutex queueLocks[pipelineDepth];
-        //std::vector<std::unique_lock<std::mutex>> queueLocks;
         //std::vector<std::mutex> queueLocks;
+        std::mutex mutexes[pipelineDepth];
+        std::vector<std::unique_lock<std::mutex>> queueLocks;
+        
         static constexpr double defaultMarginEnergy = 390150.0;
     };
 }
