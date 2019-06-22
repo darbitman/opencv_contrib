@@ -163,6 +163,7 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove,
     {
         throw;
     }
+    return cv::Ptr<cv::Mat>();
 }
 
 void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength, VerticalSeamCarverData* data)
@@ -674,7 +675,6 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
 {
     threads.resize(pipelineDepth);
     localDataQueues.resize(pipelineDepth);
-    queueLocks.resize(pipelineDepth);
 
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     currentQ.emplace(new VerticalSeamCarverData(marginEnergy));
@@ -687,7 +687,7 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     {
         currentQ.front()->pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
     }
-
+    /*
     // start pipeline threads
     threads[(uint32_t)pipelineStage::STAGE_1] =
         std::thread(&cv::VerticalSeamCarver::calculatePixelEnergy, this);
@@ -700,4 +700,5 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     
     threads[(uint32_t)pipelineStage::STAGE_4] =
         std::thread(&cv::VerticalSeamCarver::removeSeams, this);
+    */
 }

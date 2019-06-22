@@ -45,12 +45,14 @@
 #include <opencv2/core.hpp>
 #include <queue>
 #include <thread>
+#include <mutex>
 #include "seamcarver.hpp"
-#include "verticalseamcarverdata.hpp"
-
 
 namespace cv
 {
+    class VerticalSeamCarverData;
+    class PixelEnergy2D;
+
     class CV_EXPORTS VerticalSeamCarver : public SeamCarver
     {
     public:
@@ -170,8 +172,6 @@ namespace cv
         
         std::vector<std::queue<VerticalSeamCarverData*>> localDataQueues;        
 
-        std::vector<std::mutex> queueLocks;
-
         bool runThreads = true;
 
         enum class pipelineStage
@@ -187,6 +187,9 @@ namespace cv
 
         static constexpr size_t pipelineDepth = static_cast<size_t>(pipelineStage::NUM_STAGES);
 
+        std::mutex queueLocks[pipelineDepth];
+        //std::vector<std::unique_lock<std::mutex>> queueLocks;
+        //std::vector<std::mutex> queueLocks;
         static constexpr double defaultMarginEnergy = 390150.0;
     };
 }
