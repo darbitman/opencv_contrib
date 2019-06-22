@@ -45,8 +45,6 @@
 #include "seamcarver/pixelenergy2d.hpp"
 #include "seamcarver/seamcarver.hpp"
 #include "seamcarver/verticalseamcarver.hpp"
-#include "seamcarver/verticalseamcarversquarekeepout.hpp"
-#include "seamcarver/verticalseamcarverarbitrarykeepout.hpp"
 
 
 #endif //__OPENCV_SEAMCARVER_HPP__
