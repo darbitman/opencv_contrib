@@ -104,8 +104,9 @@ namespace cv
         virtual VerticalSeamCarver& operator=(const VerticalSeamCarver& rhs) = delete;
         virtual VerticalSeamCarver& operator=(const VerticalSeamCarver&& rhs) = delete;
 
+    // nonthreaded operations
     protected:
-        /**
+         /**
          * @brief initializes member data using image dimensions
          * @param img: a sample frame from which dimensions are extracted
          * @param seamLength: number of pixels per seam
@@ -132,17 +133,28 @@ namespace cv
         virtual void findAndRemoveSeams(const cv::Mat& image, VerticalSeamCarverData* data);
 
         /**
+         * @brief calculates the energy required to reach bottom row (non threaded)
+         * @param data: pointer to the data for which to run calculation
+         */
+        virtual void runCumulativePathEnergyCalculation(VerticalSeamCarverData* data);
+
+        /**
+         * @brief check if internal stored dimensions match those of the new image
+         * @param image: input image
+         * @return bool
+         */
+        virtual bool areImageDimensionsVerified(const cv::Mat& image, VerticalSeamCarverData* data) const;
+
+        virtual void constructorInit(double marginEnergy, cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator);
+
+    // threaded operations
+    protected:
+        /**
          * @brief calculate individual pixel energy
          * @param image: input image
          * @param outPixelEnergy: output pixel energy parameter
          */
         virtual void calculatePixelEnergy();
-
-        /**
-         * @brief calculates the energy required to reach bottom row (non threaded)
-         * @param data: pointer to the data for which to run calculation
-         */
-        virtual void runCumulativePathEnergyCalculation(VerticalSeamCarverData* data);
 
         /**
          * @brief calculates the energy required to reach bottom row (threaded)
@@ -159,15 +171,8 @@ namespace cv
          */
         virtual void removeSeams();
 
-        /**
-         * @brief check if internal stored dimensions match those of the new image
-         * @param image: input image
-         * @return bool
-         */
-        virtual bool areImageDimensionsVerified(const cv::Mat& image, VerticalSeamCarverData* data) const;
-
-        virtual void constructorInit(double marginEnergy, cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator);
-
+    // local variables
+    protected:
         std::vector<std::thread> threads;
         
         std::vector<std::queue<VerticalSeamCarverData*>> localDataQueues;        
