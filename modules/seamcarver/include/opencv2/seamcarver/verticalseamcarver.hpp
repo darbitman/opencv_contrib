@@ -94,9 +94,8 @@ namespace cv
          * @brief run the vertical seam remover algorithm
          * @param numSeamsToRemove: number of vertical seams to remove
          * @param image: input image
-         * @return cv::Ptr<cv::Mat>: returns a smart pointer that holds a cv::Mat of the resultant image
          */
-        virtual cv::Ptr<cv::Mat> runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image) override;
+        virtual void runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image) override;
 
         // Deleted/defaulted functions
         VerticalSeamCarver(const VerticalSeamCarver& rhs) = delete;
@@ -124,13 +123,12 @@ namespace cv
         /**
          * @brief reset vectors to their starting state
          */
-        virtual void resetLocalVectors(VerticalSeamCarverData* data);
+        virtual void resetLocalVectors();
 
         /**
          * @brief find then remove remove vertical seams
-         * @param image: input image
          */
-        virtual void findAndRemoveSeams(const cv::Mat& image, VerticalSeamCarverData* data);
+        virtual void findAndRemoveSeams();
 
         /**
          * @brief calculates the energy required to reach bottom row (non threaded)
@@ -143,7 +141,7 @@ namespace cv
          * @param image: input image
          * @return bool
          */
-        virtual bool areImageDimensionsVerified(const cv::Mat& image, VerticalSeamCarverData* data) const;
+        virtual bool areImageDimensionsVerified(const cv::Mat& image) const;
 
         virtual void constructorInit(double marginEnergy, cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator);
 
@@ -151,13 +149,11 @@ namespace cv
     protected:
         /**
          * @brief calculate individual pixel energy
-         * @param image: input image
-         * @param outPixelEnergy: output pixel energy parameter
          */
         virtual void calculatePixelEnergy();
 
         /**
-         * @brief calculates the energy required to reach bottom row (threaded)
+         * @brief calculates the energy required to reach bottom row
          */
         virtual void calculateCumulativePathEnergy();
 

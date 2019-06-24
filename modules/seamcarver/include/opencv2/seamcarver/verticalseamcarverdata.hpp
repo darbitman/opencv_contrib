@@ -45,7 +45,6 @@
 #include <opencv2/core.hpp>
 #include "constsizeminpriorityqueue.hpp"
 
-
 namespace cv
 {
     // forward declare class;
@@ -105,8 +104,8 @@ namespace cv
         // default energy at the borders of the image
         const double marginEnergy_;
 
-        // stores the result
-        cv::Ptr<cv::Mat> outputImage;
+        // stores the image and output result
+        cv::Ptr<cv::Mat> savedImage;
     };
 }
 

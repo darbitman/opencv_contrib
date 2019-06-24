@@ -53,9 +53,8 @@ namespace cv
          * @brief run the seam remover algorithm
          * @param numSeamsToRemove: number of seams to remove
          * @param image: input image
-         * @return cv::Ptr<cv::Mat>: returns a smart pointer that holds a cv::Mat of the resultant image
          */
-        virtual cv::Ptr<cv::Mat> runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image) = 0;
+        virtual void runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image) = 0;
 
         virtual ~SeamCarver() {}
     };
