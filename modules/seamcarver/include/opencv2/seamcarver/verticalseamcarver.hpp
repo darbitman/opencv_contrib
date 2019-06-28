@@ -97,6 +97,24 @@ namespace cv
          */
         virtual void runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image) override;
 
+        /**
+         * @brief attempt to get the next result (non blocking)
+         * @return cv::Ptr<cv::Mat>
+         */
+        virtual cv::Ptr<cv::Mat> tryGetNextFrame();
+
+        /**
+         * @brief get the next result (blocking)
+         * @return cv::Ptr<cv::Mat>
+         */
+        virtual cv::Ptr<cv::Mat> getNextFrame();
+
+        /**
+         * @brief returns true if new result exists
+         * @return bool
+         */
+        virtual bool newResultExists() const;
+
         // Deleted/defaulted functions
         VerticalSeamCarver(const VerticalSeamCarver& rhs) = delete;
         VerticalSeamCarver(const VerticalSeamCarver&& rhs) = delete;
@@ -110,7 +128,7 @@ namespace cv
          * @param img: a sample frame from which dimensions are extracted
          * @param seamLength: number of pixels per seam
          */
-        virtual void init(const cv::Mat& img, size_t seamLength, VerticalSeamCarverData* data);
+        virtual void init(const cv::Mat& img, size_t seamLength);
 
         /**
          * @brief initilizes member data using image dimensions
@@ -118,7 +136,7 @@ namespace cv
          * @param numColumns: number of columns in the image (width)
          * @param seamLength: number of pixels per seam
          */
-        virtual void init(size_t numRows, size_t numColumns, size_t seamLength, VerticalSeamCarverData* data);
+        virtual void init(size_t numRows, size_t numColumns, size_t seamLength);
 
         /**
          * @brief reset vectors to their starting state
@@ -167,6 +185,11 @@ namespace cv
          */
         virtual void removeSeams();
 
+        /**
+         * @brief combines the results and adds image to return queue
+         */
+        virtual void mergeChannels();
+
     // local variables
     protected:
         std::vector<std::thread> threads;
@@ -182,7 +205,8 @@ namespace cv
             STAGE_2,    // calculate cumulative path energy
             STAGE_3,    // find seams
             STAGE_4,    // remove seams
-            STAGE_5,    // generate result
+            STAGE_5,    // merge channels
+            STAGE_6,    // return queue
             NUM_STAGES
         };
 
@@ -193,6 +217,8 @@ namespace cv
         std::vector<std::unique_lock<std::mutex>> queueLocks;
         
         static constexpr double defaultMarginEnergy = 390150.0;
+
+        cv::Ptr<std::queue<cv::Ptr<cv::Mat>>> pReturnQueue;
     };
 }
 

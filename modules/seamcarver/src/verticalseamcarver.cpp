@@ -58,7 +58,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
 
-    init(numRows, numColumns, numRows, localDataQueues[(uint32_t)pipelineStage::STAGE_0].front());
+    init(numRows, numColumns, numRows);
 }
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
@@ -68,7 +68,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
 
-    init(image, (size_t)image.rows, localDataQueues[(uint32_t)pipelineStage::STAGE_0].front());
+    init(image, (size_t)image.rows);
 }
 
 cv::VerticalSeamCarver::~VerticalSeamCarver()
@@ -99,77 +99,121 @@ cv::VerticalSeamCarver::~VerticalSeamCarver()
 
 void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image)
 {
-    try
+    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
+
+    // STAGE_0 queue is the free store queue to get previously used memory
+    // Create more memory if none exist in the free store
+    if (currentQ.empty())
     {
-        std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
-        std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
+        currentQLock.lock();
+        currentQ.emplace(new VerticalSeamCarverData(defaultMarginEnergy));
+        currentQLock.unlock();
+    }
 
-        // pointer to the data for an image in the queue
-        VerticalSeamCarverData* currentData = nullptr;
+    // pointer to the data for an image in the queue
+    VerticalSeamCarverData* currentData = currentQ.front();
 
-        // STAGE_0 queue is the free store queue to get previously used memory
-        // Create more memory if none exist in the free store
-        if (currentQ.empty())
+    while (true)
+    {
+        // copy image to internal data store
+        currentData->savedImage = cv::makePtr<cv::Mat>(image);
+        
+        // initialize internal data
+        if (currentData->bNeedToInitializeLocalData)
         {
-            currentData = new VerticalSeamCarverData(defaultMarginEnergy);
+            init(image, (size_t)image.rows);
+            break;
         }
         else
         {
-            currentData = currentQ.front();
-        }
-
-        while (true)
-        {
-            // copy image to internal data store
-            *currentQ.front()->savedImage = image;
-            
-            // initialize internal data
-            if (currentData->bNeedToInitializeLocalData)
+            // check if image is of the same dimensions as those used for internal data
+            if (areImageDimensionsVerified(image))
             {
-                init(image, (size_t)image.rows, currentData);
                 break;
             }
+            // if image dimensions are different than those of internal data, reinitialize data
             else
             {
-                // check if image is of the same dimensions as those used for internal data
-                if (areImageDimensionsVerified(image))
-                {
-                    break;
-                }
-                // if image dimensions are different than those of internal data, reinitialize data
-                else
-                {
-                    currentData->bNeedToInitializeLocalData = true;
-                }
+                currentData->bNeedToInitializeLocalData = true;
             }
         }
-        
-        // check if removing more seams than columns available
-        if (numSeamsToRemove > currentData->numColumns_)
-        {
-            CV_Error(Error::Code::StsBadArg, "Removing more seams than columns available");
-        }
-
-        // set number of seams to remove this pass
-        currentData->numSeamsToRemove_ = numSeamsToRemove;
-
-        // reset vectors to their clean state
-        resetLocalVectors();
-
-        findAndRemoveSeams();
     }
-    catch (...)
+    
+    // check if removing more seams than columns available
+    if (numSeamsToRemove > currentData->numColumns_)
     {
-        throw;
+        // TODO handle error case
     }
-    return cv::Ptr<cv::Mat>();
+
+    // set number of seams to remove this pass
+    currentData->numSeamsToRemove_ = numSeamsToRemove;
+
+    // reset vectors to their clean state
+    resetLocalVectors();
+
+    findAndRemoveSeams();
 }
 
-void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength, VerticalSeamCarverData* data)
+cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
+{
+    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
+    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
+    
+    cv::Ptr<cv::Mat> returnFrame(nullptr);
+
+    if (!currentQ.empty())
+    {
+        if (currentQLock.try_lock())
+        {
+            if (nextQLock.try_lock())
+            {
+                returnFrame = currentQ.front()->savedImage;
+                currentQ.front()->savedImage = nullptr;
+                nextQ.emplace(currentQ.front());  // put back into free store
+                currentQ.pop();
+                nextQLock.unlock();
+            }
+            currentQLock.unlock();
+        }
+    }
+    return returnFrame;
+}
+
+cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
+{
+    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
+    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
+
+    cv::Ptr<cv::Mat> returnFrame(nullptr);
+
+    if (!currentQ.empty())
+    {
+        currentQLock.lock();
+        nextQLock.lock();
+        returnFrame = currentQ.front()->savedImage;
+        currentQ.front()->savedImage = nullptr;
+        nextQ.emplace(currentQ.front());  // put back into free store
+        currentQ.pop();
+        nextQLock.unlock();
+        currentQLock.unlock();
+    }
+}
+
+bool cv::VerticalSeamCarver::newResultExists() const
+{
+    return !localDataQueues[(uint32_t)pipelineStage::STAGE_6].empty();
+}
+
+void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength)
 {
     try
     {
-        init((size_t)img.rows, (size_t)img.cols, seamLength, data);
+        init((size_t)img.rows, (size_t)img.cols, seamLength);
     }
     catch (...)
     {
@@ -177,8 +221,10 @@ void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength, Vertica
     }
 }
 
-void cv::VerticalSeamCarver::init(size_t numRows, size_t numColumns, size_t seamLength, VerticalSeamCarverData* data)
+void cv::VerticalSeamCarver::init(size_t numRows, size_t numColumns, size_t seamLength)
 {
+    VerticalSeamCarverData* data = localDataQueues[(uint32_t)pipelineStage::STAGE_0].front();
+
     // initialize dimension variables
     data->numRows_ = numRows;
     data->numColumns_ = numColumns;
@@ -271,8 +317,7 @@ void cv::VerticalSeamCarver::findAndRemoveSeams()
     }
     else
     {
-        CV_Error(Error::Code::StsBadArg,
-                 "findAndRemoveSeams failed due to incorrect number of color channels");
+        // TODO handle error case
     }
 
     // move data to next queue
@@ -663,6 +708,10 @@ void cv::VerticalSeamCarver::removeSeams()
             currentQLock.unlock();
         }
     }
+}
+
+void cv::VerticalSeamCarver::mergeChannels()
+{
 }
 
 bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image) const
