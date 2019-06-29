@@ -61,11 +61,10 @@ namespace opencv_test
         {
             VerticalSeamCarver vSeamCarver(initialMarginEnergy);
 
-            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), false);
+            vSeamCarver.runSeamRemover(1, img);
 
-            vSeamCarver.setDimensions(img);
-
-            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
+            // TODO need to keep threads alive while data is being processed?
+            //    use a counter inside to keep track of how many frames are in the queues total
         }
 
         TEST(VerticalSeamCarver, DimsCtor)
@@ -74,15 +73,11 @@ namespace opencv_test
                 (size_t)img.rows,
                 (size_t)img.cols,
                 (size_t)initialMarginEnergy);
-            
-            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
         }
 
         TEST(VerticalSeamCarver, ImgCtor)
         {
             VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
-            
-            EXPECT_EQ(vSeamCarver.areDimensionsInitialized(), true);
         }
     }
 }
