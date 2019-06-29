@@ -202,6 +202,7 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
         nextQLock.unlock();
         currentQLock.unlock();
     }
+    return returnFrame;
 }
 
 bool cv::VerticalSeamCarver::newResultExists() const
@@ -211,14 +212,8 @@ bool cv::VerticalSeamCarver::newResultExists() const
 
 void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength)
 {
-    try
-    {
-        init((size_t)img.rows, (size_t)img.cols, seamLength);
-    }
-    catch (...)
-    {
-        throw;
-    }
+    init((size_t)img.rows, (size_t)img.cols, seamLength);
+
 }
 
 void cv::VerticalSeamCarver::init(size_t numRows, size_t numColumns, size_t seamLength)
@@ -712,6 +707,32 @@ void cv::VerticalSeamCarver::removeSeams()
 
 void cv::VerticalSeamCarver::mergeChannels()
 {
+    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_5];
+    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
+    std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_5];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
+
+    // pointer to the data for an image in the queue
+    VerticalSeamCarverData* data = nullptr;
+
+    while (runThreads)
+    {
+        if (!currentQ.empty())
+        {
+            // save the pointer for faster access
+            data = currentQ.front();
+
+            cv::merge(data->bgr, *data->savedImage);
+
+            // move data to next queue
+            currentQLock.lock();
+            nextQLock.lock();
+            nextQ.emplace(data);
+            currentQ.pop();
+            nextQLock.unlock();
+            currentQLock.unlock();
+        }
+    }
 }
 
 bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image) const
