@@ -99,6 +99,8 @@ cv::VerticalSeamCarver::~VerticalSeamCarver()
 
 void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image)
 {
+    ++totalFramesInQueues;
+
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
 
@@ -158,9 +160,12 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::M
 cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
 {
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
-    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
+    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
-    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
+
+    std::mutex sharedCounterMutex;
+    std::unique_lock<std::mutex> sharedCounterLock(sharedCounterMutex, std::defer_lock);
     
     cv::Ptr<cv::Mat> returnFrame(nullptr);
 
@@ -170,10 +175,15 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
         {
             if (nextQLock.try_lock())
             {
-                returnFrame = currentQ.front()->savedImage;
-                currentQ.front()->savedImage = nullptr;
-                nextQ.emplace(currentQ.front());  // put back into free store
-                currentQ.pop();
+                if (sharedCounterLock.try_lock())
+                {
+                    returnFrame = currentQ.front()->savedImage;
+                    currentQ.front()->savedImage = nullptr;
+                    nextQ.emplace(currentQ.front());  // put back into free store
+                    currentQ.pop();
+                    --totalFramesInQueues;
+                    sharedCounterLock.unlock();   
+                }
                 nextQLock.unlock();
             }
             currentQLock.unlock();
@@ -185,9 +195,12 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
 cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
 {
     std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
-    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
+    std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
-    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
+    std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
+
+    std::mutex sharedCounterMutex;
+    
 
     cv::Ptr<cv::Mat> returnFrame(nullptr);
 
@@ -195,14 +208,25 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
     {
         currentQLock.lock();
         nextQLock.lock();
+        
         returnFrame = currentQ.front()->savedImage;
         currentQ.front()->savedImage = nullptr;
         nextQ.emplace(currentQ.front());  // put back into free store
         currentQ.pop();
+        
         nextQLock.unlock();
         currentQLock.unlock();
+
+        std::unique_lock<std::mutex> sharedCounterLock(sharedCounterMutex);
+        --totalFramesInQueues;
+        sharedCounterLock.unlock();
     }
     return returnFrame;
+}
+
+size_t cv::VerticalSeamCarver::numberFramesBeingProcessed() const
+{
+    return totalFramesInQueues;
 }
 
 bool cv::VerticalSeamCarver::newResultExists() const
@@ -682,7 +706,7 @@ void cv::VerticalSeamCarver::removeSeams()
                     {
                         for (size_t j = 0; j < data->numColorChannels_; j++)
                         {
-                            data->bgr[j].at<uchar>(row, column - numSeamsRemoved) = data->bgr[j].at<uchar>(row, column);
+                            data->bgr[j].at<unsigned char>(row, column - numSeamsRemoved) = data->bgr[j].at<unsigned char>(row, column);
                         }
                     }
                 }
@@ -784,4 +808,7 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     
     threads[(uint32_t)pipelineStage::STAGE_4] =
         std::thread(&cv::VerticalSeamCarver::removeSeams, this);
+
+    threads[(uint32_t)pipelineStage::STAGE_5] =
+    std::thread(&cv::VerticalSeamCarver::mergeChannels, this);
 }

@@ -60,11 +60,6 @@ namespace opencv_test
         TEST(VerticalSeamCarver, DefaultCtor)
         {
             VerticalSeamCarver vSeamCarver(initialMarginEnergy);
-
-            vSeamCarver.runSeamRemover(1, img);
-
-            // TODO need to keep threads alive while data is being processed?
-            //    use a counter inside to keep track of how many frames are in the queues total
         }
 
         TEST(VerticalSeamCarver, DimsCtor)

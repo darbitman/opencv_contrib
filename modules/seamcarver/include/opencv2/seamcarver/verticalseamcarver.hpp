@@ -110,6 +110,12 @@ namespace cv
         virtual cv::Ptr<cv::Mat> getNextFrame();
 
         /**
+         * @brief returns the total number of frames still being processed in the pipeline
+         * @size_t
+         */
+        virtual size_t numberFramesBeingProcessed() const;
+
+        /**
          * @brief returns true if new result exists
          * @return bool
          */
@@ -212,13 +218,14 @@ namespace cv
 
         static constexpr size_t pipelineDepth = static_cast<size_t>(pipelineStage::NUM_STAGES);
 
-        //std::vector<std::mutex> queueLocks;
         std::mutex mutexes[pipelineDepth];
         std::vector<std::unique_lock<std::mutex>> queueLocks;
         
         static constexpr double defaultMarginEnergy = 390150.0;
 
         cv::Ptr<std::queue<cv::Ptr<cv::Mat>>> pReturnQueue;
+
+        size_t totalFramesInQueues = 0;
     };
 }
 
