@@ -45,7 +45,7 @@
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
     double marginEnergy,
-    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator)
+    cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
 }
@@ -54,7 +54,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
     size_t numRows,
     size_t numColumns,
     double marginEnergy,
-    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator)
+    cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
 
@@ -64,7 +64,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
 cv::VerticalSeamCarver::VerticalSeamCarver(
     const cv::Mat& image,
     double marginEnergy,
-    cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator)
+    cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
 
@@ -772,7 +772,7 @@ bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image) co
     }
 }
 
-void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator)
+void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     for (size_t mIndex = 0; mIndex < pipelineDepth; ++mIndex)
     {
@@ -793,7 +793,7 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     }
     else
     {
-        currentQ.front()->pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergy2D>(marginEnergy);
+        currentQ.front()->pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergyCalculator2D>(marginEnergy);
     }
 
     // start pipeline threads

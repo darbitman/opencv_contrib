@@ -48,7 +48,7 @@
 namespace cv
 {
     // forward declare class;
-    class PixelEnergy2D;
+    class PixelEnergyCalculator2D;
 
     class CV_EXPORTS VerticalSeamCarverData
     {
@@ -99,7 +99,7 @@ namespace cv
         size_t numSeamsToRemove_ = 0;
 
         // pointer to an object that calculates pixel energy
-        cv::Ptr<PixelEnergy2D> pPixelEnergyCalculator_ = nullptr;
+        cv::Ptr<PixelEnergyCalculator2D> pPixelEnergyCalculator_ = nullptr;
 
         // default energy at the borders of the image
         const double marginEnergy_;

@@ -50,7 +50,7 @@ namespace opencv_test
         double initialMarginEnergy = 390150.0;
 
         cv::Mat img = cv::imread(IMG_PATH);
-        TEST(GradientPixelEnergy2D, CanOpenImage)
+        TEST(GradientPixelEnergyCalculator2D, CanOpenImage)
         {
             ASSERT_EQ(img.empty(), false);
         }
@@ -58,19 +58,19 @@ namespace opencv_test
         size_t initialNumColumns = (size_t)img.cols;
         size_t initialNumRows = (size_t)img.rows;
 
-        TEST(GradientPixelEnergy2D, DefaultCtor)
+        TEST(GradientPixelEnergyCalculator2D, DefaultCtor)
         {
-            cv::GradientPixelEnergy2D pixelEnergyCalculator(initialMarginEnergy);
+            cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator(initialMarginEnergy);
 
             EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
         }
 
-        TEST(GradientPixelEnergy2D, CheckingExceptions)
+        TEST(GradientPixelEnergyCalculator2D, CheckingExceptions)
         {
             // setting negative margin energy
             try
             {
-                cv::GradientPixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator;
                 pixelEnergyCalculator.setMarginEnergy(-3.0);
             }
             catch (const cv::Exception& e)
@@ -86,7 +86,7 @@ namespace opencv_test
 
                 std::vector<std::vector<double>> calculatedPixelEnergy;
 
-                cv::GradientPixelEnergy2D pixelEnergyCalculator;
+                cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator;
                 pixelEnergyCalculator.calculatePixelEnergy(emptyImage, calculatedPixelEnergy);
             }
             catch (const cv::Exception& e)
@@ -95,9 +95,9 @@ namespace opencv_test
             }
         }
 
-        TEST(GradientPixelEnergy2D, CalculatePixelEnergy)
+        TEST(GradientPixelEnergyCalculator2D, CalculatePixelEnergy)
         {
-            cv::GradientPixelEnergy2D pixelEnergyCalculator;
+            cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator;
 
             std::vector<std::vector<double>> calculatedPixelEnergy;
 

@@ -51,7 +51,7 @@
 namespace cv
 {
     class VerticalSeamCarverData;
-    class PixelEnergy2D;
+    class PixelEnergyCalculator2D;
 
     class CV_EXPORTS VerticalSeamCarver : public SeamCarver
     {
@@ -62,7 +62,7 @@ namespace cv
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarver(double marginEnergy = defaultMarginEnergy,
-                           cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+                cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on dimensions
@@ -72,9 +72,9 @@ namespace cv
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarver(size_t numRows,
-                           size_t numColumns,
-                           double marginEnergy = defaultMarginEnergy,
-                           cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+                size_t numColumns,
+                double marginEnergy = defaultMarginEnergy,
+                cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator = nullptr);
 
         /**
          * @brief ctor based on a sample image
@@ -83,8 +83,8 @@ namespace cv
          * @param pNewPixelEnergyCalculator: pointer to a pixel energy calculator
          */
         VerticalSeamCarver(const cv::Mat& image,
-                           double marginEnergy = defaultMarginEnergy,
-                           cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator = nullptr);
+                double marginEnergy = defaultMarginEnergy,
+                cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator = nullptr);
         /**
          * @brief dtor
          */
@@ -111,7 +111,7 @@ namespace cv
 
         /**
          * @brief returns the total number of frames still being processed in the pipeline
-         * @size_t
+         * @returns size_t
          */
         virtual size_t numberFramesBeingProcessed() const;
 
@@ -167,7 +167,7 @@ namespace cv
          */
         virtual bool areImageDimensionsVerified(const cv::Mat& image) const;
 
-        virtual void constructorInit(double marginEnergy, cv::Ptr<PixelEnergy2D> pNewPixelEnergyCalculator);
+        virtual void constructorInit(double marginEnergy, cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator);
 
     // threaded operations
     protected:

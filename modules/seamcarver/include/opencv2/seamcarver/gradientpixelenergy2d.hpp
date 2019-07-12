@@ -48,34 +48,45 @@
 
 namespace cv
 {
-    class CV_EXPORTS GradientPixelEnergy2D : public PixelEnergy2D
+    class CV_EXPORTS GradientPixelEnergyCalculator2D : public PixelEnergyCalculator2D
     {
     public:
         /**
          * @brief Default ctor, where the default pixel energy at the edges is 390150.0
-         * @param marginEnergy: energy defined for border pixels
+         * @param marginEnergy: border pixel energy
          */
-        explicit GradientPixelEnergy2D(double marginEnergy = 390150.0);
+        explicit GradientPixelEnergyCalculator2D(double newMarginEnergy = 390150.0);
 
         /**
          * @brief dtor
          */
-        virtual ~GradientPixelEnergy2D();
+        virtual ~GradientPixelEnergyCalculator2D();
 
         /**
-         * @brief calculate energy for every pixel in image
+         * @brief run the pixel energy calculation on image and place the result into a 2D std::vector
          * @param image: 2D matrix representation of the image
-         * @param outPixelEnergy: Out parameter, 2D vector of calculated pixel energies
-         * @return bool: indicates if the operation was successful
+         * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
          */
         virtual void calculatePixelEnergy(const cv::Mat& image,
-                                         std::vector<std::vector<double>>& outPixelEnergy) override;
+                std::vector<std::vector<double>>& outPixelEnergy) override;
+        
+        /**
+         * @brief sets the energy of the border pixels
+         * @param newMarginEnergy: energy of the border pixels
+         */
+        virtual void setMarginEnergy(double newMarginEnergy);
 
-        // Deleted/defaulted
-        GradientPixelEnergy2D(const GradientPixelEnergy2D&) = delete;
-        GradientPixelEnergy2D(const GradientPixelEnergy2D&&) = delete;
-        virtual GradientPixelEnergy2D& operator=(const GradientPixelEnergy2D&) = delete;
-        virtual GradientPixelEnergy2D& operator=(const GradientPixelEnergy2D&&) = delete;
+        /**
+         * @brief returns the energy of edge pixels
+         * @return double
+         */
+        virtual double getMarginEnergy() const;
+
+        // deleted to prevent misuse
+        GradientPixelEnergyCalculator2D(const GradientPixelEnergyCalculator2D&) = delete;
+        GradientPixelEnergyCalculator2D(const GradientPixelEnergyCalculator2D&&) = delete;
+        virtual GradientPixelEnergyCalculator2D& operator=(const GradientPixelEnergyCalculator2D&) = delete;
+        virtual GradientPixelEnergyCalculator2D& operator=(const GradientPixelEnergyCalculator2D&&) = delete;
 
     protected:
         /**

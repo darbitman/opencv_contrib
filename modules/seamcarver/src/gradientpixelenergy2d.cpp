@@ -43,19 +43,18 @@
 #include <thread>
 using std::vector;
 
-cv::GradientPixelEnergy2D::GradientPixelEnergy2D(double marginEnergy) : marginEnergy_(marginEnergy)
-{}
+cv::GradientPixelEnergyCalculator2D::GradientPixelEnergyCalculator2D(double newMarginEnergy) : marginEnergy_(newMarginEnergy) {}
 
-cv::GradientPixelEnergy2D::~GradientPixelEnergy2D() {}
+cv::GradientPixelEnergyCalculator2D::~GradientPixelEnergyCalculator2D() {}
 
-void cv::GradientPixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
+void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergy(const cv::Mat& image,
                                                      vector<vector<double>>& outPixelEnergy)
 {
     // check for empty image
     if (image.empty())
     {
         CV_Error(Error::Code::StsBadArg,
-                 "GradientPixelEnergy2D::calculatePixelEnergyForEveryRow() failed due to empty image");
+                 "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to empty image");
     }
 
     numRows_ = (size_t)image.rows;
@@ -81,11 +80,11 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
     // if more columns, split calculation into 2 operations to calculate for every row
     if (numColumns_ >= numRows_)
     {
-        std::thread thread1(&cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow,
+        std::thread thread1(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow,
                             this, std::ref(image),
                             std::ref(outPixelEnergy),
                             true);
-        std::thread thread2(&cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow,
+        std::thread thread2(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow,
                             this, std::ref(image),
                             std::ref(outPixelEnergy),
                             false);
@@ -97,11 +96,11 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
     // otherwise, if more rows, split calculation into 2 operations to calculate for every column
     else
     {
-        std::thread thread1(&cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn,
+        std::thread thread1(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn,
                             this, std::ref(image),
                             std::ref(outPixelEnergy),
                             true);
-        std::thread thread2(&cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn,
+        std::thread thread2(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn,
                             this, std::ref(image),
                             std::ref(outPixelEnergy),
                             false);
@@ -117,10 +116,19 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergy(const cv::Mat& image,
     }
 }
 
-void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(
-    const cv::Mat& image,
-    vector<vector<double>>& outPixelEnergy,
-    bool bDoOddColumns)
+void cv::GradientPixelEnergyCalculator2D::setMarginEnergy(double newMarginEnergy)
+{
+    marginEnergy_ = newMarginEnergy;
+}
+
+double cv::GradientPixelEnergyCalculator2D::getMarginEnergy() const
+{
+    return marginEnergy_;
+}
+
+void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
+        vector<vector<double>>& outPixelEnergy,
+        bool bDoOddColumns)
 {
     try
     {
@@ -140,7 +148,7 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(
         else
         {
             CV_Error(Error::Code::StsBadArg,
-                     "GradientPixelEnergy2D::calculatePixelEnergyForEveryRow() failed due to \
+                     "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to \
                       incorrect number of channels");
         }
 
@@ -291,10 +299,9 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryRow(
     }
 }
 
-void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(
-    const cv::Mat& image,
-    vector<vector<double>>& outPixelEnergy,
-    bool bDoOddRows)
+void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(const cv::Mat& image,
+        vector<vector<double>>& outPixelEnergy,
+        bool bDoOddRows)
 {
     try
     {
@@ -314,7 +321,7 @@ void cv::GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn(
         else
         {
             CV_Error(Error::Code::StsBadArg,
-                     "GradientPixelEnergy2D::calculatePixelEnergyForEveryColumn() failed due to \
+                     "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn() failed due to \
                       incorrect number of channels");
         }
 

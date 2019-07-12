@@ -49,6 +49,8 @@ namespace cv
     class CV_EXPORTS SeamCarver
     {
     public:
+        virtual ~SeamCarver() {}
+
         /**
          * @brief run the seam remover algorithm
          * @param numSeamsToRemove: number of seams to remove
@@ -56,7 +58,29 @@ namespace cv
          */
         virtual void runSeamRemover(size_t numSeamsToRemove, const cv::Mat& image) = 0;
 
-        virtual ~SeamCarver() {}
+        /**
+         * @brief attempt to get the next result (non blocking)
+         * @return cv::Ptr<cv::Mat>
+         */
+        virtual cv::Ptr<cv::Mat> tryGetNextFrame() = 0;
+
+        /**
+         * @brief get the next result (blocking)
+         * @return cv::Ptr<cv::Mat>
+         */
+        virtual cv::Ptr<cv::Mat> getNextFrame() = 0;
+
+        /**
+         * @brief returns the total number of frames still being processed in the pipeline (for pipelined implementations)
+         * @returns size_t
+         */
+        virtual size_t numberFramesBeingProcessed() const = 0;
+
+        /**
+         * @brief returns true if new result exists (for pipelined implementations)
+         * @return bool
+         */
+        virtual bool newResultExists() const = 0;
     };
 }
 

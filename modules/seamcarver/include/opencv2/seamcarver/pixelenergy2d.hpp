@@ -39,57 +39,41 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_PIXELENERGY2D_HPP
-#define OPENCV_SEAMCARVER_PIXELENERGY2D_HPP
+#ifndef OPENCV_SEAMCARVER_PIXELENERGYCALCULATOR2D_HPP
+#define OPENCV_SEAMCARVER_PIXELENERGYCALCULATOR2D_HPP
 
 #include <opencv2/core.hpp>
 #include <vector>
 
 namespace cv
 {
-    class CV_EXPORTS PixelEnergy2D
+    class CV_EXPORTS PixelEnergyCalculator2D
     {
     public:
         /**
          * @brief dtor
          */
-        virtual ~PixelEnergy2D();
+        virtual ~PixelEnergyCalculator2D();
 
         /**
-         * @brief sets the energy of the border pixels
-         * @param marginEnergy: energy of the border pixels
-         */
-        virtual void setMarginEnergy(double marginEnergy);
-
-        /**
-         * @brief returns the marginEnergy associated with this calculator
-         * @return double
-         */
-        virtual double getMarginEnergy() const;
-
-        /**
-         * @brief run the pixel energy calculation
+         * @brief run the pixel energy calculation on image and place the result into a 2D std::vector
          * @param image: 2D matrix representation of the image
          * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
          */
         virtual void calculatePixelEnergy(const cv::Mat& image,
-                                          std::vector<std::vector<double>>& outPixelEnergy) = 0;
+                std::vector<std::vector<double>>& outPixelEnergy) = 0;
 
-        // Deleted/defaulted
-        PixelEnergy2D(const PixelEnergy2D&) = delete;
-        PixelEnergy2D(const PixelEnergy2D&&) = delete;
-        virtual PixelEnergy2D& operator=(const PixelEnergy2D&) = delete;
-        virtual PixelEnergy2D& operator=(const PixelEnergy2D&&) = delete;
-
-    protected:
         /**
-         * @brief default ctor
-         * @param marginEnergy: energy of the border pixels
+         * @brief sets the energy of the border pixels
+         * @param newMarginEnergy: energy of the border pixels
          */
-        explicit PixelEnergy2D(double marginEnergy = 390150.0);
+        virtual void setMarginEnergy(double newMarginEnergy) = 0;
 
-        // energy at the borders of an image
-        double marginEnergy_ = 0.0;
+        /**
+         * @brief returns the energy of edge pixels
+         * @return double
+         */
+        virtual double getMarginEnergy() const = 0;
     };
 }
 
