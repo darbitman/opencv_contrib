@@ -54,6 +54,8 @@ class VerticalSeamCarverData;
 class CumulativePathEnergyCalculatorStage : public SeamCarverStage
 {
 public:
+    const static uint32_t this_shape_id_;
+    CumulativePathEnergyCalculatorStage() {}
     CumulativePathEnergyCalculatorStage(pipelineStage pipeline_stage,
                                         cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue,
                                         cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue,
@@ -65,6 +67,14 @@ public:
     virtual void runStage() override;
 
     virtual void stopStage() override;
+
+    // deleted to prevent misuse
+    CumulativePathEnergyCalculatorStage(const CumulativePathEnergyCalculatorStage&) = delete;
+    CumulativePathEnergyCalculatorStage(const CumulativePathEnergyCalculatorStage&&) = delete;
+    CumulativePathEnergyCalculatorStage& operator=(const CumulativePathEnergyCalculatorStage&) =
+        delete;
+    CumulativePathEnergyCalculatorStage& operator=(const CumulativePathEnergyCalculatorStage&&) =
+        delete;
 
 protected:
     volatile bool do_run_thread_;

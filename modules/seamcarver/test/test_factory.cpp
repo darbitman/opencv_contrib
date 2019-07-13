@@ -39,72 +39,13 @@
 //
 //M*/
 
+#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "test_precomp.hpp"
-#include <vector>
-#include "opencv2/seamcarver/debugdisplay.hpp"
 
 namespace opencv_test
 {
-    namespace
-    {
-        double initialMarginEnergy = 390150.0;
-
-        cv::Mat img = cv::imread(IMG_PATH);
-        TEST(GradientPixelEnergyCalculator2D, CanOpenImage)
-        {
-            ASSERT_EQ(img.empty(), false);
-        }
-
-        size_t initialNumColumns = (size_t)img.cols;
-        size_t initialNumRows = (size_t)img.rows;
-
-        TEST(GradientPixelEnergyCalculator2D, DefaultCtor)
-        {
-            cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator(initialMarginEnergy);
-
-            EXPECT_EQ(initialMarginEnergy, pixelEnergyCalculator.getMarginEnergy());
-        }
-
-        TEST(GradientPixelEnergyCalculator2D, CheckingExceptions)
-        {
-            // setting negative margin energy
-            try
-            {
-                cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator;
-                pixelEnergyCalculator.setMarginEnergy(-3.0);
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
-            }
-
-            // calculating pixel energy for an empty image
-            try
-            {
-                cv::Mat emptyImage;
-                ASSERT_EQ(emptyImage.empty(), true);
-
-                std::vector<std::vector<double>> calculatedPixelEnergy;
-
-                cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator;
-                pixelEnergyCalculator.calculatePixelEnergy(emptyImage, calculatedPixelEnergy);
-            }
-            catch (const cv::Exception& e)
-            {
-                EXPECT_EQ(e.code, cv::Error::Code::StsBadArg);
-            }
-        }
-
-        TEST(GradientPixelEnergyCalculator2D, CalculatePixelEnergy)
-        {
-            cv::GradientPixelEnergyCalculator2D pixelEnergyCalculator;
-
-            std::vector<std::vector<double>> calculatedPixelEnergy;
-
-            pixelEnergyCalculator.calculatePixelEnergy(img, calculatedPixelEnergy);
-
-            //DebugDisplay d;
-            //d.Display2DVector<double>(calculatedPixelEnergy, initialMarginEnergy);
-        }
-    }
-}
+namespace
+{
+TEST(Init, Basic) { cv::SeamCarverStageFactory& f = cv::SeamCarverStageFactory::instance(); }
+}  // namespace
+}  // namespace opencv_test

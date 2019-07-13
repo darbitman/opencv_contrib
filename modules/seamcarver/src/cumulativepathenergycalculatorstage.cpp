@@ -43,7 +43,11 @@
 
 #include <thread>
 
+#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
+#include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
+
+const uint32_t cv::CumulativePathEnergyCalculatorStage::this_shape_id_ = 0x00010002;
 
 cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage(
     pipelineStage pipeline_stage, cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue,
@@ -61,11 +65,13 @@ cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage(
 {
 }
 
-cv::CumulativePathEnergyCalculatorStage::~CumulativePathEnergyCalculatorStage() {
+cv::CumulativePathEnergyCalculatorStage::~CumulativePathEnergyCalculatorStage()
+{
     doStopStage();
 
     // wait for thread to finish
-    while(thread_is_stopped_ == false);
+    while (thread_is_stopped_ == false)
+        ;
 }
 
 void cv::CumulativePathEnergyCalculatorStage::runStage()
@@ -231,4 +237,12 @@ void cv::CumulativePathEnergyCalculatorStage::calculateCumulativePathEnergy(
             data->columnTo[row][column] = minEnergyColumn;
         }
     }
+}
+
+namespace
+{
+cv::SeamCarverStageFactoryRegistration registershape(
+    cv::CumulativePathEnergyCalculatorStage::this_shape_id_, []() {
+        return static_cast<cv::SeamCarverStage*>(new cv::CumulativePathEnergyCalculatorStage());
+    });
 }

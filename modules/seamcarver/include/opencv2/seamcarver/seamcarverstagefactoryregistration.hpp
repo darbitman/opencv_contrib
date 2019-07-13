@@ -39,40 +39,28 @@
 //
 //M*/
 
-#include "test_precomp.hpp"
-#include "opencv2/seamcarver/debugdisplay.hpp"
+#ifndef OPENCV_SEAMCARVER_SEAMCARVERSTAGEFACTORYREGISTRATION_HPP
+#define OPENCV_SEAMCARVER_SEAMCARVERSTAGEFACTORYREGISTRATION_HPP
 
-namespace opencv_test
+#include <cstdint>
+
+#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
+
+namespace cv
 {
-    namespace
-    {
-        double initialMarginEnergy = 390150.0;
+class SeamCarverStageFactoryRegistration
+{
+public:
+    SeamCarverStageFactoryRegistration(uint32_t stage_id,
+                                       cv::SeamCarverStageFactory::createStageFunction function);
 
-        cv::Mat img = cv::imread(IMG_PATH);
+    SeamCarverStageFactoryRegistration(const SeamCarverStageFactoryRegistration&) = delete;
+    SeamCarverStageFactoryRegistration(const SeamCarverStageFactoryRegistration&&) = delete;
+    SeamCarverStageFactoryRegistration& operator=(const SeamCarverStageFactoryRegistration&) =
+        delete;
+    SeamCarverStageFactoryRegistration& operator=(const SeamCarverStageFactoryRegistration&&) =
+        delete;
+};
+}  // namespace cv
 
-        cv::Mat outImg;
-
-        TEST(VerticalSeamCarver, CanOpenImage)
-        {
-            ASSERT_EQ(img.empty(), false);
-        }
-
-        TEST(VerticalSeamCarver, DefaultCtor)
-        {
-            VerticalSeamCarver vSeamCarver(initialMarginEnergy);
-        }
-
-        TEST(VerticalSeamCarver, DimsCtor)
-        {
-            VerticalSeamCarver vSeamCarver(
-                (size_t)img.rows,
-                (size_t)img.cols,
-                (size_t)initialMarginEnergy);
-        }
-
-        TEST(VerticalSeamCarver, ImgCtor)
-        {
-            VerticalSeamCarver vSeamCarver(img, initialMarginEnergy);
-        }
-    }
-}
+#endif
