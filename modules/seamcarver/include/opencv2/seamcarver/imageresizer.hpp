@@ -46,23 +46,21 @@
 
 namespace cv
 {
-    class CV_EXPORTS ImageResizer
-    {
-    public:
-        /**
-         * @brief reduce image size by the given number of columns/rows
-         * @param numColumnsToReduceBy: number of columns to delete
-         * @param numRowsToReduceBy: number of rows to delete
-         * @param image: input image
-         * @param outImage: output image parameter
-         */
-        virtual void reduceImageSize(size_t numColumnsToReduceBy,
-                                       size_t numRowsToReduceBy,
-                                       const cv::Mat& image,
-                                       cv::Mat& outImage) = 0;
+class CV_EXPORTS ImageResizer
+{
+public:
+    /**
+     * @brief reduce image size by the given number of columns/rows
+     * @param numColumnsToReduceBy: number of columns to delete
+     * @param numRowsToReduceBy: number of rows to delete
+     * @param image: input image
+     * @param outImage: output image parameter
+     */
+    virtual void reduceImageSize(size_t numColumnsToReduceBy, size_t numRowsToReduceBy,
+                                 const cv::Mat& image, cv::Mat& outImage) = 0;
 
-        virtual ~ImageResizer() {}
-    };
-}
+    virtual ~ImageResizer() {}
+};
+}  // namespace cv
 
 #endif

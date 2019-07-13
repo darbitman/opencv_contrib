@@ -43,92 +43,91 @@
 #define OPENCV_SEAMCARVER_GRADIENTPIXELENERGY2D_HPP
 
 #include <opencv2/core.hpp>
-#include "opencv2/seamcarver/pixelenergy2d.hpp"
 #include <vector>
+#include "opencv2/seamcarver/pixelenergy2d.hpp"
 
 namespace cv
 {
-    class CV_EXPORTS GradientPixelEnergyCalculator2D : public PixelEnergyCalculator2D
-    {
-    public:
-        /**
-         * @brief Default ctor, where the default pixel energy at the edges is 390150.0
-         * @param marginEnergy: border pixel energy
-         */
-        explicit GradientPixelEnergyCalculator2D(double newMarginEnergy = 390150.0);
+class CV_EXPORTS GradientPixelEnergyCalculator2D : public PixelEnergyCalculator2D
+{
+public:
+    /**
+     * @brief Default ctor, where the default pixel energy at the edges is 390150.0
+     * @param marginEnergy: border pixel energy
+     */
+    explicit GradientPixelEnergyCalculator2D(double newMarginEnergy = 390150.0);
 
-        /**
-         * @brief dtor
-         */
-        virtual ~GradientPixelEnergyCalculator2D();
+    /**
+     * @brief dtor
+     */
+    virtual ~GradientPixelEnergyCalculator2D();
 
-        /**
-         * @brief run the pixel energy calculation on image and place the result into a 2D std::vector
-         * @param image: 2D matrix representation of the image
-         * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
-         */
-        virtual void calculatePixelEnergy(const cv::Mat& image,
-                std::vector<std::vector<double>>& outPixelEnergy) override;
-        
-        /**
-         * @brief sets the energy of the border pixels
-         * @param newMarginEnergy: energy of the border pixels
-         */
-        virtual void setMarginEnergy(double newMarginEnergy);
+    /**
+     * @brief run the pixel energy calculation on image and place the result into a 2D std::vector
+     * @param image: 2D matrix representation of the image
+     * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
+     */
+    virtual void calculatePixelEnergy(const cv::Mat& image,
+                                      std::vector<std::vector<double>>& outPixelEnergy) override;
 
-        /**
-         * @brief returns the energy of edge pixels
-         * @return double
-         */
-        virtual double getMarginEnergy() const;
+    /**
+     * @brief sets the energy of the border pixels
+     * @param newMarginEnergy: energy of the border pixels
+     */
+    virtual void setMarginEnergy(double newMarginEnergy);
 
-        // deleted to prevent misuse
-        GradientPixelEnergyCalculator2D(const GradientPixelEnergyCalculator2D&) = delete;
-        GradientPixelEnergyCalculator2D(const GradientPixelEnergyCalculator2D&&) = delete;
-        virtual GradientPixelEnergyCalculator2D& operator=(const GradientPixelEnergyCalculator2D&) = delete;
-        virtual GradientPixelEnergyCalculator2D& operator=(const GradientPixelEnergyCalculator2D&&) = delete;
+    /**
+     * @brief returns the energy of edge pixels
+     * @return double
+     */
+    virtual double getMarginEnergy() const;
 
-    protected:
-        /**
-         * @brief calculate pixel energy for all rows (but either odd or even columns)
-         * @param image: 2D matrix representation of the image
-         * @param outPixelEnergy: Out parameter, 2D vector of calculated pixel energies
-         * @param bDoOddColumns: Indicates whether odd or even columns are done
-         * @return bool: indicates if the operation was successful
-         */
-        virtual void calculatePixelEnergyForEveryRow(
-            const cv::Mat& image,
-            std::vector<std::vector<double>>& outPixelEnergy,
-            bool bDoOddColumns);
+    // deleted to prevent misuse
+    GradientPixelEnergyCalculator2D(const GradientPixelEnergyCalculator2D&) = delete;
+    GradientPixelEnergyCalculator2D(const GradientPixelEnergyCalculator2D&&) = delete;
+    virtual GradientPixelEnergyCalculator2D& operator=(const GradientPixelEnergyCalculator2D&) =
+        delete;
+    virtual GradientPixelEnergyCalculator2D& operator=(const GradientPixelEnergyCalculator2D&&) =
+        delete;
 
-        /**
-         * @brief calculate pixel energy for all columns (but either odd or even rows)
-         * @param image: 2D matrix representation of the image
-         * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
-         * @param bDoOddRows: indicates whether odd or even rows are done
-         * @return bool: indicates if the operation was successful
-         */
-        virtual void calculatePixelEnergyForEveryColumn(
-            const cv::Mat& image,
-            std::vector<std::vector<double>>& outPixelEnergy,
-            bool bDoOddRows);
+protected:
+    /**
+     * @brief calculate pixel energy for all rows (but either odd or even columns)
+     * @param image: 2D matrix representation of the image
+     * @param outPixelEnergy: Out parameter, 2D vector of calculated pixel energies
+     * @param bDoOddColumns: Indicates whether odd or even columns are done
+     * @return bool: indicates if the operation was successful
+     */
+    virtual void calculatePixelEnergyForEveryRow(const cv::Mat& image,
+                                                 std::vector<std::vector<double>>& outPixelEnergy,
+                                                 bool bDoOddColumns);
 
-        // store an exception if a thread throws it
-        std::exception_ptr threadExceptionPtr = nullptr;
+    /**
+     * @brief calculate pixel energy for all columns (but either odd or even rows)
+     * @param image: 2D matrix representation of the image
+     * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
+     * @param bDoOddRows: indicates whether odd or even rows are done
+     * @return bool: indicates if the operation was successful
+     */
+    virtual void calculatePixelEnergyForEveryColumn(
+        const cv::Mat& image, std::vector<std::vector<double>>& outPixelEnergy, bool bDoOddRows);
 
-        // mutex to protect the exception ptr above
-        std::mutex threadExceptionPtrMutex;
+    // store an exception if a thread throws it
+    std::exception_ptr threadExceptionPtr = nullptr;
 
-        // energy at the borders of an image
-        double marginEnergy_ = 0.0;
+    // mutex to protect the exception ptr above
+    std::mutex threadExceptionPtrMutex;
 
-        // image dimensions
-        size_t numRows_ = 0;
-        size_t numColumns_ = 0;
-        size_t bottomRow_ = 0;
-        size_t rightColumn_ = 0;
-        size_t numColorChannels_ = 0;
-    };
-}
+    // energy at the borders of an image
+    double marginEnergy_ = 0.0;
+
+    // image dimensions
+    size_t numRows_ = 0;
+    size_t numColumns_ = 0;
+    size_t bottomRow_ = 0;
+    size_t rightColumn_ = 0;
+    size_t numColorChannels_ = 0;
+};
+}  // namespace cv
 
 #endif

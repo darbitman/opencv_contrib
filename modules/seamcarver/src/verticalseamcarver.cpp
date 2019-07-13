@@ -44,16 +44,13 @@
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
-    double marginEnergy,
-    cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
+    double marginEnergy, cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
 }
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
-    size_t numRows,
-    size_t numColumns,
-    double marginEnergy,
+    size_t numRows, size_t numColumns, double marginEnergy,
     cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
@@ -62,8 +59,7 @@ cv::VerticalSeamCarver::VerticalSeamCarver(
 }
 
 cv::VerticalSeamCarver::VerticalSeamCarver(
-    const cv::Mat& image,
-    double marginEnergy,
+    const cv::Mat& image, double marginEnergy,
     cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     constructorInit(marginEnergy, pNewPixelEnergyCalculator);
@@ -84,7 +80,7 @@ cv::VerticalSeamCarver::~VerticalSeamCarver()
             threads[threadNum].join();
         }
     }
-    
+
     // clean up queue memory
     for (size_t qIndex = 0; qIndex < localDataQueues.size(); ++qIndex)
     {
@@ -101,7 +97,8 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::M
 {
     ++totalFramesInQueues;
 
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
 
     // STAGE_0 queue is the free store queue to get previously used memory
@@ -120,7 +117,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::M
     {
         // copy image to internal data store
         currentData->savedImage = cv::makePtr<cv::Mat>(image);
-        
+
         // initialize internal data
         if (currentData->bNeedToInitializeLocalData)
         {
@@ -141,7 +138,7 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::M
             }
         }
     }
-    
+
     // check if removing more seams than columns available
     if (numSeamsToRemove > currentData->numColumns_)
     {
@@ -159,14 +156,15 @@ void cv::VerticalSeamCarver::runSeamRemover(size_t numSeamsToRemove, const cv::M
 
 cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_6];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
 
     std::mutex sharedCounterMutex;
     std::unique_lock<std::mutex> sharedCounterLock(sharedCounterMutex, std::defer_lock);
-    
+
     cv::Ptr<cv::Mat> returnFrame(nullptr);
 
     if (!currentQ.empty())
@@ -182,7 +180,7 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
                     nextQ.emplace(currentQ.front());  // put back into free store
                     currentQ.pop();
                     --totalFramesInQueues;
-                    sharedCounterLock.unlock();   
+                    sharedCounterLock.unlock();
                 }
                 nextQLock.unlock();
             }
@@ -194,13 +192,13 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::tryGetNextFrame()
 
 cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_6];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
 
     std::mutex sharedCounterMutex;
-    
 
     cv::Ptr<cv::Mat> returnFrame(nullptr);
 
@@ -208,12 +206,12 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
     {
         currentQLock.lock();
         nextQLock.lock();
-        
+
         returnFrame = currentQ.front()->savedImage;
         currentQ.front()->savedImage = nullptr;
         nextQ.emplace(currentQ.front());  // put back into free store
         currentQ.pop();
-        
+
         nextQLock.unlock();
         currentQLock.unlock();
 
@@ -224,10 +222,7 @@ cv::Ptr<cv::Mat> cv::VerticalSeamCarver::getNextFrame()
     return returnFrame;
 }
 
-size_t cv::VerticalSeamCarver::numberFramesBeingProcessed() const
-{
-    return totalFramesInQueues;
-}
+size_t cv::VerticalSeamCarver::numberFramesBeingProcessed() const { return totalFramesInQueues; }
 
 bool cv::VerticalSeamCarver::newResultExists() const
 {
@@ -237,7 +232,6 @@ bool cv::VerticalSeamCarver::newResultExists() const
 void cv::VerticalSeamCarver::init(const cv::Mat& img, size_t seamLength)
 {
     init((size_t)img.rows, (size_t)img.cols, seamLength);
-
 }
 
 void cv::VerticalSeamCarver::init(size_t numRows, size_t numColumns, size_t seamLength)
@@ -250,7 +244,6 @@ void cv::VerticalSeamCarver::init(size_t numRows, size_t numColumns, size_t seam
     data->bottomRow_ = numRows - 1;
     data->rightColumn_ = numColumns - 1;
     data->seamLength_ = seamLength;
-
 
     // initialize vectors
     data->pixelEnergy.resize(numRows);
@@ -304,7 +297,8 @@ void cv::VerticalSeamCarver::resetLocalVectors()
 
 void cv::VerticalSeamCarver::findAndRemoveSeams()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_0];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_0];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
@@ -350,7 +344,8 @@ void cv::VerticalSeamCarver::findAndRemoveSeams()
 
 void cv::VerticalSeamCarver::calculatePixelEnergy()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_1];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_1];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_2];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_1];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_2];
@@ -360,7 +355,8 @@ void cv::VerticalSeamCarver::calculatePixelEnergy()
         if (!currentQ.empty())
         {
             // calculate the pixel energy for the image at the front of the current queue
-            currentQ.front()->pPixelEnergyCalculator_->calculatePixelEnergy(*currentQ.front()->savedImage, currentQ.front()->pixelEnergy);
+            currentQ.front()->pPixelEnergyCalculator_->calculatePixelEnergy(
+                *currentQ.front()->savedImage, currentQ.front()->pixelEnergy);
 
             // move data to next queue
             currentQLock.lock();
@@ -490,7 +486,8 @@ void cv::VerticalSeamCarver::runCumulativePathEnergyCalculation(VerticalSeamCarv
 
 void cv::VerticalSeamCarver::calculateCumulativePathEnergy()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_2];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_2];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_3];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_2];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_3];
@@ -520,7 +517,8 @@ void cv::VerticalSeamCarver::calculateCumulativePathEnergy()
 
 void cv::VerticalSeamCarver::findSeams()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_3];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_3];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_4];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_3];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_4];
@@ -538,13 +536,13 @@ void cv::VerticalSeamCarver::findSeams()
             if (data->pixelEnergy.size() == 0)
             {
                 CV_Error(Error::Code::StsInternal,
-                        "SeamCarver::findSeams() failed due to zero-size pixelEnergy vector");
+                         "SeamCarver::findSeams() failed due to zero-size pixelEnergy vector");
             }
 
             if (data->discoveredSeams.size() != data->pixelEnergy.size())
             {
                 CV_Error(Error::Code::StsInternal,
-                        "SeamCarver::findSeams() failed due to different sized vectors");
+                         "SeamCarver::findSeams() failed due to different sized vectors");
             }
 
             // initial cumulative energy path has been calculated in the previous step
@@ -553,7 +551,8 @@ void cv::VerticalSeamCarver::findSeams()
             //      cumulative energy column in the bottom row
             double minTotalEnergy = data->posInf_;
             int32_t minTotalEnergyColumn = -1;
-            bool bRestartSeamDiscovery = false;   // current seam discovery iteration needs to be restarted
+            bool bRestartSeamDiscovery =
+                false;  // current seam discovery iteration needs to be restarted
 
             // declare variables to keep track of columns when traversing up the seam
             size_t prevColumn = 0;
@@ -562,7 +561,8 @@ void cv::VerticalSeamCarver::findSeams()
             /*** RUN SEAM DISCOVERY ***/
             for (int32_t n = 0; n < (int32_t)data->numSeamsToRemove_; n++)
             {
-                // initialize total energy to +INF and run linear search for a pixel of least cumulative
+                // initialize total energy to +INF and run linear search for a pixel of least
+                // cumulative
                 //      energy (if one exists) in the bottom row
                 minTotalEnergy = data->posInf_;
                 minTotalEnergyColumn = -1;
@@ -576,21 +576,22 @@ void cv::VerticalSeamCarver::findSeams()
                     }
                 }
 
-                // all pixels in bottom row are unreachable due to +INF cumulative energy to all of them
-                // therefore need to recalculate cumulative energies
+                // all pixels in bottom row are unreachable due to +INF cumulative energy to all of
+                // them therefore need to recalculate cumulative energies
                 if (minTotalEnergyColumn == -1)
                 {
-                    // decrement iterator since this seam will need to be restarted after recalculating
-                    // the cumulative energy
+                    // decrement iterator since this seam will need to be restarted after
+                    // recalculating the cumulative energy
                     n--;
                     runCumulativePathEnergyCalculation(data);
 
-                    // skip over the seam traversal algorithm below and restart algorithm to rediscover
-                    // the seam for this iteration
+                    // skip over the seam traversal algorithm below and restart algorithm to
+                    // rediscover the seam for this iteration
                     continue;
                 }
 
-                // save last column as part of currentSeam that will be checked whether it can fully reach
+                // save last column as part of currentSeam that will be checked whether it can fully
+                // reach
                 //      the top row
                 data->currentSeam[data->bottomRow_] = minTotalEnergyColumn;
 
@@ -601,23 +602,26 @@ void cv::VerticalSeamCarver::findSeams()
                 // run seam traversal starting at bottom row to find all the pixels in the seam
                 for (int32_t row = data->bottomRow_ - 1; row >= 0; row--)
                 {
-                    // using the below pixel's row and column, extract the column of the pixel in the
+                    // using the below pixel's row and column, extract the column of the pixel in
+                    // the
                     //      current row
                     currentColumn = data->columnTo[(size_t)row + 1][prevColumn];
 
-                    // check if the current pixel of the current seam has been used part of another seam
+                    // check if the current pixel of the current seam has been used part of another
+                    // seam
                     if (data->markedPixels[(size_t)row][currentColumn])
                     {
-                        // mark the starting pixel in bottom row as having +INF cumulative energy so it
+                        // mark the starting pixel in bottom row as having +INF cumulative energy so
+                        // it
                         //      will not be chosen again
                         data->totalEnergyTo[data->bottomRow_][minTotalEnergyColumn] = data->posInf_;
 
-                        // decrement seam iterator since this seam is invalid and this iteration will
-                        // need to be restarted
+                        // decrement seam iterator since this seam is invalid and this iteration
+                        // will need to be restarted
                         n--;
 
-                        // set to indicate that the outer for loop will need to be restarted for this
-                        // seam iteration
+                        // set to indicate that the outer for loop will need to be restarted for
+                        // this seam iteration
                         bRestartSeamDiscovery = true;
                         break;
                     }
@@ -644,7 +648,7 @@ void cv::VerticalSeamCarver::findSeams()
                         data->markedPixels[row][currentColumn] = true;
                     }
                 }
-            }   // for (int32_t n = 0; n < (int32_t)numSeamsToRemove_; n++)
+            }  // for (int32_t n = 0; n < (int32_t)numSeamsToRemove_; n++)
 
             // move data to next queue
             currentQLock.lock();
@@ -653,14 +657,15 @@ void cv::VerticalSeamCarver::findSeams()
             currentQ.pop();
             nextQLock.unlock();
             currentQLock.unlock();
-            
-        }   // if (!currentQ.empty())
-    }   // while (runThreads)
+
+        }  // if (!currentQ.empty())
+    }      // while (runThreads)
 }
 
 void cv::VerticalSeamCarver::removeSeams()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_4];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_4];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_5];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_4];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_5];
@@ -678,7 +683,8 @@ void cv::VerticalSeamCarver::removeSeams()
             // each row of seams stores an ordered queue of pixels to remove in that row
             //   starting with the min number column
             // each time a new column is encountered, move the pixels to the right of it
-            //   (up until the next column number) to the left by the number of pixels already removed
+            //   (up until the next column number) to the left by the number of pixels already
+            //   removed
 
             size_t colToRemove = 0;
             size_t numSeamsRemoved = 0;
@@ -686,7 +692,8 @@ void cv::VerticalSeamCarver::removeSeams()
             for (size_t row = 0; row < data->numRows_; row++)
             {
                 // seamRecalculationCount the number of seams to the left of the current pixel
-                //   to indicate how many spaces to move pixels that aren't being removed to the left
+                //   to indicate how many spaces to move pixels that aren't being removed to the
+                //   left
                 numSeamsRemoved = 0;
                 // loop through all pixels to remove in current row
                 while (!data->discoveredSeams[row].empty())
@@ -696,17 +703,19 @@ void cv::VerticalSeamCarver::removeSeams()
                     colToRemove = data->discoveredSeams[row].pop();
 
                     // mark right endpoint/next pixel column
-                    size_t rightColBorder = (data->discoveredSeams[row].empty() ?
-                                            data->numColumns_ : data->discoveredSeams[row].top());
+                    size_t rightColBorder =
+                        (data->discoveredSeams[row].empty() ? data->numColumns_
+                                                            : data->discoveredSeams[row].top());
                     // starting at the column to the right of the column to remove,
-                    //      move the pixel to the left, by the number of seams to the left of the pixel,
-                    //      until the right end point which is either the last column or the next column
-                    //      to remove whichever comes first
+                    //      move the pixel to the left, by the number of seams to the left of the
+                    //      pixel, until the right end point which is either the last column or the
+                    //      next column to remove whichever comes first
                     for (size_t column = colToRemove + 1; column < rightColBorder; column++)
                     {
                         for (size_t j = 0; j < data->numColorChannels_; j++)
                         {
-                            data->bgr[j].at<unsigned char>(row, column - numSeamsRemoved) = data->bgr[j].at<unsigned char>(row, column);
+                            data->bgr[j].at<unsigned char>(row, column - numSeamsRemoved) =
+                                data->bgr[j].at<unsigned char>(row, column);
                         }
                     }
                 }
@@ -715,7 +724,8 @@ void cv::VerticalSeamCarver::removeSeams()
             /*** SHRINK IMAGE SINCE THE IMPORTANT SEAMS WERE SHIFTED LEFT ***/
             for (size_t channel = 0; channel < data->numColorChannels_; channel++)
             {
-                data->bgr[channel] = data->bgr[channel].colRange(0, data->numColumns_ - numSeamsRemoved);
+                data->bgr[channel] =
+                    data->bgr[channel].colRange(0, data->numColumns_ - numSeamsRemoved);
             }
 
             // move data to next queue
@@ -731,7 +741,8 @@ void cv::VerticalSeamCarver::removeSeams()
 
 void cv::VerticalSeamCarver::mergeChannels()
 {
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_5];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_5];
     std::queue<VerticalSeamCarverData*>& nextQ = localDataQueues[(uint32_t)pipelineStage::STAGE_6];
     std::unique_lock<std::mutex>& currentQLock = queueLocks[(uint32_t)pipelineStage::STAGE_5];
     std::unique_lock<std::mutex>& nextQLock = queueLocks[(uint32_t)pipelineStage::STAGE_6];
@@ -772,7 +783,8 @@ bool cv::VerticalSeamCarver::areImageDimensionsVerified(const cv::Mat& image) co
     }
 }
 
-void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
+void cv::VerticalSeamCarver::constructorInit(
+    double marginEnergy, cv::Ptr<PixelEnergyCalculator2D> pNewPixelEnergyCalculator)
 {
     for (size_t mIndex = 0; mIndex < pipelineDepth; ++mIndex)
     {
@@ -782,7 +794,8 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     threads.resize(pipelineDepth);
     localDataQueues.resize(pipelineDepth);
 
-    std::queue<VerticalSeamCarverData*>& currentQ = localDataQueues[(uint32_t)pipelineStage::STAGE_0];
+    std::queue<VerticalSeamCarverData*>& currentQ =
+        localDataQueues[(uint32_t)pipelineStage::STAGE_0];
 
     // create initial storage class
     currentQ.emplace(new VerticalSeamCarverData(marginEnergy));
@@ -793,7 +806,8 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
     }
     else
     {
-        currentQ.front()->pPixelEnergyCalculator_ = cv::makePtr<GradientPixelEnergyCalculator2D>(marginEnergy);
+        currentQ.front()->pPixelEnergyCalculator_ =
+            cv::makePtr<GradientPixelEnergyCalculator2D>(marginEnergy);
     }
 
     // start pipeline threads
@@ -805,10 +819,10 @@ void cv::VerticalSeamCarver::constructorInit(double marginEnergy, cv::Ptr<PixelE
 
     threads[(uint32_t)pipelineStage::STAGE_3] =
         std::thread(&cv::VerticalSeamCarver::findSeams, this);
-    
+
     threads[(uint32_t)pipelineStage::STAGE_4] =
         std::thread(&cv::VerticalSeamCarver::removeSeams, this);
 
     threads[(uint32_t)pipelineStage::STAGE_5] =
-    std::thread(&cv::VerticalSeamCarver::mergeChannels, this);
+        std::thread(&cv::VerticalSeamCarver::mergeChannels, this);
 }

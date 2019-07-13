@@ -44,45 +44,45 @@
 
 namespace cv
 {
-    template<typename _Tp>
-    class PriorityQueue
-    {
-    public:
-        /**
-         * @brief dtor
-         */
-        virtual ~PriorityQueue() {}
+template <typename _Tp>
+class PriorityQueue
+{
+public:
+    /**
+     * @brief dtor
+     */
+    virtual ~PriorityQueue() {}
 
-        /**
-         * @brief insert new element into priority queue
-         * @param newElement: new element to insert
-         */
-        virtual void push(_Tp newElement) = 0;
+    /**
+     * @brief insert new element into priority queue
+     * @param newElement: new element to insert
+     */
+    virtual void push(_Tp newElement) = 0;
 
-        /**
-         * @brief remove top element and return it
-         * @return _Tp
-         */
-        virtual _Tp pop() = 0;
+    /**
+     * @brief remove top element and return it
+     * @return _Tp
+     */
+    virtual _Tp pop() = 0;
 
-        /**
-         * @brief return the top (minimum) element without deleting it
-         * @return minimum element
-         */
-        virtual _Tp top() const = 0;
+    /**
+     * @brief return the top (minimum) element without deleting it
+     * @return minimum element
+     */
+    virtual _Tp top() const = 0;
 
-        /**
-         * @brief return the number of elements in the queue
-         * @return size_t
-         */
-        virtual size_t size() const = 0;
+    /**
+     * @brief return the number of elements in the queue
+     * @return size_t
+     */
+    virtual size_t size() const = 0;
 
-        /**
-         * @brief check if the queue is empty
-         * @return bool returns true if queue is empty
-         */
-        virtual bool empty() const = 0;
-    };
-}
+    /**
+     * @brief check if the queue is empty
+     * @return bool returns true if queue is empty
+     */
+    virtual bool empty() const = 0;
+};
+}  // namespace cv
 
 #endif

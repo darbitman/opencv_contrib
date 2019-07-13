@@ -47,66 +47,66 @@
 
 namespace cv
 {
-    // forward declare class;
-    class PixelEnergyCalculator2D;
+// forward declare class;
+class PixelEnergyCalculator2D;
 
-    class CV_EXPORTS VerticalSeamCarverData
-    {
-    public:
-        VerticalSeamCarverData(double marginEnergy) : marginEnergy_(marginEnergy) {}
+class CV_EXPORTS VerticalSeamCarverData
+{
+public:
+    VerticalSeamCarverData(double marginEnergy) : marginEnergy_(marginEnergy) {}
 
-        // flag if internal data structures need their memory and values initialized
-        bool bNeedToInitializeLocalData = true;
+    // flag if internal data structures need their memory and values initialized
+    bool bNeedToInitializeLocalData = true;
 
-        // vector to store pixels that have been previously markedPixels for removal
-        // will ignore these markedPixels pixels when searching for a new seam
-        std::vector<std::vector<bool>> markedPixels;
+    // vector to store pixels that have been previously markedPixels for removal
+    // will ignore these markedPixels pixels when searching for a new seam
+    std::vector<std::vector<bool>> markedPixels;
 
-        // individual pixel energy
-        std::vector<std::vector<double>> pixelEnergy;
+    // individual pixel energy
+    std::vector<std::vector<double>> pixelEnergy;
 
-        // vector of min oriented priority queues that store the location of the pixels to remove
-        // the index to the vector corresponds to the rows
-        // the column index is stored in the PQ
-        std::vector<cv::ConstSizeMinPriorityQueue<int32_t>> discoveredSeams;
+    // vector of min oriented priority queues that store the location of the pixels to remove
+    // the index to the vector corresponds to the rows
+    // the column index is stored in the PQ
+    std::vector<cv::ConstSizeMinPriorityQueue<int32_t>> discoveredSeams;
 
-        // store cumulative energy to each pixel
-        std::vector<std::vector<double>> totalEnergyTo;
+    // store cumulative energy to each pixel
+    std::vector<std::vector<double>> totalEnergyTo;
 
-        // store the column of the pixel in the "previous" row to get to the current pixel
-        std::vector<std::vector<int32_t>> columnTo;
+    // store the column of the pixel in the "previous" row to get to the current pixel
+    std::vector<std::vector<int32_t>> columnTo;
 
-        // store the current seam being discovered
-        std::vector<size_t> currentSeam;
+    // store the current seam being discovered
+    std::vector<size_t> currentSeam;
 
-        // vector to hold image color channels separately
-        std::vector<cv::Mat> bgr;
+    // vector to hold image color channels separately
+    std::vector<cv::Mat> bgr;
 
-        // image dimensions
-        size_t numRows_ = 0;
-        size_t numColumns_ = 0;
-        size_t bottomRow_ = 0;
-        size_t rightColumn_ = 0;
-        size_t numColorChannels_ = 0;
+    // image dimensions
+    size_t numRows_ = 0;
+    size_t numColumns_ = 0;
+    size_t bottomRow_ = 0;
+    size_t rightColumn_ = 0;
+    size_t numColorChannels_ = 0;
 
-        // number of pixels per seam
-        size_t seamLength_ = 0;
+    // number of pixels per seam
+    size_t seamLength_ = 0;
 
-        // value of positive infinity
-        double posInf_ = std::numeric_limits<double>::max();
+    // value of positive infinity
+    double posInf_ = std::numeric_limits<double>::max();
 
-        // number of seams to remove (updated every run)
-        size_t numSeamsToRemove_ = 0;
+    // number of seams to remove (updated every run)
+    size_t numSeamsToRemove_ = 0;
 
-        // pointer to an object that calculates pixel energy
-        cv::Ptr<PixelEnergyCalculator2D> pPixelEnergyCalculator_ = nullptr;
+    // pointer to an object that calculates pixel energy
+    cv::Ptr<PixelEnergyCalculator2D> pPixelEnergyCalculator_ = nullptr;
 
-        // default energy at the borders of the image
-        const double marginEnergy_;
+    // default energy at the borders of the image
+    const double marginEnergy_;
 
-        // stores the image and output result
-        cv::Ptr<cv::Mat> savedImage;
-    };
-}
+    // stores the image and output result
+    cv::Ptr<cv::Mat> savedImage;
+};
+}  // namespace cv
 
 #endif

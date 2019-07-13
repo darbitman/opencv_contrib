@@ -6,50 +6,51 @@
 
 namespace cv
 {
-    namespace
-    {
-        class DebugDisplay
-        {
-        public:
-            DebugDisplay();
+namespace
+{
+class DebugDisplay
+{
+public:
+    DebugDisplay();
 
-            /**
-             * @brief Converts a 2D std::vector of ValueType (e.g. double) to a grayscale cv::Mat internally and
-                    displays it
-             * @param InputVector: grayscale representation of an image
-             * @param NormalizationFactor: Factor by which to normalize the values such that any value is
-                    no larger than 1.0
-             */
-            template<typename ValueType>
-            bool Display2DVector(const std::vector<std::vector<ValueType>>& InputVector,
-                                 ValueType NormalizationFactor);
+    /**
+     * @brief Converts a 2D std::vector of ValueType (e.g. double) to a grayscale cv::Mat internally
+     and displays it
+     * @param InputVector: grayscale representation of an image
+     * @param NormalizationFactor: Factor by which to normalize the values such that any value is
+            no larger than 1.0
+     */
+    template <typename ValueType>
+    bool Display2DVector(const std::vector<std::vector<ValueType>>& InputVector,
+                         ValueType NormalizationFactor);
 
-            void displayMatrix(const cv::Mat& img);
+    void displayMatrix(const cv::Mat& img);
 
-            /**
-             * @brief
-             * @param
-             * @param
-             * @param
-             */
-            bool MarkPixelsAndDisplay(const std::vector<std::vector<bool>>& PixelsToMark,
-                                      const cv::Mat& ImageToMark,
-                                      uchar Color = 255);
+    /**
+     * @brief
+     * @param
+     * @param
+     * @param
+     */
+    bool MarkPixelsAndDisplay(const std::vector<std::vector<bool>>& PixelsToMark,
+                              const cv::Mat& ImageToMark, uchar Color = 255);
 
-        private:
-            void WaitForEscKey() const;
-        };
-    }
-}
-
+private:
+    void WaitForEscKey() const;
+};
+}  // namespace
+}  // namespace cv
 
 cv::DebugDisplay::DebugDisplay() {}
 
-template<typename ValueType>
+template <typename ValueType>
 bool cv::DebugDisplay::Display2DVector(const std::vector<std::vector<ValueType>>& InputVector,
                                        ValueType NormalizationFactor)
 {
-    if (!(InputVector.size() > 0 && InputVector[0].size() > 0)) { return false; }
+    if (!(InputVector.size() > 0 && InputVector[0].size() > 0))
+    {
+        return false;
+    }
 
     // create an output matrix of the same dimensions as input
     cv::Mat output(InputVector.size(), InputVector[0].size(), CV_8UC1);
@@ -58,8 +59,8 @@ bool cv::DebugDisplay::Display2DVector(const std::vector<std::vector<ValueType>>
     {
         for (uint32_t Column = 0; Column < InputVector[0].size(); Column++)
         {
-            output.at<uchar>(Row, Column) = (uchar)(InputVector[Row][Column] /
-                                                    NormalizationFactor * ((2 << ((sizeof(uchar) * 8) - 1)) - 1));
+            output.at<uchar>(Row, Column) = (uchar)(InputVector[Row][Column] / NormalizationFactor *
+                                                    ((2 << ((sizeof(uchar) * 8) - 1)) - 1));
         }
     }
 

@@ -47,34 +47,34 @@
 
 namespace cv
 {
-    class CV_EXPORTS PixelEnergyCalculator2D
-    {
-    public:
-        /**
-         * @brief dtor
-         */
-        virtual ~PixelEnergyCalculator2D();
+class CV_EXPORTS PixelEnergyCalculator2D
+{
+public:
+    /**
+     * @brief dtor
+     */
+    virtual ~PixelEnergyCalculator2D();
 
-        /**
-         * @brief run the pixel energy calculation on image and place the result into a 2D std::vector
-         * @param image: 2D matrix representation of the image
-         * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
-         */
-        virtual void calculatePixelEnergy(const cv::Mat& image,
-                std::vector<std::vector<double>>& outPixelEnergy) = 0;
+    /**
+     * @brief run the pixel energy calculation on image and place the result into a 2D std::vector
+     * @param image: 2D matrix representation of the image
+     * @param outPixelEnergy: output parameter 2D vector of computed pixel energies
+     */
+    virtual void calculatePixelEnergy(const cv::Mat& image,
+                                      std::vector<std::vector<double>>& outPixelEnergy) = 0;
 
-        /**
-         * @brief sets the energy of the border pixels
-         * @param newMarginEnergy: energy of the border pixels
-         */
-        virtual void setMarginEnergy(double newMarginEnergy) = 0;
+    /**
+     * @brief sets the energy of the border pixels
+     * @param newMarginEnergy: energy of the border pixels
+     */
+    virtual void setMarginEnergy(double newMarginEnergy) = 0;
 
-        /**
-         * @brief returns the energy of edge pixels
-         * @return double
-         */
-        virtual double getMarginEnergy() const = 0;
-    };
-}
+    /**
+     * @brief returns the energy of edge pixels
+     * @return double
+     */
+    virtual double getMarginEnergy() const = 0;
+};
+}  // namespace cv
 
 #endif

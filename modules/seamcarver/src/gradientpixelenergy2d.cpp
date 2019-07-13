@@ -43,18 +43,22 @@
 #include <thread>
 using std::vector;
 
-cv::GradientPixelEnergyCalculator2D::GradientPixelEnergyCalculator2D(double newMarginEnergy) : marginEnergy_(newMarginEnergy) {}
+cv::GradientPixelEnergyCalculator2D::GradientPixelEnergyCalculator2D(double newMarginEnergy)
+    : marginEnergy_(newMarginEnergy)
+{
+}
 
 cv::GradientPixelEnergyCalculator2D::~GradientPixelEnergyCalculator2D() {}
 
-void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergy(const cv::Mat& image,
-                                                     vector<vector<double>>& outPixelEnergy)
+void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergy(
+    const cv::Mat& image, vector<vector<double>>& outPixelEnergy)
 {
     // check for empty image
     if (image.empty())
     {
         CV_Error(Error::Code::StsBadArg,
-                 "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to empty image");
+                 "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to "
+                 "empty image");
     }
 
     numRows_ = (size_t)image.rows;
@@ -62,7 +66,6 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergy(const cv::Mat& im
     bottomRow_ = numRows_ - 1;
     rightColumn_ = numColumns_ - 1;
     numColorChannels_ = (size_t)image.channels();
-
 
     // ensure outPixelEnergy has the right dimensions (resize locally if necessary)
     if (!(outPixelEnergy.size() == numRows_))
@@ -81,32 +84,30 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergy(const cv::Mat& im
     if (numColumns_ >= numRows_)
     {
         std::thread thread1(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow,
-                            this, std::ref(image),
-                            std::ref(outPixelEnergy),
-                            true);
+                            this, std::ref(image), std::ref(outPixelEnergy), true);
         std::thread thread2(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow,
-                            this, std::ref(image),
-                            std::ref(outPixelEnergy),
-                            false);
-        while (!thread1.joinable());
+                            this, std::ref(image), std::ref(outPixelEnergy), false);
+        while (!thread1.joinable())
+            ;
         thread1.join();
-        while (!thread2.joinable());
+        while (!thread2.joinable())
+            ;
         thread2.join();
     }
     // otherwise, if more rows, split calculation into 2 operations to calculate for every column
     else
     {
-        std::thread thread1(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn,
-                            this, std::ref(image),
-                            std::ref(outPixelEnergy),
-                            true);
-        std::thread thread2(&cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn,
-                            this, std::ref(image),
-                            std::ref(outPixelEnergy),
-                            false);
-        while (!thread1.joinable());
+        std::thread thread1(
+            &cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn, this,
+            std::ref(image), std::ref(outPixelEnergy), true);
+        std::thread thread2(
+            &cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn, this,
+            std::ref(image), std::ref(outPixelEnergy), false);
+        while (!thread1.joinable())
+            ;
         thread1.join();
-        while (!thread2.joinable());
+        while (!thread2.joinable())
+            ;
         thread2.join();
     }
 
@@ -121,14 +122,10 @@ void cv::GradientPixelEnergyCalculator2D::setMarginEnergy(double newMarginEnergy
     marginEnergy_ = newMarginEnergy;
 }
 
-double cv::GradientPixelEnergyCalculator2D::getMarginEnergy() const
-{
-    return marginEnergy_;
-}
+double cv::GradientPixelEnergyCalculator2D::getMarginEnergy() const { return marginEnergy_; }
 
-void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const cv::Mat& image,
-        vector<vector<double>>& outPixelEnergy,
-        bool bDoOddColumns)
+void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(
+    const cv::Mat& image, vector<vector<double>>& outPixelEnergy, bool bDoOddColumns)
 {
     try
     {
@@ -147,15 +144,16 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
         }
         else
         {
-            CV_Error(Error::Code::StsBadArg,
-                     "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to \
+            CV_Error(
+                Error::Code::StsBadArg,
+                "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to \
                       incorrect number of channels");
         }
 
         // Establish vectors whose size is equal to the number of channels
         // Two vectors used to compute X gradient
-          // Don't need them for Y since we are only caching the columns
-          // We can just access the pixel values above/below directly to compute the delta
+        // Don't need them for Y since we are only caching the columns
+        // We can just access the pixel values above/below directly to compute the delta
         // TODO replace vectors with a multidimensional vector
         vector<double> xDirection2;
         vector<double> xDirection1;
@@ -175,7 +173,7 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
         size_t column = 0;
         // compute energy for every row
         // do odd columns and even columns separately in order to leverage cached values to prevent
-            // multiple memory accesses
+        // multiple memory accesses
         for (size_t row = 0; row < numRows_; row++)
         {
             /***** ODD COLUMNS *****/
@@ -191,8 +189,7 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
                 }
 
                 // Compute energy of odd columns
-                for (/* column already initialized */;
-                     column < numColumns_; column += 2)
+                for (/* column already initialized */; column < numColumns_; column += 2)
                 {
                     if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
                     {
@@ -205,14 +202,13 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
                         deltaSquareY = 0.0;
 
                         // For all channels:
-                          // Compute gradients
-                          // Compute overall energy by summing both X and Y gradient
-                        for (size_t channel = 0;
-                             channel < numColorChannels_; channel++)
+                        // Compute gradients
+                        // Compute overall energy by summing both X and Y gradient
+                        for (size_t channel = 0; channel < numColorChannels_; channel++)
                         {
                             // get new values to the right
-                            xDirection2[channel] = imageByChannel[channel].at<uchar>(row,
-                                                                                     column + 1);
+                            xDirection2[channel] =
+                                imageByChannel[channel].at<uchar>(row, column + 1);
 
                             deltaXDirection[channel] = xDirection2[channel] - xDirection1[channel];
 
@@ -244,8 +240,7 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
                 }
 
                 // Compute energy of odd columns
-                for (/* column already initialized */;
-                     column < numColumns_; column += 2)
+                for (/* column already initialized */; column < numColumns_; column += 2)
                 {
                     if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
                     {
@@ -258,17 +253,16 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
                         deltaSquareY = 0.0;
 
                         // For all channels:
-                          // Compute gradients
-                          // Compute overall energy by summing both X and Y gradient
-                        for (size_t channel = 0;
-                             channel < numColorChannels_; channel++)
+                        // Compute gradients
+                        // Compute overall energy by summing both X and Y gradient
+                        for (size_t channel = 0; channel < numColorChannels_; channel++)
                         {
                             // shift color values to the left
                             xDirection1[channel] = xDirection2[channel];
 
                             // get new values to the right
-                            xDirection2[channel] = imageByChannel[channel].at<uchar>(row,
-                                                                                     column + 1);
+                            xDirection2[channel] =
+                                imageByChannel[channel].at<uchar>(row, column + 1);
                             deltaXDirection[channel] = xDirection2[channel] - xDirection1[channel];
 
                             deltaSquareX += deltaXDirection[channel] * deltaXDirection[channel];
@@ -299,9 +293,8 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow(const 
     }
 }
 
-void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(const cv::Mat& image,
-        vector<vector<double>>& outPixelEnergy,
-        bool bDoOddRows)
+void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(
+    const cv::Mat& image, vector<vector<double>>& outPixelEnergy, bool bDoOddRows)
 {
     try
     {
@@ -320,15 +313,16 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(con
         }
         else
         {
-            CV_Error(Error::Code::StsBadArg,
-                     "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn() failed due to \
+            CV_Error(
+                Error::Code::StsBadArg,
+                "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn() failed due to \
                       incorrect number of channels");
         }
 
         // Establish vectors whose size is equal to the number of channels
         // Two vectors used to compute X gradient
-          // Don't need them for Y since we are only caching the columns
-          // We can just access the pixel values above/below directly to compute the delta
+        // Don't need them for Y since we are only caching the columns
+        // We can just access the pixel values above/below directly to compute the delta
         // TODO replace vectors with a multidimensional vector
         vector<double> yDirection2;
         vector<double> yDirection1;
@@ -348,7 +342,7 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(con
         size_t row = 0;
         // compute energy for every column
         // do odd rows and even rows separately in order to leverage cached values
-            // to prevent multiple memory accesses
+        // to prevent multiple memory accesses
         for (size_t column = 0; column < numColumns_; column++)
         {
             /***** ODD ROWS *****/
@@ -377,14 +371,13 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(con
                         deltaSquareY = 0.0;
 
                         // For all channels:
-                          // Compute gradients
-                          // Compute overall energy by summing both X and Y gradient
-                        for (size_t channel = 0;
-                             channel < numColorChannels_; channel++)
+                        // Compute gradients
+                        // Compute overall energy by summing both X and Y gradient
+                        for (size_t channel = 0; channel < numColorChannels_; channel++)
                         {
                             // get new values below the current pixel
-                            yDirection2[channel] = imageByChannel[channel].at<uchar>(row + 1,
-                                                                                     column);
+                            yDirection2[channel] =
+                                imageByChannel[channel].at<uchar>(row + 1, column);
 
                             deltaYDirection[channel] = yDirection2[channel] - yDirection1[channel];
 
@@ -429,17 +422,16 @@ void cv::GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn(con
                         deltaSquareY = 0.0;
 
                         // For all channels:
-                          // Compute gradients
-                          // Compute overall energy by summing both X and Y gradient
-                        for (size_t channel = 0;
-                             channel < numColorChannels_; channel++)
+                        // Compute gradients
+                        // Compute overall energy by summing both X and Y gradient
+                        for (size_t channel = 0; channel < numColorChannels_; channel++)
                         {
                             // shift color values up
                             yDirection1[channel] = yDirection2[channel];
 
                             // get new values below the current pixel
-                            yDirection2[channel] = imageByChannel[channel].at<uchar>(row + 1,
-                                                                                     column);
+                            yDirection2[channel] =
+                                imageByChannel[channel].at<uchar>(row + 1, column);
                             deltaYDirection[channel] = yDirection2[channel] - yDirection1[channel];
 
                             deltaSquareY += deltaYDirection[channel] * deltaYDirection[channel];

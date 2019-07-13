@@ -46,5 +46,4 @@
 #include "seamcarver/seamcarver.hpp"
 #include "seamcarver/verticalseamcarver.hpp"
 
-
-#endif //__OPENCV_SEAMCARVER_HPP__
+#endif  //__OPENCV_SEAMCARVER_HPP__
