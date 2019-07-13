@@ -39,13 +39,12 @@
 //
 //M*/
 
-#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "test_precomp.hpp"
 
 namespace opencv_test
 {
 namespace
 {
-TEST(Init, Basic) { cv::SeamCarverStageFactory& f = cv::SeamCarverStageFactory::instance(); }
+
 }  // namespace
 }  // namespace opencv_test

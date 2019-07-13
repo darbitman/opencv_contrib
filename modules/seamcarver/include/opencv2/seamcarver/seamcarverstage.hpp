@@ -51,21 +51,32 @@ class SeamCarverStage
 public:
     enum class pipelineStage
     {
-        STAGE_0,  // initialize everything
-        STAGE_1,  // compute energy
-        STAGE_2,  // calculate cumulative path energy
-        STAGE_3,  // find seams
-        STAGE_4,  // remove seams
-        STAGE_5,  // merge channels
-        STAGE_6,  // return queue
+        // initialize everything
+        STAGE_0,
+        // compute energy
+        STAGE_1,
+        // calculate cumulative path energy
+        STAGE_2,
+        // find seams
+        STAGE_3,
+        // remove seams
+        STAGE_4,
+        // merge channels
+        STAGE_5,
+        // return queue
+        STAGE_6,
         NUM_STAGES
     };
 
-    virtual ~SeamCarverStage();
+    virtual ~SeamCarverStage() {}
 
+    virtual void initialize(cv::Ptr<void> initData) = 0;
+    
     virtual void runStage() = 0;
 
     virtual void stopStage() = 0;
+
+    virtual bool isInitialized() const = 0;
 };
 }  // namespace cv
 

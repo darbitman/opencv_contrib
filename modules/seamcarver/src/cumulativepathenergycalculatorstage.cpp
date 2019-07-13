@@ -47,20 +47,13 @@
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
+// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
 const uint32_t cv::CumulativePathEnergyCalculatorStage::this_shape_id_ = 0x00010002;
 
-cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage(
-    pipelineStage pipeline_stage, cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue,
-    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue,
-    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock,
-    cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock)
-    : do_run_thread_(false),
-      thread_is_stopped_(true),
-      pipeline_stage_(pipeline_stage),
-      p_input_queue_(p_input_queue),
-      p_output_queue_(p_output_queue),
-      p_input_queue_lock_(p_input_queue_lock),
-      p_output_queue_lock_(p_output_queue_lock),
+cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage()
+    : bDoRunThread_(false),
+      bThreadIsStopped_(true),
+      bIsInitialized_(false),
       status_lock_(status_mutex_, std::defer_lock)
 {
 }
@@ -70,16 +63,33 @@ cv::CumulativePathEnergyCalculatorStage::~CumulativePathEnergyCalculatorStage()
     doStopStage();
 
     // wait for thread to finish
-    while (thread_is_stopped_ == false)
+    while (bThreadIsStopped_ == false)
         ;
+}
+
+void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<void> initData)
+{
+    if (bIsInitialized_ == false)
+    {
+        LocalDataToInit* data = static_cast<LocalDataToInit*>(initData.get());
+        if (data != nullptr)
+        {
+            pipelineStage_ = data->pipeline_stage;
+            p_input_queue_ = data->p_input_queue;
+            p_output_queue_ = data->p_output_queue;
+            p_input_queue_lock_ = data->p_input_queue_lock;
+            p_output_queue_lock_ = data->p_output_queue_lock;
+            bIsInitialized_ = true;
+        }
+    }
 }
 
 void cv::CumulativePathEnergyCalculatorStage::runStage()
 {
-    if (thread_is_stopped_)
+    if (bThreadIsStopped_ && bIsInitialized_)
     {
         status_lock_.lock();
-        if (thread_is_stopped_)
+        if (bThreadIsStopped_)
         {
             std::thread(&cv::CumulativePathEnergyCalculatorStage::runThread, this).detach();
         }
@@ -89,19 +99,19 @@ void cv::CumulativePathEnergyCalculatorStage::runStage()
 
 void cv::CumulativePathEnergyCalculatorStage::runThread()
 {
-    do_run_thread_ = true;
+    bDoRunThread_ = true;
 
-    if (thread_is_stopped_)
+    if (bThreadIsStopped_)
     {
         status_lock_.lock();
-        if (thread_is_stopped_)
+        if (bThreadIsStopped_)
         {
-            thread_is_stopped_ = false;
+            bThreadIsStopped_ = false;
         }
         status_lock_.unlock();
     }
 
-    while (do_run_thread_)
+    while (bDoRunThread_)
     {
         if (!p_input_queue_->empty())
         {
@@ -120,10 +130,12 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
         }
     }
 
-    thread_is_stopped_ = true;
+    bThreadIsStopped_ = true;
 }
 
-void cv::CumulativePathEnergyCalculatorStage::doStopStage() { do_run_thread_ = false; }
+bool cv::CumulativePathEnergyCalculatorStage::isInitialized() const { return bIsInitialized_; }
+
+void cv::CumulativePathEnergyCalculatorStage::doStopStage() { bDoRunThread_ = false; }
 
 void cv::CumulativePathEnergyCalculatorStage::stopStage() { doStopStage(); }
 
@@ -239,7 +251,7 @@ void cv::CumulativePathEnergyCalculatorStage::calculateCumulativePathEnergy(
     }
 }
 
-namespace
+namespace autoregister
 {
 cv::SeamCarverStageFactoryRegistration registershape(
     cv::CumulativePathEnergyCalculatorStage::this_shape_id_, []() {

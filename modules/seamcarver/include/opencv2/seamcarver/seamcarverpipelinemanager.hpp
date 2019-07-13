@@ -39,39 +39,47 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SEAMCARVERSTAGEFACTORY_HPP
-#define OPENCV_SEAMCARVER_SEAMCARVERSTAGEFACTORY_HPP
+#ifndef OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
+#define OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
 
-#include <map>
 #include <opencv2/core.hpp>
-
-#include "opencv2/seamcarver/seamcarverstage.hpp"
+#include <queue>
+#include <vector>
 
 namespace cv
 {
-class SeamCarverStageFactory
+// forward declarations
+class VerticalSeamCarverData;
+class SeamCarverStage;
+
+class SeamCarverPipelineManager
 {
 public:
-    typedef SeamCarverStage* (*createStageFunction)();
+    enum class PipelineConfigurationType
+    {
+        VERTICAL_DEFAULT = 0
+    };
 
-    static SeamCarverStageFactory& instance();
+    SeamCarverPipelineManager();
 
-    void registerNewStage(uint32_t stage_id, createStageFunction function);
-
-    cv::Ptr<SeamCarverStage> createStage(uint32_t stage_id);
+    ~SeamCarverPipelineManager();
 
     // deleted to prevent misuse
-    SeamCarverStageFactory(const SeamCarverStageFactory&) = delete;
-    SeamCarverStageFactory(const SeamCarverStageFactory&&) = delete;
-    SeamCarverStageFactory& operator=(const SeamCarverStageFactory&) = delete;
-    SeamCarverStageFactory& operator=(const SeamCarverStageFactory&&) = delete;
+    SeamCarverPipelineManager(const SeamCarverPipelineManager&) = delete;
+    SeamCarverPipelineManager(const SeamCarverPipelineManager&&) = delete;
+    SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&) = delete;
+    SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&&) = delete;
 
 private:
-    SeamCarverStageFactory();
+    void createPipeline();
+    void initializePipelineData();
+    void initializePipeline();
+    void createPipelineInterface();
+    std::vector<cv::Ptr<std::queue<VerticalSeamCarverData*>>> queues_;
+    std::vector<cv::Ptr<std::unique_lock<std::mutex>>> locks_;
+    std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
 
-    ~SeamCarverStageFactory();
-
-    std::map<uint32_t, createStageFunction> stage_id_to_createstagefunc_map_;
+    PipelineConfigurationType pipelineConfigurationType_;
 };
 }  // namespace cv
 

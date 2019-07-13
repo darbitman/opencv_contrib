@@ -54,19 +54,29 @@ class VerticalSeamCarverData;
 class CumulativePathEnergyCalculatorStage : public SeamCarverStage
 {
 public:
+    /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
     const static uint32_t this_shape_id_;
-    CumulativePathEnergyCalculatorStage() {}
-    CumulativePathEnergyCalculatorStage(pipelineStage pipeline_stage,
-                                        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue,
-                                        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue,
-                                        cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock,
-                                        cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock);
 
+    struct LocalDataToInit
+    {
+        pipelineStage pipeline_stage;
+        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue;
+        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue;
+        cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock;
+        cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock;
+    };
+
+    CumulativePathEnergyCalculatorStage();
+    
     virtual ~CumulativePathEnergyCalculatorStage();
+
+    virtual void initialize(cv::Ptr<void> initData) override;
 
     virtual void runStage() override;
 
     virtual void stopStage() override;
+
+    virtual bool isInitialized() const override;
 
     // deleted to prevent misuse
     CumulativePathEnergyCalculatorStage(const CumulativePathEnergyCalculatorStage&) = delete;
@@ -76,20 +86,23 @@ public:
     CumulativePathEnergyCalculatorStage& operator=(const CumulativePathEnergyCalculatorStage&&) =
         delete;
 
-protected:
-    volatile bool do_run_thread_;
-    volatile bool thread_is_stopped_;
-    pipelineStage pipeline_stage_;
+private:
+    /// initialized in the constructor
+    volatile bool bDoRunThread_;
+    volatile bool bThreadIsStopped_;
+    bool bIsInitialized_;
+
+    /// guards the bThreadIsStopped_ member
+    std::mutex status_mutex_;
+    std::unique_lock<std::mutex> status_lock_;
+
+    /// initialized in the initialize() call
+    pipelineStage pipelineStage_;
     cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue_;
     cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue_;
     cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
     cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock_;
 
-    /// guards the thread_is_stopped_ member
-    std::mutex status_mutex_;
-    std::unique_lock<std::mutex> status_lock_;
-
-private:
     void runThread();
 
     void doStopStage();

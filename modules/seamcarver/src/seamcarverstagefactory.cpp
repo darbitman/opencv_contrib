@@ -1,9 +1,12 @@
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
-#include <iostream>
+
+cv::SeamCarverStageFactory::SeamCarverStageFactory() {}
+
+cv::SeamCarverStageFactory::~SeamCarverStageFactory() {}
+
 cv::SeamCarverStageFactory& cv::SeamCarverStageFactory::instance()
 {
     static cv::SeamCarverStageFactory factory;
-    std::cout << "Returning instance" << std::endl;
     return factory;
 }
 
@@ -27,7 +30,3 @@ cv::Ptr<cv::SeamCarverStage> cv::SeamCarverStageFactory::createStage(uint32_t st
     }
     return p_new_stage;
 }
-
-cv::SeamCarverStageFactory::SeamCarverStageFactory() {}
-
-cv::SeamCarverStageFactory::~SeamCarverStageFactory() {}
