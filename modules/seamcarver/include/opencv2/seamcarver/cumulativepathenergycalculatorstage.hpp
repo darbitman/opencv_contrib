@@ -1,0 +1,91 @@
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                        Intel License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000, Intel Corporation, all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of Intel Corporation may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+#ifndef OPENCV_SEAMCARVER_CUMULATIVEPATHENERGYCALCULATORSTAGE_HPP
+#define OPENCV_SEAMCARVER_CUMULATIVEPATHENERGYCALCULATORSTAGE_HPP
+
+#include <opencv2/core.hpp>
+#include <queue>
+
+#include "seamcarverstage.hpp"
+
+namespace cv
+{
+class VerticalSeamCarverData;
+
+class CumulativePathEnergyCalculatorStage : public SeamCarverStage
+{
+public:
+    CumulativePathEnergyCalculatorStage(pipelineStage pipeline_stage,
+                                        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue,
+                                        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue,
+                                        cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock,
+                                        cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock);
+
+    virtual ~CumulativePathEnergyCalculatorStage();
+
+    virtual void runStage() override;
+
+    virtual void stopStage() override;
+
+protected:
+    volatile bool do_run_thread_;
+    volatile bool thread_is_stopped_;
+    pipelineStage pipeline_stage_;
+    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue_;
+    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
+    cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock_;
+
+    /// guards the thread_is_stopped_ member
+    std::mutex status_mutex_;
+    std::unique_lock<std::mutex> status_lock_;
+
+private:
+    void runThread();
+
+    void doStopStage();
+
+    void calculateCumulativePathEnergy(VerticalSeamCarverData*);
+};
+}  // namespace cv
+
+#endif
