@@ -50,13 +50,26 @@ namespace cv
 // forward declare class;
 class PixelEnergyCalculator2D;
 
-class CV_EXPORTS VerticalSeamCarverData
+struct CV_EXPORTS VerticalSeamCarverData
 {
 public:
-    VerticalSeamCarverData(double marginEnergy) : marginEnergy_(marginEnergy) {}
+    explicit VerticalSeamCarverData(double marginEnergy)
+        : bNeedToInitializeLocalData(true),
+          numRows_(0),
+          numColumns_(0),
+          bottomRow_(0),
+          rightColumn_(0),
+          numColorChannels_(0),
+          seamLength_(0),
+          numSeamsToRemove_(0),
+          marginEnergy_(marginEnergy)
+    {
+        posInf_ = std::numeric_limits<double>::max();
+        pPixelEnergyCalculator_ = nullptr;
+    }
 
     // flag if internal data structures need their memory and values initialized
-    bool bNeedToInitializeLocalData = true;
+    bool bNeedToInitializeLocalData;
 
     // vector to store pixels that have been previously markedPixels for removal
     // will ignore these markedPixels pixels when searching for a new seam
@@ -83,23 +96,23 @@ public:
     std::vector<cv::Mat> bgr;
 
     // image dimensions
-    size_t numRows_ = 0;
-    size_t numColumns_ = 0;
-    size_t bottomRow_ = 0;
-    size_t rightColumn_ = 0;
-    size_t numColorChannels_ = 0;
+    size_t numRows_;
+    size_t numColumns_;
+    size_t bottomRow_;
+    size_t rightColumn_;
+    size_t numColorChannels_;
 
     // number of pixels per seam
-    size_t seamLength_ = 0;
+    size_t seamLength_;
 
     // value of positive infinity
-    double posInf_ = std::numeric_limits<double>::max();
+    double posInf_;
 
     // number of seams to remove (updated every run)
-    size_t numSeamsToRemove_ = 0;
+    size_t numSeamsToRemove_;
 
     // pointer to an object that calculates pixel energy
-    cv::Ptr<PixelEnergyCalculator2D> pPixelEnergyCalculator_ = nullptr;
+    cv::Ptr<PixelEnergyCalculator2D> pPixelEnergyCalculator_;
 
     // default energy at the borders of the image
     const double marginEnergy_;

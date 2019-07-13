@@ -397,10 +397,6 @@ void cv::VerticalSeamCarver::runCumulativePathEnergyCalculation(VerticalSeamCarv
     double energyUp = data->posInf_;
     double energyUpRight = data->posInf_;
 
-    bool markedUpLeft = false;
-    bool markedUp = false;
-    bool markedUpRight = false;
-
     double minEnergy = data->posInf_;
     int32_t minEnergyColumn = -1;
 
@@ -410,9 +406,9 @@ void cv::VerticalSeamCarver::runCumulativePathEnergyCalculation(VerticalSeamCarv
         energyUp = data->totalEnergyTo[row - 1][0];
         energyUpRight = data->numColumns_ > 1 ? data->totalEnergyTo[row - 1][1] : data->posInf_;
 
-        markedUpLeft = true;
-        markedUp = data->markedPixels[row - 1][0];
-        markedUpRight = data->numColumns_ > 1 ? data->markedPixels[row - 1][1] : true;
+        bool markedUpLeft = true;
+        bool markedUp = data->markedPixels[row - 1][0];
+        bool markedUpRight = data->numColumns_ > 1 ? data->markedPixels[row - 1][1] : true;
 
         // find minimum energy path from previous row to every pixel in the current row
         for (size_t column = 0; column < data->numColumns_; column++)
@@ -548,11 +544,9 @@ void cv::VerticalSeamCarver::findSeams()
             // initial cumulative energy path has been calculated in the previous step
 
             // declare/initialize variables used in currentSeam discovery when looking for the least
-            //      cumulative energy column in the bottom row
-            double minTotalEnergy = data->posInf_;
-            int32_t minTotalEnergyColumn = -1;
-            bool bRestartSeamDiscovery =
-                false;  // current seam discovery iteration needs to be restarted
+            // cumulative energy column in the bottom row
+            // flag to indicate whether current seam discovery iteration needs to be restarted
+            bool bRestartSeamDiscovery = false;
 
             // declare variables to keep track of columns when traversing up the seam
             size_t prevColumn = 0;
@@ -562,10 +556,9 @@ void cv::VerticalSeamCarver::findSeams()
             for (int32_t n = 0; n < (int32_t)data->numSeamsToRemove_; n++)
             {
                 // initialize total energy to +INF and run linear search for a pixel of least
-                // cumulative
-                //      energy (if one exists) in the bottom row
-                minTotalEnergy = data->posInf_;
-                minTotalEnergyColumn = -1;
+                // cumulative energy (if one exists) in the bottom row
+                double minTotalEnergy = data->posInf_;
+                int32_t minTotalEnergyColumn = -1;
                 for (size_t column = 0; column < data->numColumns_; column++)
                 {
                     if (!data->markedPixels[data->bottomRow_][column] &&
@@ -591,8 +584,7 @@ void cv::VerticalSeamCarver::findSeams()
                 }
 
                 // save last column as part of currentSeam that will be checked whether it can fully
-                // reach
-                //      the top row
+                // reach the top row
                 data->currentSeam[data->bottomRow_] = minTotalEnergyColumn;
 
                 // initialize column variables
@@ -603,8 +595,7 @@ void cv::VerticalSeamCarver::findSeams()
                 for (int32_t row = data->bottomRow_ - 1; row >= 0; row--)
                 {
                     // using the below pixel's row and column, extract the column of the pixel in
-                    // the
-                    //      current row
+                    // the current row
                     currentColumn = data->columnTo[(size_t)row + 1][prevColumn];
 
                     // check if the current pixel of the current seam has been used part of another
@@ -612,8 +603,7 @@ void cv::VerticalSeamCarver::findSeams()
                     if (data->markedPixels[(size_t)row][currentColumn])
                     {
                         // mark the starting pixel in bottom row as having +INF cumulative energy so
-                        // it
-                        //      will not be chosen again
+                        // it will not be chosen again
                         data->totalEnergyTo[data->bottomRow_][minTotalEnergyColumn] = data->posInf_;
 
                         // decrement seam iterator since this seam is invalid and this iteration
