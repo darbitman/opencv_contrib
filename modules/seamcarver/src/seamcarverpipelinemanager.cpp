@@ -53,12 +53,28 @@ void cv::SeamCarverPipelineManager::createPipeline()
     SeamCarverStageFactory& factory = SeamCarverStageFactory::instance();
     switch (pipelineConfigurationType_)
     {
-        case PipelineConfigurationType::VERTICAL_DEFAULT:
-            pipelineStages_[(uint32_t)SeamCarverStage::pipelineStage::STAGE_2] =
-                factory.createStage(0x00010002);
+        case cv::pipelineconfigurationtype::VERTICAL_DEFAULT:
+            for (int32_t stage = cv::pipelineStage::STAGE_1; stage < cv::pipelineStage::NUM_STAGES;
+                 ++stage)
+            {
+                pipelineStages_[stage] =
+                    factory.createStage(cv::pipelineconfigurationtype::VERTICAL_DEFAULT | stage);
+            }
+            cv::SeamCarverStage::LocalDataToInit data;
     }
 }
 
+void cv::SeamCarverPipelineManager::initializePipelineData()
+{
+    queues_.resize(cv::pipelineStage::NUM_STAGES);
+    locks_.resize(cv::pipelineStage::NUM_STAGES);
+
+    for (int32_t i = 0; i < cv::pipelineStage::NUM_STAGES; i++)
+    {
+        queues_[i] = cv::makePtr<std::queue<VerticalSeamCarverData*>>();
+        locks_[i] = cv::makePtr<std::unique_lock<std::mutex>>();
+    }
+}
 void cv::SeamCarverPipelineManager::initializePipeline() {}
 
 void cv::SeamCarverPipelineManager::createPipelineInterface() {}

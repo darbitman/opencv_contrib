@@ -48,6 +48,14 @@
 
 namespace cv
 {
+namespace pipelineconfigurationtype
+{
+enum pipelineconfigurationtype
+{
+    VERTICAL_DEFAULT = 0x00010000
+};
+}
+
 // forward declarations
 class VerticalSeamCarverData;
 class SeamCarverStage;
@@ -55,11 +63,6 @@ class SeamCarverStage;
 class SeamCarverPipelineManager
 {
 public:
-    enum class PipelineConfigurationType
-    {
-        VERTICAL_DEFAULT = 0
-    };
-
     SeamCarverPipelineManager();
 
     ~SeamCarverPipelineManager();
@@ -79,7 +82,7 @@ private:
     std::vector<cv::Ptr<std::unique_lock<std::mutex>>> locks_;
     std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
 
-    PipelineConfigurationType pipelineConfigurationType_;
+    cv::pipelineconfigurationtype::pipelineconfigurationtype pipelineConfigurationType_;
 };
 }  // namespace cv
 

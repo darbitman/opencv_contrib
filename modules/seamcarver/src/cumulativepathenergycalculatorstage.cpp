@@ -47,9 +47,6 @@
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
-const uint32_t cv::CumulativePathEnergyCalculatorStage::this_shape_id_ = 0x00010002;
-
 cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage()
     : bDoRunThread_(false),
       bThreadIsStopped_(true),

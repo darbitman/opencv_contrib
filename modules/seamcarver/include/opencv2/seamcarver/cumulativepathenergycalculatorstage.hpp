@@ -45,7 +45,8 @@
 #include <opencv2/core.hpp>
 #include <queue>
 
-#include "seamcarverstage.hpp"
+#include "opencv2/seamcarver/seamcarverstage.hpp"
+#include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
 
 namespace cv
 {
@@ -55,19 +56,10 @@ class CumulativePathEnergyCalculatorStage : public SeamCarverStage
 {
 public:
     /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
-    const static uint32_t this_shape_id_;
-
-    struct LocalDataToInit
-    {
-        pipelineStage pipeline_stage;
-        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue;
-        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue;
-        cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock;
-        cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock;
-    };
+    constexpr static uint32_t this_shape_id_ =  cv::pipelineconfigurationtype::VERTICAL_DEFAULT | cv::pipelineStage::STAGE_2;
 
     CumulativePathEnergyCalculatorStage();
-    
+
     virtual ~CumulativePathEnergyCalculatorStage();
 
     virtual void initialize(cv::Ptr<void> initData) override;
@@ -97,7 +89,7 @@ private:
     std::unique_lock<std::mutex> status_lock_;
 
     /// initialized in the initialize() call
-    pipelineStage pipelineStage_;
+    cv::pipelineStage::pipelineStage pipelineStage_;
     cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue_;
     cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue_;
     cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
