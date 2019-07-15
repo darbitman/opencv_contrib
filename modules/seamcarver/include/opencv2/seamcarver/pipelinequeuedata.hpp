@@ -39,84 +39,28 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
-#define OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
+#ifndef OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
+#define OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
+
+#include <memory>
+#include <mutex>
+#include <queue>
 
 #include <opencv2/core.hpp>
-#include <queue>
-#include <vector>
-
 #include "opencv2/seamcarver/pipelinestages.hpp"
 
 namespace cv
 {
-namespace pipelineconfigurationtype
-{
-enum pipelineconfigurationtype
-{
-    VERTICAL_DEFAULT = 0x00010000
-};
-}
-
-// forward declarations
+// forward declare class
 class VerticalSeamCarverData;
-class SeamCarverStage;
 
-/// Client calls the contructor with the configuration type
-/// Client then makes the following calls to START the pipeline
-///     1. Call initialize() to initialize the stages
-///     2. Call runPipelineStages
-class CV_EXPORTS SeamCarverPipelineManager
+struct PipelineQueueData
 {
-public:
-    SeamCarverPipelineManager(
-        cv::pipelineconfigurationtype::pipelineconfigurationtype configurationType);
-
-    ~SeamCarverPipelineManager();
-
-    /// initialize the pipeline
-    void initialize();
-
-    /// start the pipeline
-    void runPipelineStages();
-
-    /// stop the pipeline
-    void stopPipelineStages();
-
-    bool isInitialized() const;
-
-    bool arePipelineStagesRunning() const;
-
-    // deleted to prevent misuse
-    SeamCarverPipelineManager(const SeamCarverPipelineManager&) = delete;
-    SeamCarverPipelineManager(const SeamCarverPipelineManager&&) = delete;
-    SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&) = delete;
-    SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&&) = delete;
-
-private:
-    /// is the pipeline manager initialized
-    bool bIsInitialized_;
-
-    /// are the pipeline stages running
-    bool bArePipelineStagesRunning_;
-
-    /// create pipeline stages
-    void createPipeline();
-
-    /// create queues, locks and local storage data for first frame
-    void initializePipelineData(double marginEnergy);
-
-    /// pass the queues and locks to the stages and start each stage's execution
-    void initializePipelineStages();
-
-    void createPipelineInterface();
-
-    std::vector<cv::Ptr<std::queue<VerticalSeamCarverData*>>> queues_;
-    std::vector<cv::Ptr<std::unique_lock<std::mutex>>> locks_;
-    std::mutex mutexes_[cv::PipelineStages::NUM_STAGES];
-    std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
-
-    cv::pipelineconfigurationtype::pipelineconfigurationtype pipelineConfigurationType_;
+    cv::PipelineStages pipeline_stage;
+    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue;
+    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue;
+    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock;
+    cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock;
 };
 }  // namespace cv
 

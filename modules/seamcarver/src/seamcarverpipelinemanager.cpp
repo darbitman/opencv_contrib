@@ -41,12 +41,64 @@
 
 #include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
 
+#include "opencv2/seamcarver/pipelinequeuedata.hpp"
 #include "opencv2/seamcarver/seamcarverstage.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-cv::SeamCarverPipelineManager::SeamCarverPipelineManager() {}
+cv::SeamCarverPipelineManager::SeamCarverPipelineManager(
+    cv::pipelineconfigurationtype::pipelineconfigurationtype configurationType)
+    : bIsInitialized_(false),
+      bArePipelineStagesRunning_(false),
+      pipelineConfigurationType_(configurationType)
+{
+}
 
 cv::SeamCarverPipelineManager::~SeamCarverPipelineManager() {}
+
+void cv::SeamCarverPipelineManager::initialize()
+{
+    if (!bIsInitialized_)
+    {
+        createPipeline();
+        // initializePipelineData();
+        // initializeAndRunPipelineStages();
+        bIsInitialized_ = true;
+    }
+}
+
+void cv::SeamCarverPipelineManager::runPipelineStages()
+{
+    if (!bArePipelineStagesRunning_)
+    {
+        for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
+             ++stage)
+        {
+            pipelineStages_[stage]->runStage();
+        }
+        bArePipelineStagesRunning_ = true;
+    }
+}
+
+void cv::SeamCarverPipelineManager::stopPipelineStages()
+{
+    if (bArePipelineStagesRunning_)
+    {
+        for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
+             ++stage)
+        {
+            pipelineStages_[stage]->stopStage();
+        }
+        bArePipelineStagesRunning_ = false;
+    }
+}
+
+bool cv::SeamCarverPipelineManager::isInitialized() const { return bIsInitialized_; }
+
+bool cv::SeamCarverPipelineManager::arePipelineStagesRunning() const
+{
+    return bArePipelineStagesRunning_;
+}
 
 void cv::SeamCarverPipelineManager::createPipeline()
 {
@@ -54,27 +106,48 @@ void cv::SeamCarverPipelineManager::createPipeline()
     switch (pipelineConfigurationType_)
     {
         case cv::pipelineconfigurationtype::VERTICAL_DEFAULT:
-            for (int32_t stage = cv::pipelineStage::STAGE_1; stage < cv::pipelineStage::NUM_STAGES;
-                 ++stage)
+            for (int32_t stage = cv::PipelineStages::STAGE_0;
+                 stage < cv::PipelineStages::LAST_STAGE; ++stage)
             {
                 pipelineStages_[stage] =
                     factory.createStage(cv::pipelineconfigurationtype::VERTICAL_DEFAULT | stage);
             }
-            cv::SeamCarverStage::LocalDataToInit data;
+            cv::PipelineQueueData data;
     }
 }
 
-void cv::SeamCarverPipelineManager::initializePipelineData()
+void cv::SeamCarverPipelineManager::initializePipelineData(double marginEnergy)
 {
-    queues_.resize(cv::pipelineStage::NUM_STAGES);
-    locks_.resize(cv::pipelineStage::NUM_STAGES);
+    queues_.resize(cv::PipelineStages::NUM_STAGES);
+    locks_.resize(cv::PipelineStages::NUM_STAGES);
 
-    for (int32_t i = 0; i < cv::pipelineStage::NUM_STAGES; i++)
+    // allocate the vector of pointers to queues that hold the data to process for each stage
+    // and to locks that own mutexes_
+    for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::NUM_STAGES;
+         ++stage)
     {
-        queues_[i] = cv::makePtr<std::queue<VerticalSeamCarverData*>>();
-        locks_[i] = cv::makePtr<std::unique_lock<std::mutex>>();
+        queues_[stage] = cv::makePtr<std::queue<VerticalSeamCarverData*>>();
+        locks_[stage] = cv::Ptr<std::unique_lock<std::mutex>>(
+            new std::unique_lock<std::mutex>(mutexes_[stage], std::defer_lock));
+    }
+
+    // create initial storage data
+    queues_[cv::PipelineStages::STAGE_0]->emplace(new VerticalSeamCarverData(marginEnergy));
+}
+
+void cv::SeamCarverPipelineManager::initializePipelineStages()
+{
+    for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
+         ++stage)
+    {
+        cv::Ptr<cv::PipelineQueueData> pNewData = std::make_shared<cv::PipelineQueueData>();
+        pNewData->p_input_queue = queues_[stage];
+        pNewData->p_output_queue = queues_[stage + 1];
+        pNewData->p_input_queue_lock = locks_[stage];
+        pNewData->p_output_queue_lock = locks_[stage + 1];
+        pNewData->pipeline_stage = (cv::PipelineStages)stage;
+        pipelineStages_[stage]->initialize(pNewData);
     }
 }
-void cv::SeamCarverPipelineManager::initializePipeline() {}
 
 void cv::SeamCarverPipelineManager::createPipelineInterface() {}

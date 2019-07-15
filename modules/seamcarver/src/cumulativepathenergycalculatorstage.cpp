@@ -64,11 +64,11 @@ cv::CumulativePathEnergyCalculatorStage::~CumulativePathEnergyCalculatorStage()
         ;
 }
 
-void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<void> initData)
+void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<PipelineQueueData> initData)
 {
     if (bIsInitialized_ == false)
     {
-        LocalDataToInit* data = static_cast<LocalDataToInit*>(initData.get());
+        PipelineQueueData* data = static_cast<PipelineQueueData*>(initData.get());
         if (data != nullptr)
         {
             pipelineStage_ = data->pipeline_stage;
@@ -248,9 +248,9 @@ void cv::CumulativePathEnergyCalculatorStage::calculateCumulativePathEnergy(
     }
 }
 
-namespace autoregister
+namespace 
 {
-cv::SeamCarverStageFactoryRegistration registershape(
+cv::SeamCarverStageFactoryRegistration registerstage(
     cv::CumulativePathEnergyCalculatorStage::this_shape_id_, []() {
         return static_cast<cv::SeamCarverStage*>(new cv::CumulativePathEnergyCalculatorStage());
     });

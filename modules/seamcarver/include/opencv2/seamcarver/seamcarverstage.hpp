@@ -42,45 +42,20 @@
 #ifndef OPENCV_SEAMCARVER_SEAMCARVERSTAGE_HPP
 #define OPENCV_SEAMCARVER_SEAMCARVERSTAGE_HPP
 
-#include <queue>
+#include <opencv2/core.hpp>
+
+#include "opencv2/seamcarver/pipelinequeuedata.hpp"
 
 namespace cv
 {
-namespace pipelineStage
-{
-enum pipelineStage
-{
-    // compute energy
-    STAGE_0 = 0,
-    // calculate cumulative path energy
-    STAGE_1 = 1,
-    // find seams
-    STAGE_2 = 2,
-    // remove seams
-    STAGE_3 = 3,
-    // merge channels
-    STAGE_4 = 4,
-    NUM_STAGES
-};
-}  // namespace pipelineStage
-
 class VerticalSeamCarverData;
 
-class SeamCarverStage
+class CV_EXPORTS SeamCarverStage
 {
 public:
-    struct LocalDataToInit
-    {
-        cv::pipelineStage::pipelineStage pipeline_stage;
-        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue;
-        cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue;
-        cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock;
-        cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock;
-    };
-
     virtual ~SeamCarverStage() {}
 
-    virtual void initialize(cv::Ptr<void> initData) = 0;
+    virtual void initialize(cv::Ptr<PipelineQueueData> initData) = 0;
 
     virtual void runStage() = 0;
 

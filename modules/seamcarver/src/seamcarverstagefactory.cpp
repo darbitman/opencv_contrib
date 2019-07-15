@@ -1,5 +1,7 @@
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 
+#include "opencv2/seamcarver/seamcarverstage.hpp"
+
 cv::SeamCarverStageFactory::SeamCarverStageFactory() {}
 
 cv::SeamCarverStageFactory::~SeamCarverStageFactory() {}

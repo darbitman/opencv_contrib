@@ -39,84 +39,64 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
-#define OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
+#ifndef OPENCV_SEAMCARVER_COMPUTEENERGYSTAGE_HPP
+#define OPENCV_SEAMCARVER_COMPUTEENERGYSTAGE_HPP
 
 #include <opencv2/core.hpp>
-#include <queue>
-#include <vector>
 
-#include "opencv2/seamcarver/pipelinestages.hpp"
+#include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
+#include "opencv2/seamcarver/seamcarverstage.hpp"
+#include "opencv2/seamcarver/pipelinequeuedata.hpp"
 
 namespace cv
 {
-namespace pipelineconfigurationtype
-{
-enum pipelineconfigurationtype
-{
-    VERTICAL_DEFAULT = 0x00010000
-};
-}
-
-// forward declarations
 class VerticalSeamCarverData;
-class SeamCarverStage;
 
-/// Client calls the contructor with the configuration type
-/// Client then makes the following calls to START the pipeline
-///     1. Call initialize() to initialize the stages
-///     2. Call runPipelineStages
-class CV_EXPORTS SeamCarverPipelineManager
+class CV_EXPORTS ComputeEnergyStage : public SeamCarverStage
 {
 public:
-    SeamCarverPipelineManager(
-        cv::pipelineconfigurationtype::pipelineconfigurationtype configurationType);
+    /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
+    constexpr static uint32_t this_shape_id_ =
+        cv::pipelineconfigurationtype::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_0;
 
-    ~SeamCarverPipelineManager();
+    ComputeEnergyStage();
 
-    /// initialize the pipeline
-    void initialize();
+    virtual ~ComputeEnergyStage();
 
-    /// start the pipeline
-    void runPipelineStages();
+    virtual void initialize(cv::Ptr<cv::PipelineQueueData> initData) override;
 
-    /// stop the pipeline
-    void stopPipelineStages();
+    virtual void runStage() override;
 
-    bool isInitialized() const;
+    virtual void stopStage() override;
 
-    bool arePipelineStagesRunning() const;
+    virtual bool isInitialized() const override;
 
     // deleted to prevent misuse
-    SeamCarverPipelineManager(const SeamCarverPipelineManager&) = delete;
-    SeamCarverPipelineManager(const SeamCarverPipelineManager&&) = delete;
-    SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&) = delete;
-    SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&&) = delete;
+    ComputeEnergyStage(const ComputeEnergyStage&) = delete;
+    ComputeEnergyStage(const ComputeEnergyStage&&) = delete;
+    ComputeEnergyStage& operator=(const ComputeEnergyStage&) = delete;
+    ComputeEnergyStage& operator=(const ComputeEnergyStage&&) = delete;
 
 private:
-    /// is the pipeline manager initialized
+    /// initialized in the constructor
+    volatile bool bDoRunThread_;
+    volatile bool bThreadIsStopped_;
     bool bIsInitialized_;
 
-    /// are the pipeline stages running
-    bool bArePipelineStagesRunning_;
+    /// guards the bThreadIsStopped_ member
+    std::mutex status_mutex_;
+    std::unique_lock<std::mutex> status_lock_;
 
-    /// create pipeline stages
-    void createPipeline();
+    /// initialized in the initialize() call
+    cv::PipelineStages pipelineStage_;
+    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue_;
+    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
+    cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock_;
 
-    /// create queues, locks and local storage data for first frame
-    void initializePipelineData(double marginEnergy);
+    void runThread();
 
-    /// pass the queues and locks to the stages and start each stage's execution
-    void initializePipelineStages();
-
-    void createPipelineInterface();
-
-    std::vector<cv::Ptr<std::queue<VerticalSeamCarverData*>>> queues_;
-    std::vector<cv::Ptr<std::unique_lock<std::mutex>>> locks_;
-    std::mutex mutexes_[cv::PipelineStages::NUM_STAGES];
-    std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
-
-    cv::pipelineconfigurationtype::pipelineconfigurationtype pipelineConfigurationType_;
+    void doStopStage();
 };
 }  // namespace cv
 

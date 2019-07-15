@@ -39,40 +39,32 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SEAMCARVERSTAGEFACTORY_HPP
-#define OPENCV_SEAMCARVER_SEAMCARVERSTAGEFACTORY_HPP
-
-#include <map>
-#include <opencv2/core.hpp>
-
-#include "opencv2/seamcarver/pipelinestages.hpp"
-#include "opencv2/seamcarver/seamcarverstage.hpp"
+#ifndef OPENCV_SEAMCARVER_PIPELINESTAGES_HPP
+#define OPENCV_SEAMCARVER_PIPELINESTAGES_HPP
 
 namespace cv
 {
-class CV_EXPORTS SeamCarverStageFactory
+enum PipelineStages
 {
-public:
-    typedef SeamCarverStage* (*createStageFunction)();
-
-    static SeamCarverStageFactory& instance();
-
-    void registerNewStage(uint32_t stage_id, createStageFunction function);
-
-    cv::Ptr<SeamCarverStage> createStage(uint32_t stage_id);
-
-    // deleted to prevent misuse
-    SeamCarverStageFactory(const SeamCarverStageFactory&) = delete;
-    SeamCarverStageFactory(const SeamCarverStageFactory&&) = delete;
-    SeamCarverStageFactory& operator=(const SeamCarverStageFactory&) = delete;
-    SeamCarverStageFactory& operator=(const SeamCarverStageFactory&&) = delete;
-
-private:
-    SeamCarverStageFactory();
-
-    ~SeamCarverStageFactory();
-
-    std::map<uint32_t, createStageFunction> stage_id_to_createstagefunc_map_;
+    // compute energy
+    STAGE_0 = 0,
+    // calculate cumulative path energy
+    STAGE_1 = 1,
+    // find seams
+    STAGE_2 = 2,
+    // remove seams
+    STAGE_3 = 3,
+    // merge channels
+    STAGE_4 = 4,
+    // output stage (for client to get result) also the number of COMPUTE stages
+    LAST_STAGE = 5,
+    // the number of QUEUES (1 more than number of COMPUTE stages)
+    // EXAMPLE:
+    // 0   1   2   3
+    // Q C Q C Q C Q
+    //   0   1   2
+    // there's 4 queues, and 3 compute stages
+    NUM_STAGES
 };
 }  // namespace cv
 
