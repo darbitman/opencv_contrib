@@ -48,7 +48,8 @@
 
 cv::SeamCarverPipelineManager::SeamCarverPipelineManager(
     cv::pipelineconfigurationtype::pipelineconfigurationtype configurationType)
-    : bIsInitialized_(false),
+    : bPipelineCreated_(false),
+      bIsInitialized_(false),
       bArePipelineStagesRunning_(false),
       pipelineConfigurationType_(configurationType)
 {
@@ -102,17 +103,20 @@ bool cv::SeamCarverPipelineManager::arePipelineStagesRunning() const
 
 void cv::SeamCarverPipelineManager::createPipeline()
 {
-    SeamCarverStageFactory& factory = SeamCarverStageFactory::instance();
-    switch (pipelineConfigurationType_)
+    if (!bPipelineCreated_)
     {
-        case cv::pipelineconfigurationtype::VERTICAL_DEFAULT:
-            for (int32_t stage = cv::PipelineStages::STAGE_0;
-                 stage < cv::PipelineStages::LAST_STAGE; ++stage)
-            {
-                pipelineStages_[stage] =
-                    factory.createStage(cv::pipelineconfigurationtype::VERTICAL_DEFAULT | stage);
-            }
-            cv::PipelineQueueData data;
+        SeamCarverStageFactory& factory = SeamCarverStageFactory::instance();
+        switch (pipelineConfigurationType_)
+        {
+            case cv::pipelineconfigurationtype::VERTICAL_DEFAULT:
+                for (int32_t stage = cv::PipelineStages::STAGE_0;
+                     stage < cv::PipelineStages::LAST_STAGE; ++stage)
+                {
+                    pipelineStages_[stage] = factory.createStage(
+                        cv::pipelineconfigurationtype::VERTICAL_DEFAULT | stage);
+                }
+        }
+        bPipelineCreated_ = true;
     }
 }
 

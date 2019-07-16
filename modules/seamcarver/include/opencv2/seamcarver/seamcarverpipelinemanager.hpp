@@ -94,6 +94,9 @@ public:
     SeamCarverPipelineManager& operator=(const SeamCarverPipelineManager&&) = delete;
 
 private:
+    /// have the pipeline stages been created
+    bool bPipelineCreated_;
+
     /// is the pipeline manager initialized
     bool bIsInitialized_;
 

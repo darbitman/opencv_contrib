@@ -45,6 +45,11 @@ namespace opencv_test
 {
 namespace
 {
-
+TEST(ServerCarverPipelineManager, Initialize)
+{
+    SeamCarverPipelineManager m(cv::pipelineconfigurationtype::VERTICAL_DEFAULT);
+    m.initialize();
+    ASSERT_EQ(m.isInitialized(), true);
+}
 }  // namespace
 }  // namespace opencv_test

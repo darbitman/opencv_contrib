@@ -46,7 +46,6 @@
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
-#include "opencv2/seamcarver/pipelinequeuedata.hpp"
 
 cv::ComputeEnergyStage::ComputeEnergyStage()
     : bDoRunThread_(false),
@@ -142,4 +141,4 @@ namespace
 cv::SeamCarverStageFactoryRegistration registerstage(cv::ComputeEnergyStage::this_shape_id_, []() {
     return static_cast<cv::SeamCarverStage*>(new cv::ComputeEnergyStage());
 });
-}
+}  // namespace

@@ -73,9 +73,9 @@ public:
 
     // deleted to prevent misuse
     ComputeEnergyStage(const ComputeEnergyStage&) = delete;
-    ComputeEnergyStage(const ComputeEnergyStage&&) = delete;
+    ComputeEnergyStage(ComputeEnergyStage&&) = delete;
     ComputeEnergyStage& operator=(const ComputeEnergyStage&) = delete;
-    ComputeEnergyStage& operator=(const ComputeEnergyStage&&) = delete;
+    ComputeEnergyStage& operator=(ComputeEnergyStage&&) = delete;
 
 private:
     /// initialized in the constructor
