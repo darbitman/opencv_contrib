@@ -83,8 +83,19 @@ public:
     /// stop the pipeline
     void stopPipelineStages();
 
+    /// is this manager initialized
     bool isInitialized() const;
 
+    /// have the pipeline stages been created
+    bool arePipelineStagesCreated() const;
+
+    /// has the pipeline data (queues, locks) been created
+    bool isPipelineDataInitialized() const;
+
+    /// are the pipeline stages initialized
+    bool arePipelineStagesInitialized() const;
+
+    /// are the pipeline stages running
     bool arePipelineStagesRunning() const;
 
     // deleted to prevent misuse
@@ -95,7 +106,13 @@ public:
 
 private:
     /// have the pipeline stages been created
-    bool bPipelineCreated_;
+    bool bPipelineStagesCreated_;
+
+    /// have the pipeline queues and locks been initialized
+    bool bPipelineDataInitialized_;
+
+    /// have the pipeline stages been started
+    bool bPipelineStagesInitialized_;
 
     /// is the pipeline manager initialized
     bool bIsInitialized_;
@@ -107,7 +124,7 @@ private:
     void createPipeline();
 
     /// create queues, locks and local storage data for first frame
-    void initializePipelineData(double marginEnergy);
+    void initializePipelineData();
 
     /// pass the queues and locks to the stages and start each stage's execution
     void initializePipelineStages();

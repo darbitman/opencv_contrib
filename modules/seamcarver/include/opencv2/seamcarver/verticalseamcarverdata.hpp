@@ -53,7 +53,7 @@ class PixelEnergyCalculator2D;
 struct CV_EXPORTS VerticalSeamCarverData
 {
 public:
-    explicit VerticalSeamCarverData(double marginEnergy)
+    explicit VerticalSeamCarverData(double marginEnergy = 390150.0)
         : bNeedToInitializeLocalData(true),
           numRows_(0),
           numColumns_(0),

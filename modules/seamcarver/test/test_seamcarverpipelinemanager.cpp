@@ -45,11 +45,21 @@ namespace opencv_test
 {
 namespace
 {
-TEST(ServerCarverPipelineManager, Initialize)
+TEST(ServerCarverPipelineManager, InitializeAll)
 {
     SeamCarverPipelineManager m(cv::pipelineconfigurationtype::VERTICAL_DEFAULT);
+
+    ASSERT_EQ(m.isInitialized(), false);
+    ASSERT_EQ(m.arePipelineStagesCreated(), false);
+    ASSERT_EQ(m.isPipelineDataInitialized(), false);
+    ASSERT_EQ(m.arePipelineStagesInitialized(), false);
+    ASSERT_EQ(m.arePipelineStagesRunning(), false);
     m.initialize();
     ASSERT_EQ(m.isInitialized(), true);
+    ASSERT_EQ(m.arePipelineStagesCreated(), true);
+    ASSERT_EQ(m.isPipelineDataInitialized(), true);
+    ASSERT_EQ(m.arePipelineStagesInitialized(), true);
+    ASSERT_EQ(m.arePipelineStagesRunning(), false);
 }
 }  // namespace
 }  // namespace opencv_test
