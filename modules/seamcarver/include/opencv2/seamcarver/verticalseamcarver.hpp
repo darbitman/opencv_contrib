@@ -44,9 +44,9 @@
 
 #include <mutex>
 #include <opencv2/core.hpp>
-#include <queue>
 #include <thread>
 #include "seamcarver.hpp"
+#include "opencv2/seamcarver/sharedqueue.hpp"
 
 namespace cv
 {
@@ -221,7 +221,7 @@ protected:
 
     static constexpr double defaultMarginEnergy = 390150.0;
 
-    cv::Ptr<std::queue<cv::Ptr<cv::Mat>>> pReturnQueue;
+    cv::Ptr<cv::SharedQueue<cv::Ptr<cv::Mat>>> pReturnQueue;
 
     size_t totalFramesInQueues = 0;
 };

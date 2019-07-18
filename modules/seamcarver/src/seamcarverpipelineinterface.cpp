@@ -39,26 +39,34 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
-#define OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
-
-#include <memory>
-
-#include <opencv2/core.hpp>
-#include "opencv2/seamcarver/pipelinestages.hpp"
+#include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 #include "opencv2/seamcarver/sharedqueue.hpp"
 
-namespace cv
+cv::SeamCarverPipelineInterface::SeamCarverPipelineInterface(
+    cv::Ptr<cv::PipelineQueueData> initData)
 {
-// forward declare class
-class VerticalSeamCarverData;
+    p_freestore_queue_ = cv::makePtr<cv::SharedQueue<VerticalSeamCarverData*>>();
+    p_input_queue_ = initData->p_input_queue;
+    p_result_queue_ = initData->p_output_queue;
+}
 
-struct PipelineQueueData
-{
-    cv::PipelineStages pipeline_stage;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue;
-};
-}  // namespace cv
+cv::SeamCarverPipelineInterface::~SeamCarverPipelineInterface() {}
 
-#endif
+void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t numSeamsToRemove) {
+    if (p_freestore_queue_->empty()) {
+        p_freestore_queue_->push(new VerticalSeamCarverData());
+    }
+
+    VerticalSeamCarverData* currentData = p_freestore_queue_->front();
+    p_freestore_queue_->pop();
+
+    while (true) {
+        // copy image to internal data store
+        currentData->savedImage = cv::makePtr<cv::Mat>(*image);
+
+        // initialize internal data
+        
+    }
+
+}

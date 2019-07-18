@@ -43,10 +43,11 @@
 #define OPENCV_SEAMCARVER_SEAMCARVERPIPELINEMANAGER_HPP
 
 #include <opencv2/core.hpp>
-#include <queue>
 #include <vector>
 
+#include "opencv2/seamcarver/sharedqueue.hpp"
 #include "opencv2/seamcarver/pipelinestages.hpp"
+#include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
 
 namespace cv
 {
@@ -66,6 +67,7 @@ class SeamCarverStage;
 /// Client then makes the following calls to START the pipeline
 ///     1. Call initialize() to initialize the stages
 ///     2. Call runPipelineStages
+///     3. Call createPipelineInterface()
 class CV_EXPORTS SeamCarverPipelineManager
 {
 public:
@@ -79,6 +81,9 @@ public:
 
     /// start the pipeline
     void runPipelineStages();
+
+    /// create the interface to the pipeline
+    cv::Ptr<cv::SeamCarverPipelineInterface> createPipelineInterface();
 
     /// stop the pipeline
     void stopPipelineStages();
@@ -129,11 +134,7 @@ private:
     /// pass the queues and locks to the stages and start each stage's execution
     void initializePipelineStages();
 
-    void createPipelineInterface();
-
-    std::vector<cv::Ptr<std::queue<VerticalSeamCarverData*>>> queues_;
-    std::vector<cv::Ptr<std::unique_lock<std::mutex>>> locks_;
-    std::mutex mutexes_[cv::PipelineStages::NUM_STAGES];
+    std::vector<cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>>> queues_;
     std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
 
     cv::pipelineconfigurationtype::pipelineconfigurationtype pipelineConfigurationType_;

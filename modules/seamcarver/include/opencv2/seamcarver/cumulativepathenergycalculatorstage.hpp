@@ -43,7 +43,6 @@
 #define OPENCV_SEAMCARVER_CUMULATIVEPATHENERGYCALCULATORSTAGE_HPP
 
 #include <opencv2/core.hpp>
-#include <queue>
 
 #include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
 #include "opencv2/seamcarver/seamcarverstage.hpp"
@@ -91,10 +90,8 @@ private:
 
     /// initialized in the initialize() call
     cv::PipelineStages pipelineStage_;
-    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_input_queue_;
-    cv::Ptr<std::queue<VerticalSeamCarverData*>> p_output_queue_;
-    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
-    cv::Ptr<std::unique_lock<std::mutex>> p_output_queue_lock_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue_;
 
     void runThread();
 

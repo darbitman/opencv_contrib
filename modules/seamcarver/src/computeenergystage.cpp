@@ -74,8 +74,6 @@ void cv::ComputeEnergyStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
             pipelineStage_ = data->pipeline_stage;
             p_input_queue_ = data->p_input_queue;
             p_output_queue_ = data->p_output_queue;
-            p_input_queue_lock_ = data->p_input_queue_lock;
-            p_output_queue_lock_ = data->p_output_queue_lock;
             bIsInitialized_ = true;
         }
     }
@@ -118,13 +116,19 @@ void cv::ComputeEnergyStage::runThread()
             // TODO run the calculator
 
             // move data to next queue
-            p_input_queue_lock_->lock();
-            p_output_queue_lock_->lock();
-            p_output_queue_->emplace(data);
             p_input_queue_->pop();
-            p_output_queue_lock_->unlock();
-            p_input_queue_lock_->unlock();
+            p_output_queue_->push(data);
         }
+    }
+
+    while(!p_input_queue_->empty()) {
+        delete p_input_queue_->front();
+        p_input_queue_->pop();
+    }
+
+    while(!p_output_queue_->empty()) {
+        delete p_output_queue_->front();
+        p_output_queue_->pop();
     }
 
     bThreadIsStopped_ = true;

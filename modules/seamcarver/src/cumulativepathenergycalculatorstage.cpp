@@ -68,14 +68,12 @@ void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<PipelineQueueDa
 {
     if (bIsInitialized_ == false)
     {
-        PipelineQueueData* data = static_cast<PipelineQueueData*>(initData.get());
+        PipelineQueueData* data = initData.get();
         if (data != nullptr)
         {
             pipelineStage_ = data->pipeline_stage;
             p_input_queue_ = data->p_input_queue;
             p_output_queue_ = data->p_output_queue;
-            p_input_queue_lock_ = data->p_input_queue_lock;
-            p_output_queue_lock_ = data->p_output_queue_lock;
             bIsInitialized_ = true;
         }
     }
@@ -118,13 +116,19 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
             calculateCumulativePathEnergy(data);
 
             // move data to next queue
-            p_input_queue_lock_->lock();
-            p_output_queue_lock_->lock();
-            p_output_queue_->emplace(data);
             p_input_queue_->pop();
-            p_output_queue_lock_->unlock();
-            p_input_queue_lock_->unlock();
+            p_output_queue_->push(data);
         }
+    }
+
+    while(!p_input_queue_->empty()) {
+        delete p_input_queue_->front();
+        p_input_queue_->pop();
+    }
+
+    while(!p_output_queue_->empty()) {
+        delete p_output_queue_->front();
+        p_output_queue_->pop();
     }
 
     bThreadIsStopped_ = true;
@@ -248,7 +252,7 @@ void cv::CumulativePathEnergyCalculatorStage::calculateCumulativePathEnergy(
     }
 }
 
-namespace 
+namespace
 {
 cv::SeamCarverStageFactoryRegistration registerstage(
     cv::CumulativePathEnergyCalculatorStage::this_shape_id_, []() {

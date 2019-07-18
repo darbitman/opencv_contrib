@@ -143,20 +143,17 @@ void cv::SeamCarverPipelineManager::initializePipelineData()
     if (!bPipelineDataInitialized_)
     {
         queues_.resize(cv::PipelineStages::NUM_STAGES);
-        locks_.resize(cv::PipelineStages::NUM_STAGES);
 
         // allocate the vector of pointers to queues that hold the data to process for each stage
         // and to locks that own mutexes_
         for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::NUM_STAGES;
              ++stage)
         {
-            queues_[stage] = cv::makePtr<std::queue<VerticalSeamCarverData*>>();
-            locks_[stage] = cv::Ptr<std::unique_lock<std::mutex>>(
-                new std::unique_lock<std::mutex>(mutexes_[stage], std::defer_lock));
+            queues_[stage] = cv::makePtr<cv::SharedQueue<VerticalSeamCarverData*>>();
         }
 
         // create initial storage data
-        queues_[cv::PipelineStages::STAGE_0]->emplace(new VerticalSeamCarverData());
+        queues_[cv::PipelineStages::STAGE_0]->push(new VerticalSeamCarverData());
         bPipelineDataInitialized_ = true;
     }
 }
@@ -173,8 +170,6 @@ void cv::SeamCarverPipelineManager::initializePipelineStages()
                 cv::Ptr<cv::PipelineQueueData> pNewData = std::make_shared<cv::PipelineQueueData>();
                 pNewData->p_input_queue = queues_[stage];
                 pNewData->p_output_queue = queues_[stage + 1];
-                pNewData->p_input_queue_lock = locks_[stage];
-                pNewData->p_output_queue_lock = locks_[stage + 1];
                 pNewData->pipeline_stage = (cv::PipelineStages)stage;
 
                 pipelineStages_[stage]->initialize(pNewData);
@@ -184,4 +179,6 @@ void cv::SeamCarverPipelineManager::initializePipelineStages()
     }
 }
 
-void cv::SeamCarverPipelineManager::createPipelineInterface() {}
+cv::Ptr<cv::SeamCarverPipelineInterface> cv::SeamCarverPipelineManager::createPipelineInterface() {
+    return nullptr;
+}

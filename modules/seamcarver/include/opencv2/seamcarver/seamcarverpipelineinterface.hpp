@@ -39,26 +39,49 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
-#define OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
+#ifndef OPENCV_SEAMCARVER_SEAMCARVERPIPELINEINTERFACE_HPP
+#define OPENCV_SEAMCARVER_SEAMCARVERPIPELINEINTERFACE_HPP
 
-#include <memory>
-
-#include <opencv2/core.hpp>
-#include "opencv2/seamcarver/pipelinestages.hpp"
-#include "opencv2/seamcarver/sharedqueue.hpp"
+#include "opencv2/core.hpp"
+#include "opencv2/seamcarver/pipelinequeuedata.hpp"
 
 namespace cv
 {
-// forward declare class
-class VerticalSeamCarverData;
-
-struct PipelineQueueData
+class SeamCarverPipelineInterface
 {
-    cv::PipelineStages pipeline_stage;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue;
+public:
+    SeamCarverPipelineInterface(cv::Ptr<cv::PipelineQueueData> initData);
+
+    ~SeamCarverPipelineInterface();
+
+    void addNewFrame(cv::Ptr<cv::Mat> image, size_t numSeamsToRemove);
+
+    cv::Ptr<cv::Mat> tryGetNextFrame();
+
+    cv::Ptr<cv::Mat> getNextFrame();
+
+    bool doesNewResultExists() const;
+
+    // deleted to prevent misuse
+    SeamCarverPipelineInterface(const SeamCarverPipelineInterface&) = delete;
+    SeamCarverPipelineInterface(SeamCarverPipelineInterface&&) = delete;
+    SeamCarverPipelineInterface& operator=(const SeamCarverPipelineInterface&) = delete;
+    SeamCarverPipelineInterface& operator=(SeamCarverPipelineInterface&&) = delete;
+
+private:
+    void init(cv::Ptr<cv::Mat> image, size_t seamLength);
+
+    void init(size_t numRows, size_t numColumns, size_t seamLength);
+
+    void resetLocalVectors();
+
+    bool areImageDimensionsVerified(cv::Ptr<cv::Mat> image) const;
+
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_freestore_queue_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_result_queue_;
+    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
+    cv::Ptr<std::unique_lock<std::mutex>> p_result_queue_lock_;
 };
 }  // namespace cv
-
 #endif

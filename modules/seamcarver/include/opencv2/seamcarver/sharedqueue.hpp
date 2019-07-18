@@ -39,26 +39,101 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
-#define OPENCV_SEAMCARVER_PIPELINEQUEUEDATA_HPP
+#ifndef OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
+#define OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
 
-#include <memory>
-
-#include <opencv2/core.hpp>
-#include "opencv2/seamcarver/pipelinestages.hpp"
-#include "opencv2/seamcarver/sharedqueue.hpp"
+#include <mutex>
+#include <queue>
 
 namespace cv
 {
-// forward declare class
-class VerticalSeamCarverData;
-
-struct PipelineQueueData
+template <typename _Tp>
+class SharedQueue
 {
-    cv::PipelineStages pipeline_stage;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue;
-};
-}  // namespace cv
+public:
+    SharedQueue();
 
+    ~SharedQueue();
+
+    _Tp& front();
+
+    bool empty() const;
+
+    size_t size() const;
+
+    void push(const _Tp& value);
+
+    void push(_Tp&& value);
+
+    template <typename... _Args>
+    void emplace(_Args&&... __args);
+
+    void pop();
+
+private:
+    mutable std::mutex mtx_;
+    std::queue<_Tp> queue_;
+};
+
+template <typename _Tp>
+SharedQueue<_Tp>::SharedQueue()
+{
+}
+
+template <typename _Tp>
+SharedQueue<_Tp>::~SharedQueue()
+{
+}
+
+template <typename _Tp>
+_Tp& SharedQueue<_Tp>::front()
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    return queue_.front();
+}
+
+template <typename _Tp>
+bool SharedQueue<_Tp>::empty() const
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    return queue_.empty();
+}
+
+template <typename _Tp>
+size_t SharedQueue<_Tp>::size() const
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    return queue_.size();
+}
+
+template <typename _Tp>
+void SharedQueue<_Tp>::push(const _Tp& value)
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    queue_.push(value);
+}
+
+template <typename _Tp>
+void SharedQueue<_Tp>::push(_Tp&& value)
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    queue_.push(value);
+}
+
+template <typename _Tp>
+template <typename... _Args>
+void SharedQueue<_Tp>::emplace(_Args&&... __args)
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    queue_.emplace(std::forward<_Args>(__args)...);
+}
+
+template <typename _Tp>
+void SharedQueue<_Tp>::pop()
+{
+    std::unique_lock<std::mutex> mlock(mtx_);
+    queue_.pop();
+}
+
+}  // namespace cv
 #endif
