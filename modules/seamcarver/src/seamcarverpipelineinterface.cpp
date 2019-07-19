@@ -111,29 +111,7 @@ void cv::SeamCarverPipelineInterface::resetLocalVectors()
 {
     VerticalSeamCarverData* data = p_freestore_queue_->front();
 
-    // set marked pixels to false for new run
-    for (size_t row = 0; row < data->numRows_; row++)
-    {
-        for (size_t column = 0; column < data->numColumns_; column++)
-        {
-            data->markedPixels[row][column] = false;
-        }
-    }
-
-    // ensure each row's PQ has enough capacity
-    for (size_t row = 0; row < data->seamLength_; row++)
-    {
-        if (data->numSeamsToRemove_ > data->discoveredSeams[row].capacity())
-        {
-            data->discoveredSeams[row].changeCapacity(data->numSeamsToRemove_);
-        }
-
-        // reset priority queue since it could be filled from a previous run
-        if (!data->discoveredSeams[row].empty())
-        {
-            data->discoveredSeams[row].resetPriorityQueue();
-        }
-    }
+    data->resetData();
 }
 
 void cv::SeamCarverPipelineInterface::extractChannels()

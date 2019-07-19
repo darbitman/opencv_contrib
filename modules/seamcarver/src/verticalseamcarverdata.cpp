@@ -39,7 +39,47 @@
 //
 //M*/
 
-#ifndef __OPENCV_SEAMCARVER_HPP__
-#define __OPENCV_SEAMCARVER_HPP__
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-#endif  //__OPENCV_SEAMCARVER_HPP__
+cv::VerticalSeamCarverData::VerticalSeamCarverData(double marginEnergy)
+    : bNeedToInitializeLocalData(true),
+      numRows_(0),
+      numColumns_(0),
+      bottomRow_(0),
+      rightColumn_(0),
+      numColorChannels_(0),
+      seamLength_(0),
+      numSeamsToRemove_(0),
+      marginEnergy_(marginEnergy)
+{
+    posInf_ = std::numeric_limits<double>::max();
+    pPixelEnergyCalculator_ = nullptr;
+}
+
+cv::VerticalSeamCarverData::~VerticalSeamCarverData() {}
+
+void cv::VerticalSeamCarverData::resetData()
+{
+    for (size_t row = 0; row < numRows_; ++row)
+    {
+        for (size_t column = 0; column < numColumns_; ++column)
+        {
+            markedPixels[row][column] = false;
+        }
+    }
+
+    // ensure each row's PQ has enough capacity
+    for (size_t row = 0; row < seamLength_; ++row)
+    {
+        if (numSeamsToRemove_ > discoveredSeams[row].capacity())
+        {
+            discoveredSeams[row].changeCapacity(numSeamsToRemove_);
+        }
+
+        // reset priority queue since it could be filled from a previous run
+        if (!discoveredSeams[row].empty())
+        {
+            discoveredSeams[row].resetPriorityQueue();
+        }
+    }
+}

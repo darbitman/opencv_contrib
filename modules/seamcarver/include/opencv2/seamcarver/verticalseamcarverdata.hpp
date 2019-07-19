@@ -53,20 +53,11 @@ class PixelEnergyCalculator2D;
 struct CV_EXPORTS VerticalSeamCarverData
 {
 public:
-    explicit VerticalSeamCarverData(double marginEnergy = 390150.0)
-        : bNeedToInitializeLocalData(true),
-          numRows_(0),
-          numColumns_(0),
-          bottomRow_(0),
-          rightColumn_(0),
-          numColorChannels_(0),
-          seamLength_(0),
-          numSeamsToRemove_(0),
-          marginEnergy_(marginEnergy)
-    {
-        posInf_ = std::numeric_limits<double>::max();
-        pPixelEnergyCalculator_ = nullptr;
-    }
+    explicit VerticalSeamCarverData(double marginEnergy = 390150.0);
+
+    ~VerticalSeamCarverData();
+
+    void resetData();
 
     // flag if internal data structures need their memory and values initialized
     bool bNeedToInitializeLocalData;
