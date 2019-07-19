@@ -44,9 +44,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
-#include "opencv2/seamcarver/seamcarverstage.hpp"
+#include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
 #include "opencv2/seamcarver/pipelinequeuedata.hpp"
+#include "opencv2/seamcarver/seamcarverstage.hpp"
 #include "opencv2/seamcarver/sharedqueue.hpp"
 
 namespace cv
@@ -58,7 +58,7 @@ class CV_EXPORTS ComputeEnergyStage : public SeamCarverStage
 public:
     /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
     constexpr static uint32_t this_shape_id_ =
-        cv::pipelineconfigurationtype::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_0;
+        cv::PipelineConfigurationType::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_0;
 
     ComputeEnergyStage();
 

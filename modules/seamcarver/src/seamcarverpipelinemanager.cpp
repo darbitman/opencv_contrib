@@ -41,13 +41,14 @@
 
 #include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
 
+#include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
 #include "opencv2/seamcarver/pipelinequeuedata.hpp"
 #include "opencv2/seamcarver/seamcarverstage.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 cv::SeamCarverPipelineManager::SeamCarverPipelineManager(
-    cv::pipelineconfigurationtype::pipelineconfigurationtype configurationType)
+    cv::PipelineConfigurationType configurationType)
     : bPipelineStagesCreated_(false),
       bPipelineDataInitialized_(false),
       bPipelineStagesInitialized_(false),
@@ -129,12 +130,12 @@ void cv::SeamCarverPipelineManager::createPipeline()
         SeamCarverStageFactory& factory = SeamCarverStageFactory::instance();
         switch (pipelineConfigurationType_)
         {
-            case cv::pipelineconfigurationtype::VERTICAL_DEFAULT:
+            case cv::PipelineConfigurationType::VERTICAL_DEFAULT:
                 for (int32_t stage = cv::PipelineStages::STAGE_0;
                      stage < cv::PipelineStages::LAST_STAGE; ++stage)
                 {
                     pipelineStages_[stage] = factory.createStage(
-                        cv::pipelineconfigurationtype::VERTICAL_DEFAULT | stage);
+                        cv::PipelineConfigurationType::VERTICAL_DEFAULT | stage);
                 }
         }
         bPipelineStagesCreated_ = true;

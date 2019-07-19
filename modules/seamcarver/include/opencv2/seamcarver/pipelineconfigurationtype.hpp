@@ -39,35 +39,15 @@
 //
 //M*/
 
-#include "test_precomp.hpp"
+#ifndef OPENCV_SEAMCARVER_PIPELINECONFIGURATIONTYPE_HPP
+#define OPENCV_SEAMCARVER_PIPELINECONFIGURATIONTYPE_HPP
 
-#include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
-
-namespace opencv_test
+namespace cv
 {
-namespace
+enum PipelineConfigurationType
 {
-TEST(ServerCarverPipelineManager, InitializeAll)
-{
-    SeamCarverPipelineManager m(cv::PipelineConfigurationType::VERTICAL_DEFAULT);
-
-    ASSERT_EQ(m.isInitialized(), false);
-    ASSERT_EQ(m.arePipelineStagesCreated(), false);
-    ASSERT_EQ(m.isPipelineDataInitialized(), false);
-    ASSERT_EQ(m.arePipelineStagesInitialized(), false);
-    ASSERT_EQ(m.arePipelineStagesRunning(), false);
-    m.initialize();
-    ASSERT_EQ(m.isInitialized(), true);
-    ASSERT_EQ(m.arePipelineStagesCreated(), true);
-    ASSERT_EQ(m.isPipelineDataInitialized(), true);
-    ASSERT_EQ(m.arePipelineStagesInitialized(), true);
-    ASSERT_EQ(m.arePipelineStagesRunning(), false);
-
-    m.runPipelineStages();
-    ASSERT_EQ(m.arePipelineStagesRunning(), true);
-    
-    while (true)
-        ;
+    VERTICAL_DEFAULT = 0x00010000
+};
 }
-}  // namespace
-}  // namespace opencv_test
+
+#endif

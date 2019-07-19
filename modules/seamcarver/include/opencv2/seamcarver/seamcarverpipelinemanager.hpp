@@ -45,20 +45,13 @@
 #include <opencv2/core.hpp>
 #include <vector>
 
+#include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
 #include "opencv2/seamcarver/sharedqueue.hpp"
 #include "opencv2/seamcarver/pipelinestages.hpp"
 #include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
 
 namespace cv
 {
-namespace pipelineconfigurationtype
-{
-enum pipelineconfigurationtype
-{
-    VERTICAL_DEFAULT = 0x00010000
-};
-}
-
 // forward declarations
 class VerticalSeamCarverData;
 class SeamCarverStage;
@@ -72,7 +65,7 @@ class CV_EXPORTS SeamCarverPipelineManager
 {
 public:
     SeamCarverPipelineManager(
-        cv::pipelineconfigurationtype::pipelineconfigurationtype configurationType);
+        cv::PipelineConfigurationType configurationType);
 
     ~SeamCarverPipelineManager();
 
@@ -137,7 +130,7 @@ private:
     std::vector<cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>>> queues_;
     std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
 
-    cv::pipelineconfigurationtype::pipelineconfigurationtype pipelineConfigurationType_;
+    cv::PipelineConfigurationType pipelineConfigurationType_;
 };
 }  // namespace cv
 

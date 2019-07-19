@@ -39,35 +39,60 @@
 //
 //M*/
 
-#include "test_precomp.hpp"
+#ifndef OPENCV_SEAMCARVER_SEAMFINDERSTAGE_HPP
+#define OPENCV_SEAMCARVER_SEAMFINDERSTAGE_HPP
 
-#include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
+#include "opencv2/core.hpp"
 
-namespace opencv_test
+#include "opencv2/seamcarver/PipelIneConfigurationType.hpp"
+#include "opencv2/seamcarver/seamcarverstage.hpp"
+
+namespace cv
 {
-namespace
+class CV_EXPORTS SeamFinderStage : public SeamCarverStage
 {
-TEST(ServerCarverPipelineManager, InitializeAll)
-{
-    SeamCarverPipelineManager m(cv::PipelineConfigurationType::VERTICAL_DEFAULT);
+public:
+    /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
+    constexpr static uint32_t this_shape_id_ =
+        cv::PipelineConfigurationType::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_2;
 
-    ASSERT_EQ(m.isInitialized(), false);
-    ASSERT_EQ(m.arePipelineStagesCreated(), false);
-    ASSERT_EQ(m.isPipelineDataInitialized(), false);
-    ASSERT_EQ(m.arePipelineStagesInitialized(), false);
-    ASSERT_EQ(m.arePipelineStagesRunning(), false);
-    m.initialize();
-    ASSERT_EQ(m.isInitialized(), true);
-    ASSERT_EQ(m.arePipelineStagesCreated(), true);
-    ASSERT_EQ(m.isPipelineDataInitialized(), true);
-    ASSERT_EQ(m.arePipelineStagesInitialized(), true);
-    ASSERT_EQ(m.arePipelineStagesRunning(), false);
+    SeamFinderStage();
 
-    m.runPipelineStages();
-    ASSERT_EQ(m.arePipelineStagesRunning(), true);
-    
-    while (true)
-        ;
-}
-}  // namespace
-}  // namespace opencv_test
+    virtual ~SeamFinderStage();
+
+    virtual void initialize(cv::Ptr<cv::PipelineQueueData> initData) override;
+
+    virtual void runStage() override;
+
+    virtual void stopStage() override;
+
+    virtual bool isInitialized() const override;
+
+    // deleted to prevent misuse
+    SeamFinderStage(const SeamFinderStage&) = delete;
+    SeamFinderStage(SeamFinderStage&&) = delete;
+    SeamFinderStage& operator=(const SeamFinderStage&) = delete;
+    SeamFinderStage& operator=(SeamFinderStage&&) = delete;
+
+private:
+    /// initialized in the constructor
+    volatile bool bDoRunThread_;
+    volatile bool bThreadIsStopped_;
+    bool bIsInitialized_;
+
+    /// guards the bThreadIsStopped_ member
+    std::mutex status_mutex_;
+    std::unique_lock<std::mutex> status_lock_;
+
+    /// initialized in the initialize() call
+    cv::PipelineStages pipelineStage_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue_;
+
+    void runThread();
+
+    void doStopStage();
+};
+}  // namespace cv
+
+#endif
