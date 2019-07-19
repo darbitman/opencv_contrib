@@ -56,11 +56,11 @@ public:
 
     void addNewFrame(cv::Ptr<cv::Mat> image, size_t numSeamsToRemove);
 
-    cv::Ptr<cv::Mat> tryGetNextFrame();
-
     cv::Ptr<cv::Mat> getNextFrame();
 
     bool doesNewResultExist() const;
+
+    size_t getNumberOfFramesInPipeline() const;
 
     // deleted to prevent misuse
     SeamCarverPipelineInterface(const SeamCarverPipelineInterface&) = delete;
@@ -69,19 +69,17 @@ public:
     SeamCarverPipelineInterface& operator=(SeamCarverPipelineInterface&&) = delete;
 
 private:
-    void init(cv::Ptr<cv::Mat> image, size_t seamLength);
-
-    void init(size_t numRows, size_t numColumns, size_t seamLength);
-
-    void resetLocalVectors();
-
-    void extractChannels();
-
-    bool areImageDimensionsVerified() const;
-
+    /// this is where the unused data storage objects will reside
+    /// the objects are deemed unused after the result has been returned to the client
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_freestore_queue_;
+
+    /// data storage objects are placed in this queue so that processing can beging
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
+
+    /// when the data processing has been completed, the results are placed on this queue
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_result_queue_;
+
+    size_t totalFrameInPipeline_;
 };
 }  // namespace cv
 #endif

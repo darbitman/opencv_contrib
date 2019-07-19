@@ -45,6 +45,7 @@
 
 cv::SeamCarverPipelineInterface::SeamCarverPipelineInterface(
     cv::Ptr<cv::PipelineQueueData> initData)
+    : totalFrameInPipeline_(0)
 {
     p_freestore_queue_ = cv::makePtr<cv::SharedQueue<VerticalSeamCarverData*>>();
     p_input_queue_ = initData->p_input_queue;
@@ -70,13 +71,13 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
         // initialize internal data
         if (data->bNeedToInitializeLocalData)
         {
-            init(image, (size_t)image->rows);
+            data->initialize();
             break;
         }
         else
         {
             // check if image is of the same dimension as those used for internal data
-            if (areImageDimensionsVerified())
+            if (data->areImageDimensionsVerified())
             {
                 break;
             }
@@ -88,7 +89,7 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
         }
     }
 
-    // check if removing more seams than columsn available
+    // check if removing more seams than columns available
     if (numSeamsToRemove > data->numColumns_)
     {
         // TODO handle error
@@ -98,56 +99,42 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
     data->numSeamsToRemove_ = numSeamsToRemove;
 
     // reset vectors to their clean state
-    resetLocalVectors();
+    data->resetData();
 
     // separate individual color channels
-    extractChannels();
+    data->separateChannels();
 
     p_freestore_queue_->pop();
     p_input_queue_->push(data);
+    ++totalFrameInPipeline_;
 }
 
-void cv::SeamCarverPipelineInterface::resetLocalVectors()
+cv::Ptr<cv::Mat> cv::SeamCarverPipelineInterface::getNextFrame()
 {
-    VerticalSeamCarverData* data = p_freestore_queue_->front();
+    cv::Ptr<cv::Mat> frameToReturn(nullptr);
 
-    data->resetData();
+    if (!p_result_queue_->empty())
+    {
+        // swap the pointers between the result image and the nullptr-initialized frameToReturn
+        p_result_queue_->front()->savedImage.swap(frameToReturn);
+
+        // result was extracted, so remove the data storage object and put back onto the freestore
+        // queue for future use
+        p_freestore_queue_->push(p_result_queue_->front());
+
+        // removed frame from pipeline and returning to client so decrement counter
+        --totalFrameInPipeline_;
+    }
+
+    return frameToReturn;
 }
 
-void cv::SeamCarverPipelineInterface::extractChannels()
+bool cv::SeamCarverPipelineInterface::doesNewResultExist() const
 {
-    VerticalSeamCarverData* data = p_freestore_queue_->front();
-
-    data->numColorChannels_ = (size_t)data->savedImage->channels();
-
-    if (data->numColorChannels_ == 3)
-    {
-        if (data->bgr.size() != 3)
-        {
-            data->bgr.resize(3);
-        }
-
-        cv::split(*(data->savedImage), data->bgr);
-    }
-    else if (data->numColorChannels_ == 1)
-    {
-        if (data->bgr.size() != 1)
-        {
-            data->bgr.resize(1);
-        }
-
-        cv::extractChannel(*(data->savedImage), data->bgr[0], 0);
-    }
-    else
-    {
-        // TODO handle error case
-    }
+    return !p_result_queue_.empty();
 }
 
-bool cv::SeamCarverPipelineInterface::areImageDimensionsVerified() const
+size_t cv::SeamCarverPipelineInterface::getNumberOfFramesInPipeline() const
 {
-    VerticalSeamCarverData* data = p_freestore_queue_->front();
-
-    return ((size_t)data->savedImage->rows == data->numRows_ &&
-            (size_t)data->savedImage->cols == data->numColumns_);
+    return totalFrameInPipeline_;
 }

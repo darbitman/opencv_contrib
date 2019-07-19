@@ -57,7 +57,25 @@ public:
 
     ~VerticalSeamCarverData();
 
+    /*
+     * @brief reset internal data stores to their clean state
+     */
     void resetData();
+
+    /**
+     * @brief separates individual color channels and stores the result into bgr
+     */
+    void separateChannels();
+
+    /*
+     * @brief check if internal vector dimensions are the same as of the image
+     */
+    bool areImageDimensionsVerified() const;
+
+    /*
+     * @brief initialize internal data stores
+     */
+    void initialize();
 
     // flag if internal data structures need their memory and values initialized
     bool bNeedToInitializeLocalData;

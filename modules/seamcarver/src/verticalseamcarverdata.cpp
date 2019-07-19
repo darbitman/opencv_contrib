@@ -83,3 +83,67 @@ void cv::VerticalSeamCarverData::resetData()
         }
     }
 }
+
+void cv::VerticalSeamCarverData::separateChannels()
+{
+    numColorChannels_ = (size_t)savedImage->channels();
+
+    if (numColorChannels_ == 3)
+    {
+        if (bgr.size() != 3)
+        {
+            bgr.resize(3);
+        }
+
+        cv::split(*(savedImage), bgr);
+    }
+    else if (numColorChannels_ == 1)
+    {
+        if (bgr.size() != 1)
+        {
+            bgr.resize(1);
+        }
+
+        cv::extractChannel(*(savedImage), bgr[0], 0);
+    }
+    else
+    {
+        // TODO handle error case
+    }
+}
+
+bool cv::VerticalSeamCarverData::areImageDimensionsVerified() const
+{
+    return ((size_t)savedImage->rows == numRows_ &&
+            (size_t)savedImage->cols == numColumns_);
+}
+
+void cv::VerticalSeamCarverData::initialize()
+{
+    // initialize dimension variables
+    numRows_ = (size_t)savedImage->rows;
+    numColumns_ = (size_t)savedImage->cols;
+    bottomRow_ = numRows_ - 1;
+    rightColumn_ = numColumns_ - 1;
+    seamLength_ = numRows_;
+
+    // initialize vectors
+    pixelEnergy.resize(numRows_);
+    markedPixels.resize(numRows_);
+    totalEnergyTo.resize(numRows_);
+    columnTo.resize(numRows_);
+
+    for (size_t row = 0; row < numRows_; row++)
+    {
+        pixelEnergy[row].resize(numColumns_);
+        markedPixels[row].resize(numColumns_);
+        totalEnergyTo[row].resize(numColumns_);
+        columnTo[row].resize(numColumns_);
+    }
+
+    currentSeam.resize(seamLength_);
+    discoveredSeams.resize(seamLength_);
+
+    // data and vectors just set, so no need to do it again
+    bNeedToInitializeLocalData = false;
+}
