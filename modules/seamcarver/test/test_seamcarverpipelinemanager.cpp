@@ -60,6 +60,12 @@ TEST(ServerCarverPipelineManager, InitializeAll)
     ASSERT_EQ(m.isPipelineDataInitialized(), true);
     ASSERT_EQ(m.arePipelineStagesInitialized(), true);
     ASSERT_EQ(m.arePipelineStagesRunning(), false);
+
+    m.runPipelineStages();
+    ASSERT_EQ(m.arePipelineStagesRunning(), true);
+    
+    while (true)
+        ;
 }
 }  // namespace
 }  // namespace opencv_test

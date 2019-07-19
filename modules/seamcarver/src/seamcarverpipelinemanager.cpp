@@ -77,7 +77,10 @@ void cv::SeamCarverPipelineManager::runPipelineStages()
         for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
              ++stage)
         {
-            pipelineStages_[stage]->runStage();
+            if (pipelineStages_[stage] != nullptr)
+            {
+                pipelineStages_[stage]->runStage();
+            }
         }
         bArePipelineStagesRunning_ = true;
     }
@@ -179,6 +182,7 @@ void cv::SeamCarverPipelineManager::initializePipelineStages()
     }
 }
 
-cv::Ptr<cv::SeamCarverPipelineInterface> cv::SeamCarverPipelineManager::createPipelineInterface() {
+cv::Ptr<cv::SeamCarverPipelineInterface> cv::SeamCarverPipelineManager::createPipelineInterface()
+{
     return nullptr;
 }

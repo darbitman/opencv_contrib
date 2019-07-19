@@ -60,7 +60,7 @@ public:
 
     cv::Ptr<cv::Mat> getNextFrame();
 
-    bool doesNewResultExists() const;
+    bool doesNewResultExist() const;
 
     // deleted to prevent misuse
     SeamCarverPipelineInterface(const SeamCarverPipelineInterface&) = delete;
@@ -75,13 +75,13 @@ private:
 
     void resetLocalVectors();
 
-    bool areImageDimensionsVerified(cv::Ptr<cv::Mat> image) const;
+    void extractChannels();
+
+    bool areImageDimensionsVerified() const;
 
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_freestore_queue_;
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_result_queue_;
-    cv::Ptr<std::unique_lock<std::mutex>> p_input_queue_lock_;
-    cv::Ptr<std::unique_lock<std::mutex>> p_result_queue_lock_;
 };
 }  // namespace cv
 #endif

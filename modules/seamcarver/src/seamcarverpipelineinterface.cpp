@@ -40,8 +40,8 @@
 //M*/
 
 #include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
-#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 #include "opencv2/seamcarver/sharedqueue.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 cv::SeamCarverPipelineInterface::SeamCarverPipelineInterface(
     cv::Ptr<cv::PipelineQueueData> initData)
@@ -53,20 +53,123 @@ cv::SeamCarverPipelineInterface::SeamCarverPipelineInterface(
 
 cv::SeamCarverPipelineInterface::~SeamCarverPipelineInterface() {}
 
-void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t numSeamsToRemove) {
-    if (p_freestore_queue_->empty()) {
+void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t numSeamsToRemove)
+{
+    if (p_freestore_queue_->empty())
+    {
         p_freestore_queue_->push(new VerticalSeamCarverData());
     }
 
-    VerticalSeamCarverData* currentData = p_freestore_queue_->front();
-    p_freestore_queue_->pop();
+    VerticalSeamCarverData* data = p_freestore_queue_->front();
 
-    while (true) {
+    while (true)
+    {
         // copy image to internal data store
-        currentData->savedImage = cv::makePtr<cv::Mat>(*image);
+        data->savedImage = cv::makePtr<cv::Mat>(image->clone());
 
         // initialize internal data
-        
+        if (data->bNeedToInitializeLocalData)
+        {
+            init(image, (size_t)image->rows);
+            break;
+        }
+        else
+        {
+            // check if image is of the same dimension as those used for internal data
+            if (areImageDimensionsVerified())
+            {
+                break;
+            }
+            // if image dimensions are different than those of internal data, reinitialize data
+            else
+            {
+                data->bNeedToInitializeLocalData = true;
+            }
+        }
     }
 
+    // check if removing more seams than columsn available
+    if (numSeamsToRemove > data->numColumns_)
+    {
+        // TODO handle error
+    }
+
+    // set number of seams to remove this pass
+    data->numSeamsToRemove_ = numSeamsToRemove;
+
+    // reset vectors to their clean state
+    resetLocalVectors();
+
+    // separate individual color channels
+    extractChannels();
+
+    p_freestore_queue_->pop();
+    p_input_queue_->push(data);
+}
+
+void cv::SeamCarverPipelineInterface::resetLocalVectors()
+{
+    VerticalSeamCarverData* data = p_freestore_queue_->front();
+
+    // set marked pixels to false for new run
+    for (size_t row = 0; row < data->numRows_; row++)
+    {
+        for (size_t column = 0; column < data->numColumns_; column++)
+        {
+            data->markedPixels[row][column] = false;
+        }
+    }
+
+    // ensure each row's PQ has enough capacity
+    for (size_t row = 0; row < data->seamLength_; row++)
+    {
+        if (data->numSeamsToRemove_ > data->discoveredSeams[row].capacity())
+        {
+            data->discoveredSeams[row].changeCapacity(data->numSeamsToRemove_);
+        }
+
+        // reset priority queue since it could be filled from a previous run
+        if (!data->discoveredSeams[row].empty())
+        {
+            data->discoveredSeams[row].resetPriorityQueue();
+        }
+    }
+}
+
+void cv::SeamCarverPipelineInterface::extractChannels()
+{
+    VerticalSeamCarverData* data = p_freestore_queue_->front();
+
+    data->numColorChannels_ = (size_t)data->savedImage->channels();
+
+    if (data->numColorChannels_ == 3)
+    {
+        if (data->bgr.size() != 3)
+        {
+            data->bgr.resize(3);
+        }
+
+        cv::split(*(data->savedImage), data->bgr);
+    }
+    else if (data->numColorChannels_ == 1)
+    {
+        if (data->bgr.size() != 1)
+        {
+            data->bgr.resize(1);
+        }
+
+        cv::extractChannel(*(data->savedImage), data->bgr[0], 0);
+    }
+    else
+    {
+        // TODO handle error case
+    }
+}
+
+bool cv::SeamCarverPipelineInterface::areImageDimensionsVerified() const
+{
+    VerticalSeamCarverData* data = p_freestore_queue_->front();
+
+    return ((size_t)data->savedImage->rows == data->numRows_ &&
+            (size_t)data->savedImage->cols == data->numColumns_);
 }
