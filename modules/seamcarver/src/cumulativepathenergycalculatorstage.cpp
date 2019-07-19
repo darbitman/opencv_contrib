@@ -59,6 +59,19 @@ cv::CumulativePathEnergyCalculatorStage::~CumulativePathEnergyCalculatorStage()
 {
     doStopStage();
 
+    // clear the queues
+    while (!p_input_queue_->empty())
+    {
+        delete p_input_queue_->front();
+        p_input_queue_->pop();
+    }
+
+    while (!p_output_queue_->empty())
+    {
+        delete p_output_queue_->front();
+        p_output_queue_->pop();
+    }
+
     // wait for thread to finish
     while (bThreadIsStopped_ == false)
         ;
@@ -96,16 +109,6 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
 {
     bDoRunThread_ = true;
 
-    if (bThreadIsStopped_)
-    {
-        status_lock_.lock();
-        if (bThreadIsStopped_)
-        {
-            bThreadIsStopped_ = false;
-        }
-        status_lock_.unlock();
-    }
-
     while (bDoRunThread_)
     {
         if (!p_input_queue_->empty())
@@ -119,16 +122,6 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
             p_input_queue_->pop();
             p_output_queue_->push(data);
         }
-    }
-
-    while(!p_input_queue_->empty()) {
-        delete p_input_queue_->front();
-        p_input_queue_->pop();
-    }
-
-    while(!p_output_queue_->empty()) {
-        delete p_output_queue_->front();
-        p_output_queue_->pop();
     }
 
     bThreadIsStopped_ = true;

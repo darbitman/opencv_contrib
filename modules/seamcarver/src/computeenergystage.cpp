@@ -59,6 +59,19 @@ cv::ComputeEnergyStage::~ComputeEnergyStage()
 {
     doStopStage();
 
+    // clear the queues
+    while (!p_input_queue_->empty())
+    {
+        delete p_input_queue_->front();
+        p_input_queue_->pop();
+    }
+
+    while (!p_output_queue_->empty())
+    {
+        delete p_output_queue_->front();
+        p_output_queue_->pop();
+    }
+
     // wait for thread to finish
     while (bThreadIsStopped_ == false)
         ;
@@ -87,24 +100,19 @@ void cv::ComputeEnergyStage::runStage()
         if (bThreadIsStopped_)
         {
             std::thread(&cv::ComputeEnergyStage::runThread, this).detach();
+            bThreadIsStopped_ = false;
         }
         status_lock_.unlock();
     }
 }
 
+void cv::ComputeEnergyStage::stopStage() { doStopStage(); }
+
+bool cv::ComputeEnergyStage::isInitialized() const { return bIsInitialized_; }
+
 void cv::ComputeEnergyStage::runThread()
 {
     bDoRunThread_ = true;
-
-    if (bThreadIsStopped_)
-    {
-        status_lock_.lock();
-        if (bThreadIsStopped_)
-        {
-            bThreadIsStopped_ = false;
-        }
-        status_lock_.unlock();
-    }
 
     while (bDoRunThread_)
     {
@@ -121,24 +129,10 @@ void cv::ComputeEnergyStage::runThread()
         }
     }
 
-    while(!p_input_queue_->empty()) {
-        delete p_input_queue_->front();
-        p_input_queue_->pop();
-    }
-
-    while(!p_output_queue_->empty()) {
-        delete p_output_queue_->front();
-        p_output_queue_->pop();
-    }
-
     bThreadIsStopped_ = true;
 }
 
-bool cv::ComputeEnergyStage::isInitialized() const { return bIsInitialized_; }
-
 void cv::ComputeEnergyStage::doStopStage() { bDoRunThread_ = false; }
-
-void cv::ComputeEnergyStage::stopStage() { doStopStage(); }
 
 namespace
 {
