@@ -121,7 +121,7 @@ void cv::ComputeEnergyStage::runThread()
             // save the pointer for faster access
             VerticalSeamCarverData* data = p_input_queue_->front();
 
-            // TODO run the calculator
+            calculatePixelEnergy(data->savedImage, data->pixelEnergy);
 
             // move data to next queue
             p_input_queue_->pop();
@@ -133,6 +133,53 @@ void cv::ComputeEnergyStage::runThread()
 }
 
 void cv::ComputeEnergyStage::doStopStage() { bDoRunThread_ = false; }
+
+void cv::ComputeEnergyStage::calculatePixelEnergy(const cv::Ptr<const cv::Mat>& image,
+                                                  std::vector<std::vector<double>>& outPixelEnergy)
+{
+    // if more columns, split calculation into 2 operations to calculate for every row
+    if (numColumns_ >= numRows_)
+    {
+        std::thread thread1(&cv::ComputeEnergyStage::calculatePixelEnergyForEveryRow, this,
+                            std::ref(image), std::ref(outPixelEnergy), true);
+        std::thread thread2(&cv::ComputeEnergyStage::calculatePixelEnergyForEveryRow, this,
+                            std::ref(image), std::ref(outPixelEnergy), false);
+        while (!thread1.joinable())
+            ;
+        thread1.join();
+        while (!thread2.joinable())
+            ;
+        thread2.join();
+    }
+    // otherwise, if more rows, split calculation into 2 operations to calculate for every column
+    else
+    {
+        std::thread thread1(&cv::ComputeEnergyStage::calculatePixelEnergyForEveryColumn, this,
+                            std::ref(image), std::ref(outPixelEnergy), true);
+        std::thread thread2(&cv::ComputeEnergyStage::calculatePixelEnergyForEveryColumn, this,
+                            std::ref(image), std::ref(outPixelEnergy), false);
+        while (!thread1.joinable())
+            ;
+        thread1.join();
+        while (!thread2.joinable())
+            ;
+        thread2.join();
+    }
+}
+
+void cv::ComputeEnergyStage::calculatePixelEnergyForEveryRow(
+    const cv::Ptr<const cv::Mat>& image, std::vector<std::vector<double>>& outPixelEnergy,
+    bool bDoOddColumns)
+{
+    // TODO
+}
+
+void cv::ComputeEnergyStage::calculatePixelEnergyForEveryColumn(
+    const cv::Ptr<const cv::Mat>& image, std::vector<std::vector<double>>& outPixelEnergy,
+    bool bDoOddRows)
+{
+    // TODO
+}
 
 namespace
 {

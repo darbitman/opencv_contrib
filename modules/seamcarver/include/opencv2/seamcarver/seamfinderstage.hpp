@@ -49,6 +49,8 @@
 
 namespace cv
 {
+class VerticalSeamCarverData;
+
 class CV_EXPORTS SeamFinderStage : public SeamCarverStage
 {
 public:
@@ -92,6 +94,8 @@ private:
     void runThread();
 
     void doStopStage();
+
+    void findSeams(VerticalSeamCarverData* data);
 };
 }  // namespace cv
 

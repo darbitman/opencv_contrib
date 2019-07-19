@@ -93,9 +93,27 @@ private:
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue_;
 
+    // image dimensions
+    size_t numRows_;
+    size_t numColumns_;
+    size_t bottomRow_;
+    size_t rightColumn_;
+    size_t numColorChannels_;
+
     void runThread();
 
     void doStopStage();
+
+    void calculatePixelEnergy(const cv::Ptr<const cv::Mat>& image,
+                              std::vector<std::vector<double>>& outPixelEnergy);
+
+    void calculatePixelEnergyForEveryRow(const cv::Ptr<const cv::Mat>& image,
+                                         std::vector<std::vector<double>>& outPixelEnergy,
+                                         bool bDoOddColumns);
+
+    void calculatePixelEnergyForEveryColumn(const cv::Ptr<const cv::Mat>& image,
+                                            std::vector<std::vector<double>>& outPixelEnergy,
+                                            bool bDoOddRows);
 };
 }  // namespace cv
 

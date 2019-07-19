@@ -53,7 +53,6 @@ cv::VerticalSeamCarverData::VerticalSeamCarverData(double marginEnergy)
       marginEnergy_(marginEnergy)
 {
     posInf_ = std::numeric_limits<double>::max();
-    pPixelEnergyCalculator_ = nullptr;
 }
 
 cv::VerticalSeamCarverData::~VerticalSeamCarverData() {}

@@ -100,6 +100,7 @@ void cv::CumulativePathEnergyCalculatorStage::runStage()
         if (bThreadIsStopped_)
         {
             std::thread(&cv::CumulativePathEnergyCalculatorStage::runThread, this).detach();
+            bThreadIsStopped_ = false;
         }
         status_lock_.unlock();
     }

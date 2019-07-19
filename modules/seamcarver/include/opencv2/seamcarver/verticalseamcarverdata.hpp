@@ -120,9 +120,6 @@ public:
     // number of seams to remove (updated every run)
     size_t numSeamsToRemove_;
 
-    // pointer to an object that calculates pixel energy
-    cv::Ptr<PixelEnergyCalculator2D> pPixelEnergyCalculator_;
-
     // default energy at the borders of the image
     const double marginEnergy_;
 
