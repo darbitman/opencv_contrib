@@ -44,7 +44,7 @@
 
 #include "opencv2/core.hpp"
 
-#include "opencv2/seamcarver/PipelIneConfigurationType.hpp"
+#include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
 #include "opencv2/seamcarver/seamcarverstage.hpp"
 
 namespace cv
