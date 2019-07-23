@@ -156,8 +156,6 @@ void cv::SeamCarverPipelineManager::initializePipelineData()
             queues_[stage] = cv::makePtr<cv::SharedQueue<VerticalSeamCarverData*>>();
         }
 
-        // create initial storage data
-        queues_[cv::PipelineStages::STAGE_0]->push(new VerticalSeamCarverData());
         bPipelineDataInitialized_ = true;
     }
 }

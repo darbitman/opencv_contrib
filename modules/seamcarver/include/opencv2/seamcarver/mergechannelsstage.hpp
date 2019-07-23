@@ -39,8 +39,8 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SEAMREMOVERSTAGE_HPP
-#define OPENCV_SEAMCARVER_SEAMREMOVERSTAGE_HPP
+#ifndef OPENCV_SEAMCARVER_MERGECHANNELSSTAGE_HPP
+#define OPENCV_SEAMCARVER_MERGECHANNELSSTAGE_HPP
 
 #include <opencv2/core.hpp>
 
@@ -49,16 +49,16 @@
 
 namespace cv
 {
-class CV_EXPORTS SeamRemoverStage : public SeamCarverStage
+class CV_EXPORTS MergeChannelsStage : public SeamCarverStage
 {
 public:
     /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
     constexpr static uint32_t this_shape_id_ =
-        cv::PipelineConfigurationType::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_3;
+        cv::PipelineConfigurationType::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_4;
 
-    SeamRemoverStage();
+    MergeChannelsStage();
 
-    virtual ~SeamRemoverStage();
+    virtual ~MergeChannelsStage();
 
     virtual void initialize(cv::Ptr<cv::PipelineQueueData> initData) override;
 
@@ -69,10 +69,10 @@ public:
     virtual bool isInitialized() const override;
 
     // deleted to prevent misuse
-    SeamRemoverStage(const SeamRemoverStage&) = delete;
-    SeamRemoverStage(SeamRemoverStage&&) = delete;
-    SeamRemoverStage& operator=(const SeamRemoverStage&) = delete;
-    SeamRemoverStage& operator=(SeamRemoverStage&&) = delete;
+    MergeChannelsStage(const MergeChannelsStage&) = delete;
+    MergeChannelsStage(MergeChannelsStage&&) = delete;
+    MergeChannelsStage& operator=(const MergeChannelsStage&) = delete;
+    MergeChannelsStage& operator=(MergeChannelsStage&&) = delete;
 
 private:
     /// initialized in the constructor
@@ -93,7 +93,7 @@ private:
 
     void doStopStage();
 
-    void removeSeams(VerticalSeamCarverData* data);
+    void mergeChannels(VerticalSeamCarverData* data);
 };
 }  // namespace cv
 
