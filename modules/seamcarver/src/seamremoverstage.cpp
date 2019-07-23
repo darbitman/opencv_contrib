@@ -2,6 +2,10 @@
 
 #include <thread>
 
+#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
+#include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
+
 cv::SeamRemoverStage::SeamRemoverStage()
     : bDoRunThread_(false),
       bThreadIsStopped_(true),
@@ -68,3 +72,10 @@ void cv::SeamRemoverStage::runThread()
 }
 
 void cv::SeamRemoverStage::doStopStage() { bDoRunThread_ = false; }
+
+namespace
+{
+cv::SeamCarverStageFactoryRegistration registerstage(cv::SeamRemoverStage::this_shape_id_, []() {
+    return static_cast<cv::SeamCarverStage*>(new cv::SeamRemoverStage());
+});
+}  // namespace
