@@ -75,6 +75,23 @@ public:
     SeamRemoverStage& operator=(SeamRemoverStage&&) = delete;
 
 private:
+    /// initialized in the constructor
+    volatile bool bDoRunThread_;
+    volatile bool bThreadIsStopped_;
+    bool bIsInitialized_;
+
+    /// guards the bThreadIsStopped_ member
+    std::mutex status_mutex_;
+    std::unique_lock<std::mutex> status_lock_;
+
+    /// initialized in the initialize() call
+    cv::PipelineStages pipelineStage_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue_;
+
+    void runThread();
+
+    void doStopStage();
 };
 }  // namespace cv
 
