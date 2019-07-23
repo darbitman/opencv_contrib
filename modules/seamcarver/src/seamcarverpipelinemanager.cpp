@@ -43,6 +43,7 @@
 
 #include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
 #include "opencv2/seamcarver/pipelinequeuedata.hpp"
+#include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
 #include "opencv2/seamcarver/seamcarverstage.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
@@ -183,5 +184,12 @@ void cv::SeamCarverPipelineManager::initializePipelineStages()
 
 cv::Ptr<cv::SeamCarverPipelineInterface> cv::SeamCarverPipelineManager::createPipelineInterface()
 {
-    return nullptr;
+    cv::Ptr<cv::PipelineQueueData> pNewData = std::make_shared<cv::PipelineQueueData>();
+    pNewData->p_input_queue = queues_[PipelineStages::STAGE_0];
+    pNewData->p_output_queue = queues_[PipelineStages::LAST_STAGE];
+
+    cv::Ptr<cv::SeamCarverPipelineInterface> pPipelineInterface =
+        std::make_shared<cv::SeamCarverPipelineInterface>(pNewData);
+
+    return pPipelineInterface;
 }
