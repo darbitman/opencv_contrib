@@ -46,9 +46,10 @@
 #include <vector>
 
 #include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
-#include "opencv2/seamcarver/sharedqueue.hpp"
 #include "opencv2/seamcarver/pipelinestages.hpp"
 #include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
+#include "opencv2/seamcarver/seamcarverqueuemanager.hpp"
+#include "opencv2/seamcarver/sharedqueue.hpp"
 
 namespace cv
 {
@@ -56,27 +57,39 @@ namespace cv
 class VerticalSeamCarverData;
 class SeamCarverStage;
 
-/// Client calls the contructor with the configuration type
+/// Client calls the contructor with cv::PipelineConfigurationType
 /// Client then makes the following calls to START the pipeline
 ///     1. Call initialize() to initialize the stages
+///
 ///     2. Call runPipelineStages
-///     3. Call createPipelineInterface()
+///
+///     3. Call createPipelineInterface() to get a SeamCarverPipelineInterface which allows the
+///     client to insert new frames into the pipeline for processing
+///
+///     4. Use the SeamCarverPipelineInterface object to add new frames for processing and to get
+///     the results
+///
+/// Client can call addNewPipelineStage() to add an additional stage to speed up processing multiple
+/// frames in parallel Can only be called after the pipeline has been initialized
 class CV_EXPORTS SeamCarverPipelineManager
 {
 public:
-    SeamCarverPipelineManager(
-        cv::PipelineConfigurationType configurationType);
+    SeamCarverPipelineManager(cv::PipelineConfigurationType configurationType);
 
     ~SeamCarverPipelineManager();
 
     /// initialize the pipeline
     void initialize();
 
-    /// start the pipeline
-    void runPipelineStages();
-
     /// create the interface to the pipeline
     cv::Ptr<cv::SeamCarverPipelineInterface> createPipelineInterface();
+
+    /// add new pipeline stage to add additional parallel processing
+    /// can only be called after initialize() has been called
+    bool addNewPipelineStage(cv::PipelineStages stage);
+
+    /// start the pipeline
+    void runPipelineStages();
 
     /// stop the pipeline
     void stopPipelineStages();
@@ -87,8 +100,8 @@ public:
     /// have the pipeline stages been created
     bool arePipelineStagesCreated() const;
 
-    /// has the pipeline data (queues, locks) been created
-    bool isPipelineDataInitialized() const;
+    /// have the pipeline queues been created
+    bool arePipelineQueuesCreated() const;
 
     /// are the pipeline stages initialized
     bool arePipelineStagesInitialized() const;
@@ -106,8 +119,8 @@ private:
     /// have the pipeline stages been created
     bool bPipelineStagesCreated_;
 
-    /// have the pipeline queues and locks been initialized
-    bool bPipelineDataInitialized_;
+    /// have the pipeline queues been created
+    bool bPipelineQueuesCreated_;
 
     /// have the pipeline stages been started
     bool bPipelineStagesInitialized_;
@@ -119,16 +132,19 @@ private:
     bool bArePipelineStagesRunning_;
 
     /// create pipeline stages
-    void createPipeline();
+    void createPipelineStages();
 
-    /// create queues, locks and local storage data for first frame
-    void initializePipelineData();
+    /// create queues
+    void createPipelineQueues();
 
     /// pass the queues and locks to the stages and start each stage's execution
     void initializePipelineStages();
 
+    SeamCarverQueueManager queue_manager;
+
     std::vector<cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>>> queues_;
-    std::vector<cv::Ptr<SeamCarverStage>> pipelineStages_;
+
+    std::vector<std::vector<cv::Ptr<SeamCarverStage>>> pipelineStages_;
 
     cv::PipelineConfigurationType pipelineConfigurationType_;
 };

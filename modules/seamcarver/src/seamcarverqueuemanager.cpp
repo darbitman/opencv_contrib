@@ -39,103 +39,49 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
-#define OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
+#include "opencv2/seamcarver/seamcarverqueuemanager.hpp"
 
-#include <mutex>
-#include <queue>
+#include <map>
+#include <opencv2/core.hpp>
+#include <vector>
 
-namespace cv
+#include "opencv2/seamcarver/sharedqueue.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
+
+cv::SeamCarverQueueManager::SeamCarverQueueManager() : b_mgr_initialized_(false) {}
+
+cv::SeamCarverQueueManager::~SeamCarverQueueManager() {}
+
+void cv::SeamCarverQueueManager::initialize(const std::vector<int32_t>& queue_ids)
 {
-template <typename _Tp>
-class SharedQueue
-{
-public:
-    SharedQueue();
-
-    ~SharedQueue();
-
-    _Tp& front();
-
-    bool empty() const;
-
-    size_t size() const;
-
-    void push(const _Tp& value);
-
-    void push(_Tp&& value);
-
-    template <typename... _Args>
-    void emplace(_Args&&... __args);
-
-    _Tp& pop();
-
-private:
-    mutable std::mutex mtx_;
-    std::queue<_Tp> queue_;
-};
-
-template <typename _Tp>
-SharedQueue<_Tp>::SharedQueue()
-{
+    if (!b_mgr_initialized_)
+    {
+        for (size_t i = 0; i < queue_ids.size(); ++i)
+        {
+            // only map UNIQUE IDs so make sure the id doesn't already exist
+            if (id_to_queue_map_.count(queue_ids[i]) == 0)
+            {
+                id_to_queue_map_[queue_ids[i]] =
+                    cv::makePtr<cv::SharedQueue<cv::VerticalSeamCarverData*>>();
+            }
+        }
+        b_mgr_initialized_ = true;
+    }
 }
 
-template <typename _Tp>
-SharedQueue<_Tp>::~SharedQueue()
+bool cv::SeamCarverQueueManager::isInitialized() const { return b_mgr_initialized_; }
+
+cv::Ptr<cv::SharedQueue<cv::VerticalSeamCarverData*>> cv::SeamCarverQueueManager::getQueue(
+    int32_t queue_id) const
 {
+    if (id_to_queue_map_.count(queue_id) > 0)
+    {
+        return id_to_queue_map_.at(queue_id);
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
-template <typename _Tp>
-_Tp& SharedQueue<_Tp>::front()
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.front();
-}
-
-template <typename _Tp>
-bool SharedQueue<_Tp>::empty() const
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.empty();
-}
-
-template <typename _Tp>
-size_t SharedQueue<_Tp>::size() const
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.size();
-}
-
-template <typename _Tp>
-void SharedQueue<_Tp>::push(const _Tp& value)
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.push(value);
-}
-
-template <typename _Tp>
-void SharedQueue<_Tp>::push(_Tp&& value)
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.push(value);
-}
-
-template <typename _Tp>
-template <typename... _Args>
-void SharedQueue<_Tp>::emplace(_Args&&... __args)
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.emplace(std::forward<_Args>(__args)...);
-}
-
-template <typename _Tp>
-_Tp& SharedQueue<_Tp>::pop()
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    _Tp& to_return = queue_.front();
-    queue_.pop();
-    return to_return;
-}
-
-}  // namespace cv
-#endif
+size_t cv::SeamCarverQueueManager::getNumberOfQueues() const { return id_to_queue_map_.size(); }

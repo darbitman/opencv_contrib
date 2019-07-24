@@ -46,24 +46,30 @@ namespace cv
 {
 enum PipelineStages
 {
-    // compute energy
+    /// compute energy
     STAGE_0 = 0,
-    // calculate cumulative path energy
+
+    /// calculate cumulative path energy
     STAGE_1 = 1,
-    // find seams
+
+    /// find seams
     STAGE_2 = 2,
-    // remove seams
+
+    /// remove seams
     STAGE_3 = 3,
-    // merge channels
+
+    /// merge channels
     STAGE_4 = 4,
-    // output stage (for client to get result) also the number of COMPUTE stages
+
+    /// output stage (for client to get result) also the number of COMPUTE stages
     LAST_STAGE = 5,
-    // the number of QUEUES (1 more than number of COMPUTE stages)
-    // EXAMPLE:
-    // 0   1   2   3
-    // Q C Q C Q C Q
-    //   0   1   2
-    // there's 4 queues, and 3 compute stages
+
+    /// the number of QUEUES (1 more than number of COMPUTE stages)
+    /// EXAMPLE:
+    /// 0   1   2   3
+    /// Q C Q C Q C Q
+    ///   0   1   2
+    /// there's 4 queues, and 3 compute stages
     NUM_STAGES
 };
 }  // namespace cv

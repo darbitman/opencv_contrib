@@ -23,12 +23,14 @@ void cv::SeamCarverStageFactory::registerNewStage(uint32_t stage_id, createStage
 
 cv::Ptr<cv::SeamCarverStage> cv::SeamCarverStageFactory::createStage(uint32_t stage_id)
 {
-    cv::Ptr<cv::SeamCarverStage> p_new_stage;
+    cv::Ptr<cv::SeamCarverStage> p_new_stage(nullptr);
+
     if (stage_id_to_createstagefunc_map_.count(stage_id) > 0)
     {
         cv::SeamCarverStageFactory::createStageFunction function =
             stage_id_to_createstagefunc_map_[stage_id];
         p_new_stage.reset(function());
     }
+
     return p_new_stage;
 }

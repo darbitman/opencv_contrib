@@ -39,103 +39,45 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
-#define OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
+#ifndef OPENCV_SEAMCARVER_SEAMCARVERQUEUEMANAGER_HPP
+#define OPENCV_SEAMCARVER_SEAMCARVERQUEUEMANAGER_HPP
 
-#include <mutex>
-#include <queue>
+#include <map>
+#include <opencv2/core.hpp>
+#include <vector>
+
+#include "opencv2/seamcarver/sharedqueue.hpp"
 
 namespace cv
 {
-template <typename _Tp>
-class SharedQueue
+class VerticalSeamCarverData;
+
+class SeamCarverQueueManager
 {
 public:
-    SharedQueue();
+    SeamCarverQueueManager();
 
-    ~SharedQueue();
+    ~SeamCarverQueueManager();
 
-    _Tp& front();
+    void initialize(const std::vector<int32_t>& queue_ids);
 
-    bool empty() const;
+    bool isInitialized() const;
 
-    size_t size() const;
+    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> getQueue(int32_t queue_id) const;
 
-    void push(const _Tp& value);
+    size_t getNumberOfQueues() const;
 
-    void push(_Tp&& value);
-
-    template <typename... _Args>
-    void emplace(_Args&&... __args);
-
-    _Tp& pop();
+    // deleted to prevent misuse
+    SeamCarverQueueManager(const SeamCarverQueueManager&) = delete;
+    SeamCarverQueueManager(const SeamCarverQueueManager&&) = delete;
+    SeamCarverQueueManager& operator=(const SeamCarverQueueManager&) = delete;
+    SeamCarverQueueManager& operator=(const SeamCarverQueueManager&&) = delete;
 
 private:
-    mutable std::mutex mtx_;
-    std::queue<_Tp> queue_;
+    bool b_mgr_initialized_;
+
+    std::map<int32_t, cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>>> id_to_queue_map_;
 };
-
-template <typename _Tp>
-SharedQueue<_Tp>::SharedQueue()
-{
-}
-
-template <typename _Tp>
-SharedQueue<_Tp>::~SharedQueue()
-{
-}
-
-template <typename _Tp>
-_Tp& SharedQueue<_Tp>::front()
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.front();
-}
-
-template <typename _Tp>
-bool SharedQueue<_Tp>::empty() const
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.empty();
-}
-
-template <typename _Tp>
-size_t SharedQueue<_Tp>::size() const
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.size();
-}
-
-template <typename _Tp>
-void SharedQueue<_Tp>::push(const _Tp& value)
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.push(value);
-}
-
-template <typename _Tp>
-void SharedQueue<_Tp>::push(_Tp&& value)
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.push(value);
-}
-
-template <typename _Tp>
-template <typename... _Args>
-void SharedQueue<_Tp>::emplace(_Args&&... __args)
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.emplace(std::forward<_Args>(__args)...);
-}
-
-template <typename _Tp>
-_Tp& SharedQueue<_Tp>::pop()
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    _Tp& to_return = queue_.front();
-    queue_.pop();
-    return to_return;
-}
-
 }  // namespace cv
+
 #endif
