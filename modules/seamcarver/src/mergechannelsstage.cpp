@@ -58,12 +58,12 @@ void cv::MergeChannelsStage::runThread()
         if (!p_input_queue_->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = p_input_queue_->front();
+            VerticalSeamCarverData* data = p_input_queue_->getNext();
 
             mergeChannels(data);
 
             // move data to next queue
-            p_input_queue_->pop();
+            p_input_queue_->removeNext();
             p_output_queue_->push(data);
         }
     }

@@ -39,32 +39,32 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_CONSTSIZEMINPRIORITYQUEUE_HPP
-#define OPENCV_SEAMCARVER_CONSTSIZEMINPRIORITYQUEUE_HPP
+#ifndef OPENCV_SEAMCARVER_CONSTSIZEPRIORITYQUEUE_HPP
+#define OPENCV_SEAMCARVER_CONSTSIZEPRIORITYQUEUE_HPP
 
 #include "priorityqueue.hpp"
 
 namespace cv
 {
-template <typename _Tp>
-class CV_EXPORTS ConstSizeMinPriorityQueue : public PriorityQueue<_Tp>
+template <typename _Tp, typename _ComparatorType = std::less<_Tp>>
+class CV_EXPORTS ConstSizePriorityQueue : public PriorityQueue<_Tp>
 {
 public:
     /**
-     * @brief initialize min oriented binary heap
+     * @brief initialize  oriented binary heap
      * @param capacity maximum number of elements
      */
-    explicit ConstSizeMinPriorityQueue(size_t capacity);
+    explicit ConstSizePriorityQueue(size_t capacity);
 
     /**
      * @brief default ctor
      */
-    ConstSizeMinPriorityQueue();
+    ConstSizePriorityQueue();
 
     /**
      * @brief deallocate memory
      */
-    virtual ~ConstSizeMinPriorityQueue();
+    virtual ~ConstSizePriorityQueue();
 
     /**
      * @brief change capacity and reset priority queue
@@ -81,19 +81,24 @@ public:
      * @brief insert new element
      * @param element: element to insert
      */
-    virtual void push(_Tp element) override;
+    virtual void push(const _Tp& element) override;
 
     /**
-     * @brief remove top (minimum) element and return it
-     * @return minimum element
+     * @brief insert new element into priority queue
+     * @param newElement: new element to insert
      */
-    virtual _Tp pop() override;
+    virtual void push(_Tp&& element) override;
 
     /**
-     * @brief return the top (minimum) element without deleting it
-     * @return minimum element
+     * @brief remove top (imum) element
      */
-    virtual _Tp top() const override;
+    virtual void pop() override;
+
+    /**
+     * @brief return the top (imum) element without deleting it
+     * @return const _Tp&: const reference to the imum element
+     */
+    virtual const _Tp& top() const override;
 
     /**
      * @brief return the number of elements in the queue
@@ -114,13 +119,16 @@ public:
     virtual bool empty() const override;
 
     // default/deleted
-    ConstSizeMinPriorityQueue(ConstSizeMinPriorityQueue<_Tp>& rhs) = delete;
-    ConstSizeMinPriorityQueue(ConstSizeMinPriorityQueue<_Tp>&& rhs) = default;
-    virtual ConstSizeMinPriorityQueue operator=(const ConstSizeMinPriorityQueue<_Tp>& rhs) = delete;
-    virtual ConstSizeMinPriorityQueue operator=(const ConstSizeMinPriorityQueue<_Tp>&& rhs) =
-        delete;
+    ConstSizePriorityQueue(ConstSizePriorityQueue<_Tp, _ComparatorType>& rhs) = delete;
+    ConstSizePriorityQueue(ConstSizePriorityQueue<_Tp, _ComparatorType>&& rhs) = default;
+    virtual ConstSizePriorityQueue operator=(
+        const ConstSizePriorityQueue<_Tp, _ComparatorType>& rhs) = delete;
+    virtual ConstSizePriorityQueue operator=(
+        const ConstSizePriorityQueue<_Tp, _ComparatorType>&& rhs) = delete;
 
 protected:
+    _ComparatorType comparator;
+
     /**
      * @brief promote element k if less than its parent
      * @param k: index of element to promote
@@ -150,13 +158,14 @@ protected:
     std::vector<_Tp> heap_;
 };
 
-template <typename _Tp>
-ConstSizeMinPriorityQueue<_Tp>::ConstSizeMinPriorityQueue(size_t capacity) : capacity_(capacity)
+template <typename _Tp, typename _ComparatorType>
+ConstSizePriorityQueue<_Tp, _ComparatorType>::ConstSizePriorityQueue(size_t capacity)
+    : capacity_(capacity)
 {
     // make sure allocating a heap of at least 1 element
     if (capacity_ == 0)
     {
-        CV_Error(Error::Code::StsBadArg, "MinPQ bad capacity argument");
+        CV_Error(Error::Code::StsBadArg, "PQ bad capacity argument");
     }
     else
     {
@@ -166,18 +175,18 @@ ConstSizeMinPriorityQueue<_Tp>::ConstSizeMinPriorityQueue(size_t capacity) : cap
     }
 }
 
-template <typename _Tp>
-ConstSizeMinPriorityQueue<_Tp>::ConstSizeMinPriorityQueue()
+template <typename _Tp, typename _ComparatorType>
+ConstSizePriorityQueue<_Tp, _ComparatorType>::ConstSizePriorityQueue()
 {
 }
 
-template <typename _Tp>
-ConstSizeMinPriorityQueue<_Tp>::~ConstSizeMinPriorityQueue()
+template <typename _Tp, typename _ComparatorType>
+ConstSizePriorityQueue<_Tp, _ComparatorType>::~ConstSizePriorityQueue()
 {
 }
 
-template <typename _Tp>
-void ConstSizeMinPriorityQueue<_Tp>::changeCapacity(size_t newCapacity)
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::changeCapacity(size_t newCapacity)
 {
     // only need to change capacity if increasing size
     if (newCapacity > capacity_)
@@ -189,14 +198,14 @@ void ConstSizeMinPriorityQueue<_Tp>::changeCapacity(size_t newCapacity)
     resetPriorityQueue();
 }
 
-template <typename _Tp>
-inline void ConstSizeMinPriorityQueue<_Tp>::resetPriorityQueue()
+template <typename _Tp, typename _ComparatorType>
+inline void ConstSizePriorityQueue<_Tp, _ComparatorType>::resetPriorityQueue()
 {
     N_ = 0;
 }
 
-template <typename _Tp>
-void ConstSizeMinPriorityQueue<_Tp>::push(_Tp element)
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::push(const _Tp& element)
 {
     // verify that capacity is non-zero
     // check if queue full
@@ -215,8 +224,28 @@ void ConstSizeMinPriorityQueue<_Tp>::push(_Tp element)
     }
 }
 
-template <typename _Tp>
-_Tp ConstSizeMinPriorityQueue<_Tp>::pop()
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::push(_Tp&& element)
+{
+    // verify that capacity is non-zero
+    // check if queue full
+    if (capacity_ == 0 || heap_.size() == 0)
+    {
+        CV_Error(Error::Code::StsInternal, "push() failed due to zero capacity");
+    }
+    else if (N_ >= capacity_)
+    {
+        CV_Error(Error::Code::StsInternal, "push() failed due to full PQ");
+    }
+    else
+    {
+        heap_[++N_] = element;
+        swim(N_);
+    }
+}
+
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::pop()
 {
     // verify there's a valid item to return
     if (N_ == 0)
@@ -224,17 +253,14 @@ _Tp ConstSizeMinPriorityQueue<_Tp>::pop()
         CV_Error(Error::Code::StsInternal, "pop() failed because PQ is empty");
     }
 
-    // save root element
-    _Tp min = heap_[1];
     // swap root element and last element
     exch(1, N_--);
     // demote root to reorder heap
     sink(1);
-    return min;
 }
 
-template <typename _Tp>
-_Tp ConstSizeMinPriorityQueue<_Tp>::top() const
+template <typename _Tp, typename _ComparatorType>
+const _Tp& ConstSizePriorityQueue<_Tp, _ComparatorType>::top() const
 {
     if (N_ == 0)
     {
@@ -244,50 +270,50 @@ _Tp ConstSizeMinPriorityQueue<_Tp>::top() const
     return heap_[1];
 }
 
-template <typename _Tp>
-size_t ConstSizeMinPriorityQueue<_Tp>::size() const
+template <typename _Tp, typename _ComparatorType>
+size_t ConstSizePriorityQueue<_Tp, _ComparatorType>::size() const
 {
     return N_;
 }
 
-template <typename _Tp>
-size_t ConstSizeMinPriorityQueue<_Tp>::capacity() const
+template <typename _Tp, typename _ComparatorType>
+size_t ConstSizePriorityQueue<_Tp, _ComparatorType>::capacity() const
 {
     return capacity_;
 }
 
-template <typename _Tp>
-bool ConstSizeMinPriorityQueue<_Tp>::empty() const
+template <typename _Tp, typename _ComparatorType>
+bool ConstSizePriorityQueue<_Tp, _ComparatorType>::empty() const
 {
     return N_ == 0;
 }
 
-template <typename _Tp>
-void ConstSizeMinPriorityQueue<_Tp>::swim(uint32_t k)
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::swim(uint32_t k)
 {
     // check if we're not at root node and if child is less than parent
     // if so, swap the elements
-    while (k > 1 && (heap_[k] < heap_[k / 2]))
+    while (k > 1 && comparator(heap_[k], heap_[k / 2]))
     {
         exch(k, k / 2);
         k = k / 2;
     }
 }
 
-template <typename _Tp>
-void ConstSizeMinPriorityQueue<_Tp>::sink(uint32_t k)
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::sink(uint32_t k)
 {
     while (2 * k <= N_)
     {
         uint32_t j = 2 * k;
         // check if left child is greater than right child
         // if so, increment j to point to right child
-        if (j < N_ && (heap_[j] > heap_[j + 1]))
+        if (j < N_ && comparator(heap_[j + 1], heap_[j]))
         {
             j++;
         }
         // if parent is less than the smallest child, don't need to do anything
-        if (heap_[k] < heap_[j])
+        if (comparator(heap_[k], heap_[j]))
         {
             break;
         }
@@ -297,8 +323,8 @@ void ConstSizeMinPriorityQueue<_Tp>::sink(uint32_t k)
     }
 }
 
-template <typename _Tp>
-void ConstSizeMinPriorityQueue<_Tp>::exch(uint32_t j, uint32_t k)
+template <typename _Tp, typename _ComparatorType>
+void ConstSizePriorityQueue<_Tp, _ComparatorType>::exch(uint32_t j, uint32_t k)
 {
     _Tp swap = heap_[j];
     heap_[j] = heap_[k];

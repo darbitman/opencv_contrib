@@ -61,7 +61,7 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
         p_freestore_queue_->push(new VerticalSeamCarverData());
     }
 
-    VerticalSeamCarverData* data = p_freestore_queue_->front();
+    VerticalSeamCarverData* data = p_freestore_queue_->getNext();
 
     while (true)
     {
@@ -104,7 +104,7 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
     // separate individual color channels
     data->separateChannels();
 
-    p_freestore_queue_->pop();
+    p_freestore_queue_->removeNext();
     p_input_queue_->push(data);
     ++totalFrameInPipeline_;
 }
@@ -116,11 +116,11 @@ cv::Ptr<cv::Mat> cv::SeamCarverPipelineInterface::getNextFrame()
     if (!p_result_queue_->empty())
     {
         // swap the pointers between the result image and the nullptr-initialized frameToReturn
-        p_result_queue_->front()->savedImage.swap(frameToReturn);
+        p_result_queue_->getNext()->savedImage.swap(frameToReturn);
 
         // result was extracted, so remove the data storage object and put back onto the freestore
         // queue for future use
-        p_freestore_queue_->push(p_result_queue_->front());
+        p_freestore_queue_->push(p_result_queue_->getNext());
 
         // removed frame from pipeline and returning to client so decrement counter
         --totalFrameInPipeline_;

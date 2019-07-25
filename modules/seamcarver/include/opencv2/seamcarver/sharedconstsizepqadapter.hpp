@@ -39,103 +39,93 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
-#define OPENCV_SEAMCARVER_SHAREDQUEUE_HPP
+#ifndef OPENCV_SEAMCARVER_SHAREDCONSTSIZEPQADAPTER_HPP
+#define OPENCV_SEAMCARVER_SHAREDCONSTSIZEPQADAPTER_HPP
 
+#include <memory>
 #include <mutex>
+#include <opencv2/core.hpp>
 #include <queue>
 
+#include "constsizepriorityqueue.hpp"
 #include "sharedcontainer.hpp"
 
 namespace cv
 {
-template <typename _Tp>
-class CV_EXPORTS SharedQueue : public SharedContainer<_Tp>
+template <typename _Tp, typename _ComparatorType = std::less<_Tp>>
+class CV_EXPORTS SharedConstSizePQAdapter : public SharedContainer<_Tp>
 {
 public:
-    SharedQueue();
+    SharedConstSizePQAdapter(
+        std::shared_ptr<ConstSizePriorityQueue<_Tp, _ComparatorType>> pConstSizePQ);
 
-    virtual ~SharedQueue();
+    ~SharedConstSizePQAdapter();
 
-    virtual _Tp& getNext() override;
+    _Tp& getNext() override;
 
-    virtual bool empty() const override;
+    bool empty() const override;
 
-    virtual size_t size() const override;
+    size_t size() const override;
 
-    virtual void push(const _Tp& value) override;
+    void push(const _Tp& value) override;
 
-    virtual void push(_Tp&& value) override;
+    void push(_Tp&& value) override;
 
-    template <typename... _Args>
-    void emplace(_Args&&... __args);
-
-    virtual void removeNext() override;
+    void removeNext() override;
 
 private:
-    mutable std::mutex mtx_;
-    std::queue<_Tp> queue_;
+    std::shared_ptr<ConstSizePriorityQueue<_Tp>> pConstSizeMinPQ_;
 };
 
-template <typename _Tp>
-SharedQueue<_Tp>::SharedQueue()
+template <typename _Tp, typename _ComparatorType>
+SharedConstSizePQAdapter<_Tp, _ComparatorType>::SharedConstSizePQAdapter(
+    std::shared_ptr<ConstSizePriorityQueue<_Tp, _ComparatorType>> pConstSizePQ)
+    : pConstSizeMinPQ_(pConstSizePQ)
 {
 }
 
-template <typename _Tp>
-SharedQueue<_Tp>::~SharedQueue()
+template <typename _Tp, typename _ComparatorType>
+SharedConstSizePQAdapter<_Tp, _ComparatorType>::~SharedConstSizePQAdapter()
 {
 }
 
-template <typename _Tp>
-_Tp& SharedQueue<_Tp>::getNext()
+template <typename _Tp, typename _ComparatorType>
+_Tp& SharedConstSizePQAdapter<_Tp, _ComparatorType>::getNext()
 {
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.front();
+    _Tp* toReturn = new _Tp(pConstSizeMinPQ_->top());
+    return *toReturn;
 }
 
-template <typename _Tp>
-bool SharedQueue<_Tp>::empty() const
+template <typename _Tp, typename _ComparatorType>
+bool SharedConstSizePQAdapter<_Tp, _ComparatorType>::empty() const
 {
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.empty();
+    return pConstSizeMinPQ_->empty();
 }
 
-template <typename _Tp>
-size_t SharedQueue<_Tp>::size() const
+template <typename _Tp, typename _ComparatorType>
+size_t SharedConstSizePQAdapter<_Tp, _ComparatorType>::size() const
 {
-    std::unique_lock<std::mutex> mlock(mtx_);
-    return queue_.size();
+    return pConstSizeMinPQ_->size();
 }
 
-template <typename _Tp>
-void SharedQueue<_Tp>::push(const _Tp& value)
+template <typename _Tp, typename _ComparatorType>
+void SharedConstSizePQAdapter<_Tp, _ComparatorType>::push(const _Tp& value)
 {
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.push(value);
+    pConstSizeMinPQ_->push(value);
 }
 
-template <typename _Tp>
-void SharedQueue<_Tp>::push(_Tp&& value)
+template <typename _Tp, typename _ComparatorType>
+void SharedConstSizePQAdapter<_Tp, _ComparatorType>::push(_Tp&& value)
 {
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.push(value);
+    pConstSizeMinPQ_->push(value);
 }
 
-template <typename _Tp>
-template <typename... _Args>
-void SharedQueue<_Tp>::emplace(_Args&&... __args)
+template <typename _Tp, typename _ComparatorType>
+void SharedConstSizePQAdapter<_Tp, _ComparatorType>::removeNext()
 {
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.emplace(std::forward<_Args>(__args)...);
-}
-
-template <typename _Tp>
-void SharedQueue<_Tp>::removeNext()
-{
-    std::unique_lock<std::mutex> mlock(mtx_);
-    queue_.pop();
+    pConstSizeMinPQ_->pop();
 }
 
 }  // namespace cv
+
 #endif

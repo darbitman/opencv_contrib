@@ -21,14 +21,14 @@ cv::SeamFinderStage::~SeamFinderStage()
     // clear the queues
     while (!p_input_queue_->empty())
     {
-        delete p_input_queue_->front();
-        p_input_queue_->pop();
+        delete p_input_queue_->getNext();
+        p_input_queue_->removeNext();
     }
 
     while (!p_output_queue_->empty())
     {
-        delete p_output_queue_->front();
-        p_output_queue_->pop();
+        delete p_output_queue_->getNext();
+        p_output_queue_->removeNext();
     }
 
     // wait for thread to finish
@@ -78,12 +78,12 @@ void cv::SeamFinderStage::runThread()
         if (!p_input_queue_->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = p_input_queue_->front();
+            VerticalSeamCarverData* data = p_input_queue_->getNext();
 
             findSeams(data);
 
             // move data to next queue
-            p_input_queue_->pop();
+            p_input_queue_->removeNext();
             p_output_queue_->push(data);
         }
     }

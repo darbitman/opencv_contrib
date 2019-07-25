@@ -58,12 +58,12 @@ void cv::SeamRemoverStage::runThread()
         if (!p_input_queue_->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = p_input_queue_->front();
+            VerticalSeamCarverData* data = p_input_queue_->getNext();
 
             removeSeams(data);
 
             // move data to next queue
-            p_input_queue_->pop();
+            p_input_queue_->removeNext();
             p_output_queue_->push(data);
         }
     }
@@ -95,7 +95,8 @@ void cv::SeamRemoverStage::removeSeams(VerticalSeamCarverData* data)
         {
             numSeamsRemoved++;
             // column location of pixel to remove in row
-            colToRemove = data->discoveredSeams[row].pop();
+            colToRemove = data->discoveredSeams[row].top();
+            data->discoveredSeams[row].pop();
 
             // mark right endpoint/next pixel column
             size_t rightColBorder =

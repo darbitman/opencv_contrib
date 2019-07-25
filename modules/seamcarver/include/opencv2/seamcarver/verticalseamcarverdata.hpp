@@ -43,7 +43,7 @@
 #define OPENCV_SEAMCARVER_VERTICALSEAMCARVERDATA_HPP
 
 #include <opencv2/core.hpp>
-#include "constsizeminpriorityqueue.hpp"
+#include "constsizepriorityqueue.hpp"
 
 namespace cv
 {
@@ -90,7 +90,7 @@ public:
     // vector of min oriented priority queues that store the location of the pixels to remove
     // the index to the vector corresponds to the rows
     // the column index is stored in the PQ
-    std::vector<cv::ConstSizeMinPriorityQueue<int32_t>> discoveredSeams;
+    std::vector<cv::ConstSizePriorityQueue<int32_t>> discoveredSeams;
 
     // store cumulative energy to each pixel
     std::vector<std::vector<double>> totalEnergyTo;

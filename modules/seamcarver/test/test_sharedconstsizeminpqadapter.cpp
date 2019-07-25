@@ -39,55 +39,29 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_PRIORITYQUEUE_HPP
-#define OPENCV_SEAMCARVER_PRIORITYQUEUE_HPP
+#include <memory>
 
-namespace cv
+#include "test_precomp.hpp"
+
+#include "opencv2/seamcarver/constsizepriorityqueue.hpp"
+#include "opencv2/seamcarver/sharedconstsizepqadapter.hpp"
+
+namespace opencv_test
 {
-template <typename _Tp>
-class PriorityQueue
+namespace
 {
-public:
-    /**
-     * @brief dtor
-     */
-    virtual ~PriorityQueue() {}
+TEST(SharedConstSizeMinPQAdapter, Initialize)
+{
+    std::shared_ptr<ConstSizePriorityQueue<int32_t>> pConstSizeMinPQ =
+        std::make_shared<ConstSizePriorityQueue<int32_t>>(100);
 
-    /**
-     * @brief insert new element into priority queue
-     * @param newElement: new element to insert
-     */
-    virtual void push(const _Tp& element) = 0;
+    cv::SharedConstSizePQAdapter<int32_t> adapter(pConstSizeMinPQ);
 
-    /**
-     * @brief insert new element into priority queue
-     * @param newElement: new element to insert
-     */
-    virtual void push(_Tp&& element) = 0;
+    adapter.push(100);
+    adapter.push(125);
+    adapter.push(12);
 
-    /**
-     * @brief remove top element
-     */
-    virtual void pop() = 0;
-
-    /**
-     * @brief return the top (minimum) element without deleting it
-     * @return const _Tp&: const reference to the minimum element
-     */
-    virtual const _Tp& top() const = 0;
-
-    /**
-     * @brief return the number of elements in the queue
-     * @return size_t
-     */
-    virtual size_t size() const = 0;
-
-    /**
-     * @brief check if the queue is empty
-     * @return bool returns true if queue is empty
-     */
-    virtual bool empty() const = 0;
-};
-}  // namespace cv
-
-#endif
+    EXPECT_EQ(adapter.getNext(), 12);
+}
+}  // namespace
+}  // namespace opencv_test

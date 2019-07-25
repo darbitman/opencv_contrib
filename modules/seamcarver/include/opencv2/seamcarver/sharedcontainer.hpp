@@ -39,55 +39,37 @@
 //
 //M*/
 
-#ifndef OPENCV_SEAMCARVER_PRIORITYQUEUE_HPP
-#define OPENCV_SEAMCARVER_PRIORITYQUEUE_HPP
+#ifndef OPENCV_SEAMCARVER_SHAREDCONTAINER_HPP
+#define OPENCV_SEAMCARVER_SHAREDCONTAINER_HPP
+
+#include <opencv2/core.hpp>
 
 namespace cv
 {
 template <typename _Tp>
-class PriorityQueue
+class CV_EXPORTS SharedContainer
 {
 public:
-    /**
-     * @brief dtor
-     */
-    virtual ~PriorityQueue() {}
+    virtual ~SharedContainer() = 0;
 
-    /**
-     * @brief insert new element into priority queue
-     * @param newElement: new element to insert
-     */
-    virtual void push(const _Tp& element) = 0;
+    virtual _Tp& getNext() = 0;
 
-    /**
-     * @brief insert new element into priority queue
-     * @param newElement: new element to insert
-     */
-    virtual void push(_Tp&& element) = 0;
+    virtual bool empty() const = 0;
 
-    /**
-     * @brief remove top element
-     */
-    virtual void pop() = 0;
-
-    /**
-     * @brief return the top (minimum) element without deleting it
-     * @return const _Tp&: const reference to the minimum element
-     */
-    virtual const _Tp& top() const = 0;
-
-    /**
-     * @brief return the number of elements in the queue
-     * @return size_t
-     */
     virtual size_t size() const = 0;
 
-    /**
-     * @brief check if the queue is empty
-     * @return bool returns true if queue is empty
-     */
-    virtual bool empty() const = 0;
+    virtual void push(const _Tp& value) = 0;
+
+    virtual void push(_Tp&& value) = 0;
+
+    virtual void removeNext() = 0;
 };
+
+template <typename _Tp>
+SharedContainer<_Tp>::~SharedContainer()
+{
+}
+
 }  // namespace cv
 
 #endif
