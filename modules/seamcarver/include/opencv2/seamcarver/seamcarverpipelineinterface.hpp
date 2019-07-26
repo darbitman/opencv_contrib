@@ -80,6 +80,8 @@ private:
     cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_result_queue_;
 
     size_t totalFrameInPipeline_;
+
+    uint32_t frameNumber_;
 };
 }  // namespace cv
 #endif
