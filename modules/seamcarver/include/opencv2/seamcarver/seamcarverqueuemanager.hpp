@@ -47,6 +47,7 @@
 #include <vector>
 
 #include "opencv2/seamcarver/sharedqueue.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 namespace cv
 {
@@ -63,7 +64,7 @@ public:
 
     bool isInitialized() const;
 
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> getQueue(int32_t queue_id) const;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> getQueue(int32_t queue_id) const;
 
     size_t getNumberOfQueues() const;
 
@@ -76,7 +77,7 @@ public:
 private:
     bool b_mgr_initialized_;
 
-    std::map<int32_t, cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>>> id_to_queue_map_;
+    std::map<int32_t, cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>>> id_to_queue_map_;
 };
 }  // namespace cv
 

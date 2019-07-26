@@ -71,13 +71,13 @@ public:
 private:
     /// this is where the unused data storage objects will reside
     /// the objects are deemed unused after the result has been returned to the client
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_freestore_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_freestore_queue_;
 
     /// data storage objects are placed in this queue so that processing can beging
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue_;
 
     /// when the data processing has been completed, the results are placed on this queue
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_result_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_result_queue_;
 
     size_t totalFrameInPipeline_;
 

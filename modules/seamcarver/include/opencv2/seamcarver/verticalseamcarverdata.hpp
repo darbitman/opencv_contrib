@@ -53,6 +53,14 @@ class PixelEnergyCalculator2D;
 struct CV_EXPORTS VerticalSeamCarverData
 {
 public:
+    struct FrameNumberLessComparator
+    {
+        bool operator()(const VerticalSeamCarverData* p1, const VerticalSeamCarverData* p2)
+        {
+            return (p1->getFrameNumber() < p2->getFrameNumber());
+        }
+    };
+    
     explicit VerticalSeamCarverData(double marginEnergy = 390150.0);
 
     ~VerticalSeamCarverData();

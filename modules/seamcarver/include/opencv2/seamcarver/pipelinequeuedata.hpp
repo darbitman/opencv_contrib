@@ -56,8 +56,8 @@ class VerticalSeamCarverData;
 struct PipelineQueueData
 {
     cv::PipelineStages pipeline_stage;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_output_queue;
 };
 }  // namespace cv
 

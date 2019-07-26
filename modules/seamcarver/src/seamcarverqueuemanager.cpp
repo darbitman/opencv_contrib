@@ -45,6 +45,8 @@
 #include <opencv2/core.hpp>
 #include <vector>
 
+#include "opencv2/seamcarver/constsizepriorityqueue.hpp"
+#include "opencv2/seamcarver/sharedconstsizepqadapter.hpp"
 #include "opencv2/seamcarver/sharedqueue.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
@@ -56,7 +58,7 @@ void cv::SeamCarverQueueManager::initialize(const std::vector<int32_t>& queue_id
 {
     if (!b_mgr_initialized_)
     {
-        for (size_t i = 0; i < queue_ids.size(); ++i)
+        for (size_t i = 0; i < queue_ids.size() - 1; ++i)
         {
             // only map UNIQUE IDs so make sure the id doesn't already exist
             if (id_to_queue_map_.count(queue_ids[i]) == 0)
@@ -65,13 +67,32 @@ void cv::SeamCarverQueueManager::initialize(const std::vector<int32_t>& queue_id
                     cv::makePtr<cv::SharedQueue<cv::VerticalSeamCarverData*>>();
             }
         }
+
+        // last queue will be a pq
+        if (id_to_queue_map_.count(queue_ids[queue_ids.size() - 1]) == 0)
+        {
+            cv::Ptr<ConstSizePriorityQueue<VerticalSeamCarverData*,
+                                           VerticalSeamCarverData::FrameNumberLessComparator>>
+                pPq = cv::makePtr<ConstSizePriorityQueue<
+                    VerticalSeamCarverData*, VerticalSeamCarverData::FrameNumberLessComparator>>(
+                    1000);
+
+            cv::Ptr<SharedConstSizePQAdapter<VerticalSeamCarverData*,
+                                             VerticalSeamCarverData::FrameNumberLessComparator>>
+                last_queue = cv::makePtr<SharedConstSizePQAdapter<
+                    VerticalSeamCarverData*, VerticalSeamCarverData::FrameNumberLessComparator>>(
+                    pPq);
+
+            id_to_queue_map_[queue_ids[queue_ids.size() - 1]] =
+                last_queue.dynamicCast<SharedContainer<VerticalSeamCarverData*>>();
+        }
         b_mgr_initialized_ = true;
     }
 }
 
 bool cv::SeamCarverQueueManager::isInitialized() const { return b_mgr_initialized_; }
 
-cv::Ptr<cv::SharedQueue<cv::VerticalSeamCarverData*>> cv::SeamCarverQueueManager::getQueue(
+cv::Ptr<cv::SharedContainer<cv::VerticalSeamCarverData*>> cv::SeamCarverQueueManager::getQueue(
     int32_t queue_id) const
 {
     if (id_to_queue_map_.count(queue_id) > 0)

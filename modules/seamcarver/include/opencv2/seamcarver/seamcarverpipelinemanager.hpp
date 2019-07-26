@@ -142,7 +142,7 @@ private:
 
     SeamCarverQueueManager queue_manager;
 
-    std::vector<cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>>> queues_;
+    std::vector<cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>>> queues_;
 
     std::vector<std::vector<cv::Ptr<SeamCarverStage>>> pipelineStages_;
 

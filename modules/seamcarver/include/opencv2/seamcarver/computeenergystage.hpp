@@ -90,8 +90,8 @@ private:
 
     /// initialized in the initialize() call
     cv::PipelineStages pipelineStage_;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_input_queue_;
-    cv::Ptr<cv::SharedQueue<VerticalSeamCarverData*>> p_output_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_output_queue_;
 
     // image dimensions
     size_t numRows_;
