@@ -59,22 +59,22 @@ public:
     SharedConstSizePQAdapter(
         std::shared_ptr<ConstSizePriorityQueue<_Tp, _ComparatorType>> pConstSizePQ);
 
-    ~SharedConstSizePQAdapter();
+    virtual ~SharedConstSizePQAdapter();
 
-    _Tp& getNext() override;
+    virtual const _Tp& getNext() override;
 
-    bool empty() const override;
+    virtual bool empty() const override;
 
-    size_t size() const override;
+    virtual size_t size() const override;
 
-    void push(const _Tp& value) override;
+    virtual void push(const _Tp& value) override;
 
-    void push(_Tp&& value) override;
+    virtual void push(_Tp&& value) override;
 
-    void removeNext() override;
+    virtual void removeNext() override;
 
 private:
-    std::shared_ptr<ConstSizePriorityQueue<_Tp>> pConstSizeMinPQ_;
+    std::shared_ptr<ConstSizePriorityQueue<_Tp, _ComparatorType>> pConstSizeMinPQ_;
 };
 
 template <typename _Tp, typename _ComparatorType>
@@ -90,7 +90,7 @@ SharedConstSizePQAdapter<_Tp, _ComparatorType>::~SharedConstSizePQAdapter()
 }
 
 template <typename _Tp, typename _ComparatorType>
-_Tp& SharedConstSizePQAdapter<_Tp, _ComparatorType>::getNext()
+_Tp const& SharedConstSizePQAdapter<_Tp, _ComparatorType>::getNext()
 {
     _Tp* toReturn = new _Tp(pConstSizeMinPQ_->top());
     return *toReturn;

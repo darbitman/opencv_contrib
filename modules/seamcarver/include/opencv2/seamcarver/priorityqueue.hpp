@@ -55,13 +55,13 @@ public:
 
     /**
      * @brief insert new element into priority queue
-     * @param newElement: new element to insert
+     * @param element: new element to insert
      */
     virtual void push(const _Tp& element) = 0;
 
     /**
      * @brief insert new element into priority queue
-     * @param newElement: new element to insert
+     * @param element: new element to insert
      */
     virtual void push(_Tp&& element) = 0;
 

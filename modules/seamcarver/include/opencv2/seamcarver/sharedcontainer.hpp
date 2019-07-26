@@ -52,7 +52,7 @@ class CV_EXPORTS SharedContainer
 public:
     virtual ~SharedContainer() = 0;
 
-    virtual _Tp& getNext() = 0;
+    virtual const _Tp& getNext() = 0;
 
     virtual bool empty() const = 0;
 

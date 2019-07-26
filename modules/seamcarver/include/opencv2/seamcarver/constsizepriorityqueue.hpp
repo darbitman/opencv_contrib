@@ -42,6 +42,7 @@
 #ifndef OPENCV_SEAMCARVER_CONSTSIZEPRIORITYQUEUE_HPP
 #define OPENCV_SEAMCARVER_CONSTSIZEPRIORITYQUEUE_HPP
 
+#include "opencv2/core.hpp"
 #include "priorityqueue.hpp"
 
 namespace cv
@@ -108,7 +109,7 @@ public:
 
     /**
      * @brief return the maximum number of elements that can be stored in the queue
-     * @return uint32_t maximum number of elements that can be stored in the queue
+     * @return size_t
      */
     virtual size_t capacity() const;
 

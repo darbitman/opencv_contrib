@@ -125,6 +125,8 @@ public:
 
     // stores the image and output result
     cv::Ptr<cv::Mat> savedImage;
+
+    uint32_t frameNumber_;
 };
 }  // namespace cv
 

@@ -57,7 +57,7 @@ public:
 
     virtual ~SharedQueue();
 
-    virtual _Tp& getNext() override;
+    virtual const _Tp& getNext() override;
 
     virtual bool empty() const override;
 
@@ -88,7 +88,7 @@ SharedQueue<_Tp>::~SharedQueue()
 }
 
 template <typename _Tp>
-_Tp& SharedQueue<_Tp>::getNext()
+const _Tp& SharedQueue<_Tp>::getNext()
 {
     std::unique_lock<std::mutex> mlock(mtx_);
     return queue_.front();
