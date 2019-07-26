@@ -70,7 +70,7 @@ TEST(PQAdapter, MinOrientedPQ)
         bool operator()(shared_ptr<VerticalSeamCarverData> p1,
                         shared_ptr<VerticalSeamCarverData> p2)
         {
-            return p1->frameNumber_ < p2->frameNumber_;
+            return p1->getFrameNumber() < p2->getFrameNumber();
         }
     };
 
@@ -95,7 +95,7 @@ TEST(PQAdapter, MinOrientedPQ)
     {
         shared_ptr<VerticalSeamCarverData> pData = make_shared<VerticalSeamCarverData>();
         uint32_t randomNumber = (uint32_t)(rand() % 50);
-        pData->frameNumber_ = randomNumber;
+        pData->setFrameNumber(randomNumber);
         randomFrameNumbers.push(randomNumber);
         pqAdapter.push(pData);
     }
@@ -111,7 +111,7 @@ TEST(PQAdapter, MinOrientedPQ)
     vector<uint32_t>::iterator iter = sortedFrameNumbers.begin();
     while (!pqAdapter.empty())
     {
-        ASSERT_EQ(*iter, pqAdapter.getNext()->frameNumber_);
+        ASSERT_EQ(*iter, pqAdapter.getNext()->getFrameNumber());
         pqAdapter.removeNext();
         ++iter;
     }

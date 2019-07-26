@@ -50,7 +50,8 @@ cv::VerticalSeamCarverData::VerticalSeamCarverData(double marginEnergy)
       numColorChannels_(0),
       seamLength_(0),
       numSeamsToRemove_(0),
-      marginEnergy_(marginEnergy)
+      marginEnergy_(marginEnergy),
+      frameNumber_(0)
 {
     posInf_ = std::numeric_limits<double>::max();
 }
@@ -113,8 +114,7 @@ void cv::VerticalSeamCarverData::separateChannels()
 
 bool cv::VerticalSeamCarverData::areImageDimensionsVerified() const
 {
-    return ((size_t)savedImage->rows == numRows_ &&
-            (size_t)savedImage->cols == numColumns_);
+    return ((size_t)savedImage->rows == numRows_ && (size_t)savedImage->cols == numColumns_);
 }
 
 void cv::VerticalSeamCarverData::initialize()
@@ -146,3 +146,12 @@ void cv::VerticalSeamCarverData::initialize()
     // data and vectors just set, so no need to do it again
     bNeedToInitializeLocalData = false;
 }
+
+void cv::VerticalSeamCarverData::setFrameNumber(uint32_t newFrameNumber)
+{
+    frameNumber_ = newFrameNumber;
+}
+
+void cv::VerticalSeamCarverData::incrementFrameNumber() { ++frameNumber_; }
+
+uint32_t cv::VerticalSeamCarverData::getFrameNumber() const { return frameNumber_; }

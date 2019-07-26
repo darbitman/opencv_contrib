@@ -77,6 +77,23 @@ public:
      */
     void initialize();
 
+    /**
+     * @brief set a new frame number for this frame
+     * @param newFrameNumber the value to set the frame number for this frame
+     */
+    void setFrameNumber(uint32_t newFrameNumber);
+
+    /**
+     * @brief increments the frame number by 1
+     */
+    void incrementFrameNumber();
+
+    /**
+     * @brief returns the frame number of this frame
+     * @return uint32_t
+     */
+    uint32_t getFrameNumber() const;
+
     // flag if internal data structures need their memory and values initialized
     bool bNeedToInitializeLocalData;
 
@@ -126,6 +143,7 @@ public:
     // stores the image and output result
     cv::Ptr<cv::Mat> savedImage;
 
+private:
     uint32_t frameNumber_;
 };
 }  // namespace cv
