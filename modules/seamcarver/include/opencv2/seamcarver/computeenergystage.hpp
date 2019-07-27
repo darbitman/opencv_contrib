@@ -93,6 +93,7 @@ private:
     size_t bottomRow_;
     size_t rightColumn_;
     size_t numColorChannels_;
+    double marginEnergy_;
 
     void calculatePixelEnergy(const Ptr<const cv::Mat>& image,
                               std::vector<std::vector<double>>& outPixelEnergy);

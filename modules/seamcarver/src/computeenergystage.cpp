@@ -41,12 +41,25 @@
 
 #include "opencv2/seamcarver/computeenergystage.hpp"
 
+#include <memory>
 #include <thread>
+#include <vector>
 
+#include "opencv2/core.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-cv::ComputeEnergyStage::ComputeEnergyStage() {}
+using std::vector;
+
+cv::ComputeEnergyStage::ComputeEnergyStage()
+    : numRows_(0),
+      numColumns_(0),
+      bottomRow_(0),
+      rightColumn_(0),
+      numColorChannels_(0),
+      marginEnergy_(0.0)
+{
+}
 
 cv::ComputeEnergyStage::~ComputeEnergyStage() {}
 
@@ -65,6 +78,14 @@ bool cv::ComputeEnergyStage::isRunning() const { return BaseSeamCarverStage::isR
 
 void cv::ComputeEnergyStage::processData(VerticalSeamCarverData* data)
 {
+    // set local data members for the computation
+    numRows_ = data->numRows_;
+    numColumns_ = data->numColumns_;
+    bottomRow_ = data->bottomRow_;
+    rightColumn_ = data->rightColumn_;
+    numColorChannels_ = data->numColorChannels_;
+    marginEnergy_ = data->marginEnergy_;
+
     calculatePixelEnergy(data->savedImage, data->pixelEnergy);
 }
 
@@ -105,14 +126,305 @@ void cv::ComputeEnergyStage::calculatePixelEnergyForEveryRow(
     const cv::Ptr<const cv::Mat>& image, std::vector<std::vector<double>>& outPixelEnergy,
     bool bDoOddColumns)
 {
-    // TODO
+    vector<cv::Mat> imageByChannel;
+    imageByChannel.resize(numColorChannels_);
+
+    // if color channels use cv::split
+    // otherwise if grayscale use cv::extractChannel
+    if (numColorChannels_ == 3)
+    {
+        cv::split(*image, imageByChannel);
+    }
+    else if (numColorChannels_ == 1)
+    {
+        cv::extractChannel(*image, imageByChannel[0], 0);
+    }
+    else
+    {
+        CV_Error(Error::Code::StsBadArg,
+                 "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryRow() failed due to \
+                      incorrect number of channels");
+    }
+
+    // Establish vectors whose size is equal to the number of channels
+    // Two vectors used to compute X gradient
+    // Don't need them for Y since we are only caching the columns
+    // We can just access the pixel values above/below directly to compute the delta
+    // TODO replace vectors with a multidimensional vector
+    vector<double> xDirection2;
+    vector<double> xDirection1;
+
+    xDirection2.resize(numColorChannels_);
+    xDirection1.resize(numColorChannels_);
+
+    vector<double> deltaXDirection;
+    vector<double> deltaYDirection;
+
+    deltaXDirection.resize(numColorChannels_);
+    deltaYDirection.resize(numColorChannels_);
+
+    double deltaSquareX = 0.0;
+    double deltaSquareY = 0.0;
+
+    size_t column = 0;
+    // compute energy for every row
+    // do odd columns and even columns separately in order to leverage cached values to prevent
+    // multiple memory accesses
+    for (size_t row = 0; row < numRows_; row++)
+    {
+        /***** ODD COLUMNS *****/
+        if (bDoOddColumns)
+        {
+            // initialize starting column
+            column = 1;
+
+            // initialize color values to the left of current pixel
+            for (size_t channel = 0; channel < numColorChannels_; channel++)
+            {
+                xDirection1[channel] = imageByChannel[channel].at<uchar>(row, column - 1);
+            }
+
+            // Compute energy of odd columns
+            for (/* column already initialized */; column < numColumns_; column += 2)
+            {
+                if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
+                {
+                    outPixelEnergy[row][column] = marginEnergy_;
+                }
+                else
+                {
+                    // Reset gradients from previous calculation
+                    deltaSquareX = 0.0;
+                    deltaSquareY = 0.0;
+
+                    // For all channels:
+                    // Compute gradients
+                    // Compute overall energy by summing both X and Y gradient
+                    for (size_t channel = 0; channel < numColorChannels_; channel++)
+                    {
+                        // get new values to the right
+                        xDirection2[channel] = imageByChannel[channel].at<uchar>(row, column + 1);
+
+                        deltaXDirection[channel] = xDirection2[channel] - xDirection1[channel];
+
+                        deltaSquareX += deltaXDirection[channel] * deltaXDirection[channel];
+
+                        deltaYDirection[channel] =
+                            imageByChannel[channel].at<uchar>(row + 1, column) -
+                            imageByChannel[channel].at<uchar>(row - 1, column);
+
+                        deltaSquareY += deltaYDirection[channel] * deltaYDirection[channel];
+
+                        // shift color values to the left
+                        xDirection1[channel] = xDirection2[channel];
+                    }
+                    outPixelEnergy[row][column] = deltaSquareX + deltaSquareY;
+                }
+            }
+        }
+        /***** EVEN COLUMNS *****/
+        else
+        {
+            // initialize starting column
+            column = 0;
+
+            // initialize color values to the right of current pixel
+            for (size_t Channel = 0; Channel < numColorChannels_; Channel++)
+            {
+                xDirection2[Channel] = imageByChannel[Channel].at<uchar>(row, column + 1);
+            }
+
+            // Compute energy of odd columns
+            for (/* column already initialized */; column < numColumns_; column += 2)
+            {
+                if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
+                {
+                    outPixelEnergy[row][column] = marginEnergy_;
+                }
+                else
+                {
+                    // Reset gradient from previous calculation
+                    deltaSquareX = 0.0;
+                    deltaSquareY = 0.0;
+
+                    // For all channels:
+                    // Compute gradients
+                    // Compute overall energy by summing both X and Y gradient
+                    for (size_t channel = 0; channel < numColorChannels_; channel++)
+                    {
+                        // shift color values to the left
+                        xDirection1[channel] = xDirection2[channel];
+
+                        // get new values to the right
+                        xDirection2[channel] = imageByChannel[channel].at<uchar>(row, column + 1);
+                        deltaXDirection[channel] = xDirection2[channel] - xDirection1[channel];
+
+                        deltaSquareX += deltaXDirection[channel] * deltaXDirection[channel];
+
+                        deltaYDirection[channel] =
+                            imageByChannel[channel].at<uchar>(row + 1, column) -
+                            imageByChannel[channel].at<uchar>(row - 1, column);
+
+                        deltaSquareY += deltaYDirection[channel] * deltaYDirection[channel];
+                    }
+                    outPixelEnergy[row][column] = deltaSquareX + deltaSquareY;
+                }
+            }
+        }
+    }
 }
 
 void cv::ComputeEnergyStage::calculatePixelEnergyForEveryColumn(
     const cv::Ptr<const cv::Mat>& image, std::vector<std::vector<double>>& outPixelEnergy,
     bool bDoOddRows)
 {
-    // TODO
+    vector<cv::Mat> imageByChannel;
+    imageByChannel.resize(numColorChannels_);
+
+    // if color channels use cv::split
+    // otherwise if grayscale use cv::extractChannel
+    if (numColorChannels_ == 3)
+    {
+        cv::split(*image, imageByChannel);
+    }
+    else if (numColorChannels_ == 1)
+    {
+        cv::extractChannel(*image, imageByChannel[0], 0);
+    }
+    else
+    {
+        CV_Error(
+            Error::Code::StsBadArg,
+            "GradientPixelEnergyCalculator2D::calculatePixelEnergyForEveryColumn() failed due to \
+                      incorrect number of channels");
+    }
+
+    // Establish vectors whose size is equal to the number of channels
+    // Two vectors used to compute X gradient
+    // Don't need them for Y since we are only caching the columns
+    // We can just access the pixel values above/below directly to compute the delta
+    // TODO replace vectors with a multidimensional vector
+    vector<double> yDirection2;
+    vector<double> yDirection1;
+
+    yDirection2.resize(numColorChannels_);
+    yDirection1.resize(numColorChannels_);
+
+    vector<double> deltaXDirection;
+    vector<double> deltaYDirection;
+
+    deltaXDirection.resize(numColorChannels_);
+    deltaYDirection.resize(numColorChannels_);
+
+    double deltaSquareX = 0.0;
+    double deltaSquareY = 0.0;
+
+    size_t row = 0;
+    // compute energy for every column
+    // do odd rows and even rows separately in order to leverage cached values
+    // to prevent multiple memory accesses
+    for (size_t column = 0; column < numColumns_; column++)
+    {
+        /***** ODD ROWS *****/
+        if (bDoOddRows)
+        {
+            // initialize starting row
+            row = 1;
+
+            // initialize color values above the current pixel
+            for (size_t channel = 0; channel < numColorChannels_; channel++)
+            {
+                yDirection1[channel] = imageByChannel[channel].at<uchar>(row - 1, column);
+            }
+
+            // Compute energy of odd rows
+            for (/* row was already initialized */; row < numRows_; row += 2)
+            {
+                if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
+                {
+                    outPixelEnergy[row][column] = marginEnergy_;
+                }
+                else
+                {
+                    // Reset gradients from previous calculation
+                    deltaSquareX = 0.0;
+                    deltaSquareY = 0.0;
+
+                    // For all channels:
+                    // Compute gradients
+                    // Compute overall energy by summing both X and Y gradient
+                    for (size_t channel = 0; channel < numColorChannels_; channel++)
+                    {
+                        // get new values below the current pixel
+                        yDirection2[channel] = imageByChannel[channel].at<uchar>(row + 1, column);
+
+                        deltaYDirection[channel] = yDirection2[channel] - yDirection1[channel];
+
+                        deltaSquareY = deltaYDirection[channel] * deltaYDirection[channel];
+
+                        deltaXDirection[channel] =
+                            imageByChannel[channel].at<uchar>(row, column + 1) -
+                            imageByChannel[channel].at<uchar>(row, column - 1);
+
+                        deltaSquareX += deltaXDirection[channel] * deltaXDirection[channel];
+
+                        // shift color values up
+                        yDirection1[channel] = yDirection2[channel];
+                    }
+                    outPixelEnergy[row][column] = deltaSquareX + deltaSquareY;
+                }
+            }
+        }
+        /***** EVEN ROWS *****/
+        else
+        {
+            // initialize starting row
+            row = 0;
+
+            // initialize color values below the current pixel
+            for (size_t channel = 0; channel < numColorChannels_; channel++)
+            {
+                yDirection2[channel] = imageByChannel[channel].at<uchar>(row + 1, column);
+            }
+
+            // Compute energy of odd rows
+            for (/* row was already initialized */; row < numRows_; row += 2)
+            {
+                if (row == 0 || column == 0 || row == bottomRow_ || column == rightColumn_)
+                {
+                    outPixelEnergy[row][column] = marginEnergy_;
+                }
+                else
+                {
+                    // Reset gradient from previous calculation
+                    deltaSquareX = 0.0;
+                    deltaSquareY = 0.0;
+
+                    // For all channels:
+                    // Compute gradients
+                    // Compute overall energy by summing both X and Y gradient
+                    for (size_t channel = 0; channel < numColorChannels_; channel++)
+                    {
+                        // shift color values up
+                        yDirection1[channel] = yDirection2[channel];
+
+                        // get new values below the current pixel
+                        yDirection2[channel] = imageByChannel[channel].at<uchar>(row + 1, column);
+                        deltaYDirection[channel] = yDirection2[channel] - yDirection1[channel];
+
+                        deltaSquareY += deltaYDirection[channel] * deltaYDirection[channel];
+
+                        deltaXDirection[channel] =
+                            imageByChannel[channel].at<uchar>(row, column + 1) -
+                            imageByChannel[channel].at<uchar>(row, column - 1);
+
+                        deltaSquareX += deltaXDirection[channel] * deltaXDirection[channel];
+                    }
+                    outPixelEnergy[row][column] = deltaSquareX + deltaSquareY;
+                }
+            }
+        }
+    }
 }
 
 namespace
