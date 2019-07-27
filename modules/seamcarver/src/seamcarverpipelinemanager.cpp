@@ -98,7 +98,6 @@ bool cv::SeamCarverPipelineManager::addNewPipelineStage(cv::PipelineStages stage
             cv::Ptr<cv::PipelineQueueData> pNewData = std::make_shared<cv::PipelineQueueData>();
             pNewData->p_input_queue = queue_manager.getQueue(stage);
             pNewData->p_output_queue = queue_manager.getQueue(stage + 1);
-            pNewData->pipeline_stage = (cv::PipelineStages)stage;
 
             // initialize the stage with the proper queue data
             p_stage->initialize(pNewData);
@@ -236,7 +235,6 @@ void cv::SeamCarverPipelineManager::initializePipelineStages()
                         std::make_shared<cv::PipelineQueueData>();
                     pNewData->p_input_queue = queue_manager.getQueue(stage);
                     pNewData->p_output_queue = queue_manager.getQueue(stage + 1);
-                    pNewData->pipeline_stage = (cv::PipelineStages)stage;
                     pipelineStages_[stage][p]->initialize(pNewData);
                 }
             }

@@ -70,7 +70,6 @@ public:
 
         if (initData != nullptr)
         {
-            initData->pipeline_stage = PipelineStages::STAGE_1;
             initData->p_input_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
             initData->p_output_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
 

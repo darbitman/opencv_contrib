@@ -23,7 +23,6 @@ void cv::SeamRemoverStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
         cv::PipelineQueueData* data = static_cast<cv::PipelineQueueData*>(initData.get());
         if (data != nullptr)
         {
-            pipelineStage_ = data->pipeline_stage;
             pInputQueue = data->p_input_queue;
             pOutputQueue = data->p_output_queue;
             bIsInitialized_ = true;
