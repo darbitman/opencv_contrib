@@ -110,7 +110,7 @@ void cv::ComputeEnergyStage::stopStage() { doStopStage(); }
 
 bool cv::ComputeEnergyStage::isInitialized() const { return bIsInitialized_; }
 
-bool cv::ComputeEnergyStage::isRunning() const { return !bThreadIsRunning_; }
+bool cv::ComputeEnergyStage::isRunning() const { return bThreadIsRunning_; }
 
 void cv::ComputeEnergyStage::runThread()
 {
@@ -125,18 +125,26 @@ void cv::ComputeEnergyStage::runThread()
             // save the pointer for faster access
             VerticalSeamCarverData* data = pInputQueue_->getNext();
 
-            calculatePixelEnergy(data->savedImage, data->pixelEnergy);
+            if (data != nullptr)
+            {
+                calculatePixelEnergy(data->savedImage, data->pixelEnergy);
 
-            // move data to next queue
-            pInputQueue_->removeNext();
-            pOutputQueue_->push(data);
+                // move data to next queue
+                pInputQueue_->removeNext();
+                pOutputQueue_->push(data);
+            }
         }
     }
 
-    bThreadIsRunning_ = true;
+    statusLock.lock();
+    bThreadIsRunning_ = false;
 }
 
-void cv::ComputeEnergyStage::doStopStage() { bThreadIsRunning_ = false; }
+void cv::ComputeEnergyStage::doStopStage()
+{
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = false;
+}
 
 void cv::ComputeEnergyStage::calculatePixelEnergy(const cv::Ptr<const cv::Mat>& image,
                                                   std::vector<std::vector<double>>& outPixelEnergy)

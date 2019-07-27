@@ -6,13 +6,7 @@
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-cv::MergeChannelsStage::MergeChannelsStage()
-    : bDoRunThread_(false),
-      bThreadIsStopped_(true),
-      bIsInitialized_(false),
-      statusLock_(statusMutex_, std::defer_lock)
-{
-}
+cv::MergeChannelsStage::MergeChannelsStage() : bThreadIsRunning_(false), bIsInitialized_(false) {}
 
 cv::MergeChannelsStage::~MergeChannelsStage() {}
 
@@ -23,9 +17,8 @@ void cv::MergeChannelsStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
         cv::PipelineQueueData* data = static_cast<cv::PipelineQueueData*>(initData.get());
         if (data != nullptr)
         {
-            pipelineStage_ = data->pipeline_stage;
-            pInputQueue = data->p_input_queue;
-            pOutputQueue = data->p_output_queue;
+            pInputQueue_ = data->p_input_queue;
+            pOutputQueue_ = data->p_output_queue;
             bIsInitialized_ = true;
         }
     }
@@ -33,15 +26,14 @@ void cv::MergeChannelsStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
 
 void cv::MergeChannelsStage::runStage()
 {
-    if (bThreadIsStopped_ && bIsInitialized_)
+    if (bIsInitialized_ && !bThreadIsRunning_)
     {
-        statusLock_.lock();
-        if (bThreadIsStopped_)
+        std::unique_lock<std::mutex> statusLock(statusMutex_);
+        if (!bThreadIsRunning_)
         {
+            statusLock.unlock();
             std::thread(&cv::MergeChannelsStage::runThread, this).detach();
-            bThreadIsStopped_ = false;
         }
-        statusLock_.unlock();
     }
 }
 
@@ -49,31 +41,41 @@ void cv::MergeChannelsStage::stopStage() { doStopStage(); }
 
 bool cv::MergeChannelsStage::isInitialized() const { return bIsInitialized_; }
 
-bool cv::MergeChannelsStage::isRunning() const { return !bThreadIsStopped_; }
+bool cv::MergeChannelsStage::isRunning() const { return bThreadIsRunning_; }
 
 void cv::MergeChannelsStage::runThread()
 {
-    bDoRunThread_ = true;
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = true;
+    statusLock.unlock();
 
-    while (bDoRunThread_)
+    while (bThreadIsRunning_)
     {
-        if (!pInputQueue->empty())
+        if (!pInputQueue_->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = pInputQueue->getNext();
+            VerticalSeamCarverData* data = pInputQueue_->getNext();
 
-            mergeChannels(data);
+            if (data != nullptr)
+            {
+                mergeChannels(data);
 
-            // move data to next queue
-            pInputQueue->removeNext();
-            pOutputQueue->push(data);
+                // move data to next queue
+                pInputQueue_->removeNext();
+                pOutputQueue_->push(data);
+            }
         }
     }
 
-    bThreadIsStopped_ = true;
+    statusLock.lock();
+    bThreadIsRunning_ = false;
 }
 
-void cv::MergeChannelsStage::doStopStage() { bDoRunThread_ = false; }
+void cv::MergeChannelsStage::doStopStage()
+{
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = false;
+}
 
 void cv::MergeChannelsStage::mergeChannels(VerticalSeamCarverData* data)
 {
