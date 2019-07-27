@@ -1,7 +1,5 @@
 #include "opencv2/seamcarver/seamfinderstage.hpp"
 
-#include <thread>
-
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
@@ -22,10 +20,7 @@ bool cv::SeamFinderStage::isInitialized() const { return BaseSeamCarverStage::is
 
 bool cv::SeamFinderStage::isRunning() const { return BaseSeamCarverStage::isRunning(); }
 
-void cv::SeamFinderStage::processData(VerticalSeamCarverData* data)
-{
-    findSeams(data);
-}
+void cv::SeamFinderStage::processData(VerticalSeamCarverData* data) { findSeams(data); }
 
 void cv::SeamFinderStage::findSeams(cv::VerticalSeamCarverData* data)
 {

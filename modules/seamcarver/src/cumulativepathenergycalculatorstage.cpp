@@ -41,9 +41,6 @@
 
 #include "opencv2/seamcarver/cumulativepathenergycalculatorstage.hpp"
 
-#include <mutex>
-#include <thread>
-
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 

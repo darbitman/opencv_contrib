@@ -1,7 +1,5 @@
 #include "opencv2/seamcarver/mergechannelsstage.hpp"
 
-#include <thread>
-
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 

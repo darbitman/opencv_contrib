@@ -45,11 +45,11 @@
 #include <opencv2/core.hpp>
 
 #include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
-#include "opencv2/seamcarver/seamcarverstage.hpp"
+#include "opencv2/seamcarver/baseseamcarverstage.hpp"
 
 namespace cv
 {
-class CV_EXPORTS SeamRemoverStage : public SeamCarverStage
+class CV_EXPORTS SeamRemoverStage : public BaseSeamCarverStage
 {
 public:
     /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
@@ -60,15 +60,15 @@ public:
 
     virtual ~SeamRemoverStage();
 
-    virtual void initialize(cv::Ptr<cv::PipelineQueueData> initData) override;
+    virtual void initialize(cv::Ptr<cv::PipelineQueueData> initData);
 
-    virtual void runStage() override;
+    virtual void runStage();
 
-    virtual void stopStage() override;
+    virtual void stopStage();
 
-    virtual bool isInitialized() const override;
+    virtual bool isInitialized() const;
 
-    virtual bool isRunning() const override;
+    virtual bool isRunning() const;
 
     // deleted to prevent misuse
     SeamRemoverStage(const SeamRemoverStage&) = delete;
@@ -76,24 +76,14 @@ public:
     SeamRemoverStage& operator=(const SeamRemoverStage&) = delete;
     SeamRemoverStage& operator=(SeamRemoverStage&&) = delete;
 
+protected:
+    /**
+     * @brief method that does the actual data processing
+     * calls calculateCumulativePathEnergy
+     */
+    virtual void processData(VerticalSeamCarverData* data);
+
 private:
-    /// Flag to start and stop the thread and to keep track if it's running
-    volatile bool bThreadIsRunning_;
-
-    // Indicates if this stage is initialized
-    bool bIsInitialized_;
-
-    /// guards the bThreadIsRunning_ member
-    mutable std::mutex statusMutex_;
-
-    /// initialized in the initialize() call
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue_;
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue_;
-
-    void runThread();
-
-    void doStopStage();
-
     void removeSeams(VerticalSeamCarverData* data);
 };
 }  // namespace cv
