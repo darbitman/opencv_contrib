@@ -61,16 +61,20 @@ enum PipelineStages
     /// merge channels
     STAGE_4 = 4,
 
-    /// output stage (for client to get result) also the number of COMPUTE stages
-    LAST_STAGE = 5,
+    /**********************/
+    // add more stages above
+    /**********************/
+    NUM_COMPUTE_STAGES,
+
+    LAST_QUEUE_STAGE = NUM_COMPUTE_STAGES,
 
     /// the number of QUEUES (1 more than number of COMPUTE stages)
     /// EXAMPLE:
-    /// 0   1   2   3
-    /// Q C Q C Q C Q
-    ///   0   1   2
-    /// there's 4 queues, and 3 compute stages
-    NUM_STAGES
+    /// 0   1   2   3   4   5   (Queue Stages)
+    /// Q C Q C Q C Q C Q C Q
+    ///   0   1   2   3   4     (Compute Stages)
+    /// there are 6 queues, and 5 compute stages
+    NUM_QUEUE_STAGES
 };
 }  // namespace cv
 

@@ -129,7 +129,7 @@ private:
     bool bIsInitialized_;
 
     /// are the pipeline stages running
-    bool bArePipelineStagesRunning_;
+    bool bPipelineStagesRunning_;
 
     /// create pipeline stages
     void createPipelineStages();

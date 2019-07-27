@@ -55,7 +55,7 @@ cv::SeamCarverPipelineManager::SeamCarverPipelineManager(
       bPipelineQueuesCreated_(false),
       bPipelineStagesInitialized_(false),
       bIsInitialized_(false),
-      bArePipelineStagesRunning_(false),
+      bPipelineStagesRunning_(false),
       pipelineConfigurationType_(configurationType)
 {
 }
@@ -77,7 +77,7 @@ cv::Ptr<cv::SeamCarverPipelineInterface> cv::SeamCarverPipelineManager::createPi
 {
     cv::Ptr<cv::PipelineQueueData> pNewData = std::make_shared<cv::PipelineQueueData>();
     pNewData->p_input_queue = queues_[PipelineStages::STAGE_0];
-    pNewData->p_output_queue = queues_[PipelineStages::LAST_STAGE];
+    pNewData->p_output_queue = queues_[PipelineStages::NUM_COMPUTE_STAGES];
 
     cv::Ptr<cv::SeamCarverPipelineInterface> pPipelineInterface =
         std::make_shared<cv::SeamCarverPipelineInterface>(pNewData);
@@ -123,11 +123,12 @@ bool cv::SeamCarverPipelineManager::addNewPipelineStage(cv::PipelineStages stage
 
 void cv::SeamCarverPipelineManager::runPipelineStages()
 {
-    if (!bArePipelineStagesRunning_)
+    if (!bPipelineStagesRunning_)
     {
-        for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
-             ++stage)
+        for (int32_t stage = cv::PipelineStages::STAGE_0;
+             stage < cv::PipelineStages::NUM_COMPUTE_STAGES; ++stage)
         {
+            // start the parallel stages for each 'stage'
             for (size_t p = 0; p < pipelineStages_[stage].size(); ++p)
             {
                 if (pipelineStages_[stage][p] != nullptr)
@@ -136,23 +137,24 @@ void cv::SeamCarverPipelineManager::runPipelineStages()
                 }
             }
         }
-        bArePipelineStagesRunning_ = true;
+
+        bPipelineStagesRunning_ = true;
     }
 }
 
 void cv::SeamCarverPipelineManager::stopPipelineStages()
 {
-    if (bArePipelineStagesRunning_)
+    if (bPipelineStagesRunning_)
     {
-        for (size_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
-             ++stage)
+        for (size_t stage = cv::PipelineStages::STAGE_0;
+             stage < cv::PipelineStages::NUM_COMPUTE_STAGES; ++stage)
         {
             for (size_t p = 0; p < pipelineStages_[stage].size(); ++p)
             {
                 pipelineStages_[stage][p]->stopStage();
             }
         }
-        bArePipelineStagesRunning_ = false;
+        bPipelineStagesRunning_ = false;
     }
 }
 
@@ -175,20 +177,22 @@ bool cv::SeamCarverPipelineManager::arePipelineStagesInitialized() const
 
 bool cv::SeamCarverPipelineManager::arePipelineStagesRunning() const
 {
-    return bArePipelineStagesRunning_;
+    return bPipelineStagesRunning_;
 }
 
 void cv::SeamCarverPipelineManager::createPipelineStages()
 {
     if (!bPipelineStagesCreated_)
     {
-        pipelineStages_.resize(cv::PipelineStages::LAST_STAGE);
+        pipelineStages_.resize(cv::PipelineStages::NUM_COMPUTE_STAGES);
+
         SeamCarverStageFactory& factory = SeamCarverStageFactory::instance();
+
         switch (pipelineConfigurationType_)
         {
             case cv::PipelineConfigurationType::VERTICAL_DEFAULT:
                 for (int32_t stage = cv::PipelineStages::STAGE_0;
-                     stage < cv::PipelineStages::LAST_STAGE; ++stage)
+                     stage < cv::PipelineStages::NUM_COMPUTE_STAGES; ++stage)
                 {
                     cv::Ptr<SeamCarverStage> p_stage = factory.createStage(
                         cv::PipelineConfigurationType::VERTICAL_DEFAULT | stage);
@@ -198,7 +202,10 @@ void cv::SeamCarverPipelineManager::createPipelineStages()
                     }
                 }
                 break;
+            default:
+                break;
         }
+
         bPipelineStagesCreated_ = true;
     }
 }
@@ -208,8 +215,8 @@ void cv::SeamCarverPipelineManager::createPipelineQueues()
     if (!bPipelineQueuesCreated_)
     {
         std::vector<int32_t> queue_ids;
-        for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::NUM_STAGES;
-             ++stage)
+        for (int32_t stage = cv::PipelineStages::STAGE_0;
+             stage < cv::PipelineStages::NUM_QUEUE_STAGES; ++stage)
         {
             queue_ids.push_back(stage);
         }
@@ -222,19 +229,22 @@ void cv::SeamCarverPipelineManager::createPipelineQueues()
 
 void cv::SeamCarverPipelineManager::initializePipelineStages()
 {
-    if (!bPipelineStagesInitialized_)
+    if (!bPipelineStagesInitialized_ && bPipelineStagesCreated_ && bPipelineQueuesCreated_)
     {
-        for (int32_t stage = cv::PipelineStages::STAGE_0; stage < cv::PipelineStages::LAST_STAGE;
-             ++stage)
+        for (int32_t stage = cv::PipelineStages::STAGE_0;
+             stage < cv::PipelineStages::NUM_COMPUTE_STAGES; ++stage)
         {
+            // initialize the parallel stages for each 'stage'
             for (size_t p = 0; p < pipelineStages_[stage].size(); ++p)
             {
                 if (pipelineStages_[stage][p] != nullptr)
                 {
                     cv::Ptr<cv::PipelineQueueData> pNewData =
                         std::make_shared<cv::PipelineQueueData>();
+
                     pNewData->p_input_queue = queue_manager.getQueue(stage);
                     pNewData->p_output_queue = queue_manager.getQueue(stage + 1);
+
                     pipelineStages_[stage][p]->initialize(pNewData);
                 }
             }
