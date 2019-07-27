@@ -6,41 +6,62 @@
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-cv::SeamRemoverStage::SeamRemoverStage()
-    : bDoRunThread_(false),
-      bThreadIsStopped_(true),
-      bIsInitialized_(false),
-      statusLock_(statusMutex_, std::defer_lock)
-{
-}
+cv::SeamRemoverStage::SeamRemoverStage() : bThreadIsRunning_(false), bIsInitialized_(false) {}
 
-cv::SeamRemoverStage::~SeamRemoverStage() {}
+cv::SeamRemoverStage::~SeamRemoverStage()
+{
+    doStopStage();
+
+    // clear the queues
+    while (!pInputQueue_->empty())
+    {
+        delete pInputQueue_->getNext();
+        pInputQueue_->removeNext();
+    }
+
+    while (!pOutputQueue_->empty())
+    {
+        delete pOutputQueue_->getNext();
+        pOutputQueue_->removeNext();
+    }
+
+    // wait for thread to finish
+    while (bThreadIsRunning_ == true)
+        ;
+}
 
 void cv::SeamRemoverStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
 {
     if (bIsInitialized_ == false)
     {
-        cv::PipelineQueueData* data = static_cast<cv::PipelineQueueData*>(initData.get());
+        PipelineQueueData* data = initData.get();
         if (data != nullptr)
         {
-            pInputQueue = data->p_input_queue;
-            pOutputQueue = data->p_output_queue;
-            bIsInitialized_ = true;
+            pInputQueue_ = data->p_input_queue;
+            pOutputQueue_ = data->p_output_queue;
+
+            if (pInputQueue_ == nullptr || pOutputQueue_ == nullptr)
+            {
+                bIsInitialized_ = false;
+            }
+            else
+            {
+                bIsInitialized_ = true;
+            }
         }
     }
 }
 
 void cv::SeamRemoverStage::runStage()
 {
-    if (bThreadIsStopped_ && bIsInitialized_)
+    if (bIsInitialized_ && !bThreadIsRunning_)
     {
-        statusLock_.lock();
-        if (bThreadIsStopped_)
+        std::unique_lock<std::mutex> statusLock(statusMutex_);
+        if (!bThreadIsRunning_)
         {
+            statusLock.unlock();
             std::thread(&cv::SeamRemoverStage::runThread, this).detach();
-            bThreadIsStopped_ = false;
         }
-        statusLock_.unlock();
     }
 }
 
@@ -48,31 +69,41 @@ void cv::SeamRemoverStage::stopStage() { doStopStage(); }
 
 bool cv::SeamRemoverStage::isInitialized() const { return bIsInitialized_; }
 
-bool cv::SeamRemoverStage::isRunning() const { return !bThreadIsStopped_; }
+bool cv::SeamRemoverStage::isRunning() const { return bThreadIsRunning_; }
 
 void cv::SeamRemoverStage::runThread()
 {
-    bDoRunThread_ = true;
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = true;
+    statusLock.unlock();
 
-    while (bDoRunThread_)
+    while (bThreadIsRunning_)
     {
-        if (!pInputQueue->empty())
+        if (!pInputQueue_->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = pInputQueue->getNext();
+            VerticalSeamCarverData* data = pInputQueue_->getNext();
 
-            removeSeams(data);
+            if (data != nullptr)
+            {
+                removeSeams(data);
 
-            // move data to next queue
-            pInputQueue->removeNext();
-            pOutputQueue->push(data);
+                // move data to next queue
+                pInputQueue_->removeNext();
+                pOutputQueue_->push(data);
+            }
         }
     }
 
-    bThreadIsStopped_ = true;
+    statusLock.lock();
+    bThreadIsRunning_ = false;
 }
 
-void cv::SeamRemoverStage::doStopStage() { bDoRunThread_ = false; }
+void cv::SeamRemoverStage::doStopStage()
+{
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = false;
+}
 
 void cv::SeamRemoverStage::removeSeams(VerticalSeamCarverData* data)
 {
