@@ -42,30 +42,31 @@
 #include "test_precomp.hpp"
 
 #include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
+#include "opencv2/seamcarver/seamcarverpipelinemanager.hpp"
 
 namespace opencv_test
 {
 namespace
 {
-// TEST(ServerCarverPipelineManager, InitializeAll)
-// {
-//     SeamCarverPipelineManager m(cv::PipelineConfigurationType::VERTICAL_DEFAULT);
+TEST(ServerCarverPipelineManager, InitializeAll)
+{
+    SeamCarverPipelineManager m(cv::PipelineConfigurationType::VERTICAL_DEFAULT);
 
-//     ASSERT_EQ(m.isInitialized(), false);
-//     ASSERT_EQ(m.arePipelineStagesCreated(), false);
-//     ASSERT_EQ(m.arePipelineStagesInitialized(), false);
-//     ASSERT_EQ(m.arePipelineStagesRunning(), false);
-//     m.initialize();
-//     ASSERT_EQ(m.isInitialized(), true);
-//     ASSERT_EQ(m.arePipelineStagesCreated(), true);
-//     ASSERT_EQ(m.arePipelineStagesInitialized(), true);
-//     ASSERT_EQ(m.arePipelineStagesRunning(), false);
+    ASSERT_EQ(m.isInitialized(), false);
+    ASSERT_EQ(m.arePipelineStagesCreated(), false);
+    ASSERT_EQ(m.arePipelineStagesInitialized(), false);
+    ASSERT_EQ(m.arePipelineStagesRunning(), false);
+    m.initialize();
+    ASSERT_EQ(m.isInitialized(), true);
+    ASSERT_EQ(m.arePipelineStagesCreated(), true);
+    ASSERT_EQ(m.arePipelineStagesInitialized(), true);
+    ASSERT_EQ(m.arePipelineStagesRunning(), false);
 
-//     m.runPipelineStages();
-//     ASSERT_EQ(m.arePipelineStagesRunning(), true);
-    
-//     while (true)
-//         ;
-// }
+    m.runPipelineStages();
+    ASSERT_EQ(m.arePipelineStagesRunning(), true);
+
+    while (true)
+        ;
+}
 }  // namespace
 }  // namespace opencv_test

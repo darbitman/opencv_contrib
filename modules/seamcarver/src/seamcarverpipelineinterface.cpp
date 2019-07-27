@@ -64,7 +64,7 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
     VerticalSeamCarverData* data = pFreestoreQueue_->getNext();
 
     data->setFrameNumber(frameNumber_++);
-    
+
     while (true)
     {
         // copy image to internal data store
@@ -131,10 +131,7 @@ cv::Ptr<cv::Mat> cv::SeamCarverPipelineInterface::getNextFrame()
     return frameToReturn;
 }
 
-bool cv::SeamCarverPipelineInterface::doesNewResultExist() const
-{
-    return !pResultQueue_.empty();
-}
+bool cv::SeamCarverPipelineInterface::doesNewResultExist() const { return !pResultQueue_.empty(); }
 
 size_t cv::SeamCarverPipelineInterface::getNumberOfFramesInPipeline() const
 {
