@@ -46,6 +46,7 @@
 
 #include "opencv2/seamcarver/baseseamcarverstage.hpp"
 #include "opencv2/seamcarver/pipelineconfigurationtype.hpp"
+#include "opencv2/seamcarver/pipelinequeuedata.hpp"
 
 namespace cv
 {
@@ -56,13 +57,13 @@ class CV_EXPORTS CumulativePathEnergyCalculatorStage : public BaseSeamCarverStag
 public:
     /// lower 2 bytes are the pipeline stage, upper 2 bytes are the id
     constexpr static uint32_t this_shape_id_ =
-        cv::PipelineConfigurationType::VERTICAL_DEFAULT | cv::PipelineStages::STAGE_1;
+        PipelineConfigurationType::VERTICAL_DEFAULT | PipelineStages::STAGE_1;
 
     CumulativePathEnergyCalculatorStage();
 
     virtual ~CumulativePathEnergyCalculatorStage();
 
-    virtual void initialize(cv::Ptr<PipelineQueueData> initData);
+    virtual void initialize(Ptr<PipelineQueueData> initData);
 
     virtual void runStage();
 
