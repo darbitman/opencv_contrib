@@ -81,16 +81,16 @@ public:
         delete;
 
 protected:
-    /// initialized in the constructor
-    volatile bool bDoRunThread_;
+    /// Flag to start and stop the thread and to keep track if it's running
     volatile bool bThreadIsRunning_;
+
+    // Indicates if this stage is initialized
     bool bIsInitialized_;
 
     /// guards the bThreadIsRunning_ member
     mutable std::mutex statusMutex_;
 
     /// initialized in the initialize() call
-    cv::PipelineStages pipelineStage_;
     cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue_;
     cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue_;
 

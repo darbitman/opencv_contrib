@@ -49,7 +49,7 @@
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage()
-    : bDoRunThread_(false), bThreadIsRunning_(false), bIsInitialized_(false)
+    : bThreadIsRunning_(false), bIsInitialized_(false)
 {
 }
 
@@ -82,10 +82,17 @@ void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<PipelineQueueDa
         PipelineQueueData* data = initData.get();
         if (data != nullptr)
         {
-            pipelineStage_ = data->pipeline_stage;
             pInputQueue_ = data->p_input_queue;
             pOutputQueue_ = data->p_output_queue;
-            bIsInitialized_ = true;
+
+            if (pInputQueue_ == nullptr || pOutputQueue_ == nullptr)
+            {
+                bIsInitialized_ = false;
+            }
+            else
+            {
+                bIsInitialized_ = true;
+            }
         }
     }
 }
@@ -109,9 +116,7 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
     bThreadIsRunning_ = true;
     statusLock.unlock();
 
-    bDoRunThread_ = true;
-
-    while (bDoRunThread_)
+    while (bThreadIsRunning_)
     {
         if (!pInputQueue_->empty())
         {
@@ -135,12 +140,13 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
 
 bool cv::CumulativePathEnergyCalculatorStage::isInitialized() const { return bIsInitialized_; }
 
-bool cv::CumulativePathEnergyCalculatorStage::isRunning() const
-{
-    return bThreadIsRunning_;
-}
+bool cv::CumulativePathEnergyCalculatorStage::isRunning() const { return bThreadIsRunning_; }
 
-void cv::CumulativePathEnergyCalculatorStage::doStopStage() { bDoRunThread_ = false; }
+void cv::CumulativePathEnergyCalculatorStage::doStopStage()
+{
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = false;
+}
 
 void cv::CumulativePathEnergyCalculatorStage::stopStage() { doStopStage(); }
 
