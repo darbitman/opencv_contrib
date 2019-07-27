@@ -2,107 +2,29 @@
 
 #include <thread>
 
-#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-cv::SeamFinderStage::SeamFinderStage() : bThreadIsRunning_(false), bIsInitialized_(false) {}
+cv::SeamFinderStage::SeamFinderStage() {}
 
-cv::SeamFinderStage::~SeamFinderStage()
+cv::SeamFinderStage::~SeamFinderStage() {}
+
+void cv::SeamFinderStage::initialize(cv::Ptr<PipelineQueueData> initData)
 {
-    doStopStage();
-
-    // clear the queues
-    while (!pInputQueue_->empty())
-    {
-        delete pInputQueue_->getNext();
-        pInputQueue_->removeNext();
-    }
-
-    while (!pOutputQueue_->empty())
-    {
-        delete pOutputQueue_->getNext();
-        pOutputQueue_->removeNext();
-    }
-
-    // wait for thread to finish
-    while (bThreadIsRunning_ == true)
-        ;
+    BaseSeamCarverStage::initialize(initData);
 }
 
-void cv::SeamFinderStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
+void cv::SeamFinderStage::runStage() { BaseSeamCarverStage::runStage(); }
+
+void cv::SeamFinderStage::stopStage() { BaseSeamCarverStage::stopStage(); }
+
+bool cv::SeamFinderStage::isInitialized() const { return BaseSeamCarverStage::isInitialized(); }
+
+bool cv::SeamFinderStage::isRunning() const { return BaseSeamCarverStage::isRunning(); }
+
+void cv::SeamFinderStage::processData(VerticalSeamCarverData* data)
 {
-    if (bIsInitialized_ == false)
-    {
-        PipelineQueueData* data = initData.get();
-        if (data != nullptr)
-        {
-            pInputQueue_ = data->p_input_queue;
-            pOutputQueue_ = data->p_output_queue;
-
-            if (pInputQueue_ == nullptr || pOutputQueue_ == nullptr)
-            {
-                bIsInitialized_ = false;
-            }
-            else
-            {
-                bIsInitialized_ = true;
-            }
-        }
-    }
-}
-
-void cv::SeamFinderStage::runStage()
-{
-    if (bIsInitialized_ && !bThreadIsRunning_)
-    {
-        std::unique_lock<std::mutex> statusLock(statusMutex_);
-        if (!bThreadIsRunning_)
-        {
-            statusLock.unlock();
-            std::thread(&cv::SeamFinderStage::runThread, this).detach();
-        }
-    }
-}
-
-void cv::SeamFinderStage::stopStage() { doStopStage(); }
-
-bool cv::SeamFinderStage::isInitialized() const { return bIsInitialized_; }
-
-bool cv::SeamFinderStage::isRunning() const { return bThreadIsRunning_; }
-
-void cv::SeamFinderStage::runThread()
-{
-    std::unique_lock<std::mutex> statusLock(statusMutex_);
-    bThreadIsRunning_ = true;
-    statusLock.unlock();
-
-    while (bThreadIsRunning_)
-    {
-        if (!pInputQueue_->empty())
-        {
-            // save the pointer for faster access
-            VerticalSeamCarverData* data = pInputQueue_->getNext();
-
-            if (data != nullptr)
-            {
-                findSeams(data);
-
-                // move data to next queue
-                pInputQueue_->removeNext();
-                pOutputQueue_->push(data);
-            }
-        }
-    }
-
-    statusLock.lock();
-    bThreadIsRunning_ = false;
-}
-
-void cv::SeamFinderStage::doStopStage()
-{
-    std::unique_lock<std::mutex> statusLock(statusMutex_);
-    bThreadIsRunning_ = false;
+    findSeams(data);
 }
 
 void cv::SeamFinderStage::findSeams(cv::VerticalSeamCarverData* data)

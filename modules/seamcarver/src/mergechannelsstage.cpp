@@ -2,7 +2,6 @@
 
 #include <thread>
 
-#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
