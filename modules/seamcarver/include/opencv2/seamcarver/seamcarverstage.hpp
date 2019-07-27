@@ -62,6 +62,8 @@ public:
     virtual void stopStage() = 0;
 
     virtual bool isInitialized() const = 0;
+
+    virtual bool isRunning() const = 0;
 };
 }  // namespace cv
 

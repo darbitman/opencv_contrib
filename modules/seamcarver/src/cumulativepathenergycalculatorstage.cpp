@@ -41,6 +41,7 @@
 
 #include "opencv2/seamcarver/cumulativepathenergycalculatorstage.hpp"
 
+#include <mutex>
 #include <thread>
 
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
@@ -48,10 +49,7 @@
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 cv::CumulativePathEnergyCalculatorStage::CumulativePathEnergyCalculatorStage()
-    : bDoRunThread_(false),
-      bThreadIsStopped_(true),
-      bIsInitialized_(false),
-      status_lock_(status_mutex_, std::defer_lock)
+    : bDoRunThread_(false), bThreadIsRunning_(false), bIsInitialized_(false)
 {
 }
 
@@ -60,20 +58,20 @@ cv::CumulativePathEnergyCalculatorStage::~CumulativePathEnergyCalculatorStage()
     doStopStage();
 
     // clear the queues
-    while (!p_input_queue_->empty())
+    while (!pInputQueue_->empty())
     {
-        delete p_input_queue_->getNext();
-        p_input_queue_->removeNext();
+        delete pInputQueue_->getNext();
+        pInputQueue_->removeNext();
     }
 
-    while (!p_output_queue_->empty())
+    while (!pOutputQueue_->empty())
     {
-        delete p_output_queue_->getNext();
-        p_output_queue_->removeNext();
+        delete pOutputQueue_->getNext();
+        pOutputQueue_->removeNext();
     }
 
     // wait for thread to finish
-    while (bThreadIsStopped_ == false)
+    while (bThreadIsRunning_ == true)
         ;
 }
 
@@ -85,8 +83,8 @@ void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<PipelineQueueDa
         if (data != nullptr)
         {
             pipelineStage_ = data->pipeline_stage;
-            p_input_queue_ = data->p_input_queue;
-            p_output_queue_ = data->p_output_queue;
+            pInputQueue_ = data->p_input_queue;
+            pOutputQueue_ = data->p_output_queue;
             bIsInitialized_ = true;
         }
     }
@@ -94,41 +92,53 @@ void cv::CumulativePathEnergyCalculatorStage::initialize(cv::Ptr<PipelineQueueDa
 
 void cv::CumulativePathEnergyCalculatorStage::runStage()
 {
-    if (bThreadIsStopped_ && bIsInitialized_)
+    if (bIsInitialized_ && !bThreadIsRunning_)
     {
-        status_lock_.lock();
-        if (bThreadIsStopped_)
+        std::unique_lock<std::mutex> statusLock(statusMutex_);
+        if (!bThreadIsRunning_)
         {
+            statusLock.unlock();
             std::thread(&cv::CumulativePathEnergyCalculatorStage::runThread, this).detach();
-            bThreadIsStopped_ = false;
         }
-        status_lock_.unlock();
     }
 }
 
 void cv::CumulativePathEnergyCalculatorStage::runThread()
 {
+    std::unique_lock<std::mutex> statusLock(statusMutex_);
+    bThreadIsRunning_ = true;
+    statusLock.unlock();
+
     bDoRunThread_ = true;
 
     while (bDoRunThread_)
     {
-        if (!p_input_queue_->empty())
+        if (!pInputQueue_->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = p_input_queue_->getNext();
+            VerticalSeamCarverData* data = pInputQueue_->getNext();
 
-            calculateCumulativePathEnergy(data);
+            if (data != nullptr)
+            {
+                calculateCumulativePathEnergy(data);
 
-            // move data to next queue
-            p_input_queue_->removeNext();
-            p_output_queue_->push(data);
+                // move data to next queue
+                pInputQueue_->removeNext();
+                pOutputQueue_->push(data);
+            }
         }
     }
 
-    bThreadIsStopped_ = true;
+    statusLock.lock();
+    bThreadIsRunning_ = false;
 }
 
 bool cv::CumulativePathEnergyCalculatorStage::isInitialized() const { return bIsInitialized_; }
+
+bool cv::CumulativePathEnergyCalculatorStage::isRunning() const
+{
+    return bThreadIsRunning_;
+}
 
 void cv::CumulativePathEnergyCalculatorStage::doStopStage() { bDoRunThread_ = false; }
 
@@ -232,7 +242,8 @@ void cv::CumulativePathEnergyCalculatorStage::calculateCumulativePathEnergy(
             // assign cumulative energy to current pixel and save the column of the parent pixel
             if (minEnergyColumn == -1)
             {
-                // current pixel is unreachable from parent pixels since they are all markedPixels
+                // current pixel is unreachable from parent pixels since they are all
+                // markedPixels
                 //   OR current pixel already markedPixels
                 // set energy to reach current pixel to +INF
                 data->totalEnergyTo[row][column] = data->posInf_;

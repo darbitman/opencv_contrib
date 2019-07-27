@@ -62,6 +62,21 @@ namespace opencv_test
 {
 namespace
 {
+TEST(PQAdapter, Initialize)
+{
+    size_t pqCapacity = 150;
+    shared_ptr<ConstSizePriorityQueue<int32_t>> pConstSizeMinPQ =
+        make_shared<ConstSizePriorityQueue<int32_t>>(pqCapacity);
+
+    SharedConstSizePQAdapter<int32_t> adapter(pConstSizeMinPQ);
+
+    adapter.push(100);
+    adapter.push(125);
+    adapter.push(12);
+
+    EXPECT_EQ(adapter.getNext(), 12);
+}
+
 TEST(PQAdapter, MinOrientedPQ)
 {
     class ComparePointers

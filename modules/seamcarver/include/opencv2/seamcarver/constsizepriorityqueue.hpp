@@ -43,7 +43,7 @@
 #define OPENCV_SEAMCARVER_CONSTSIZEPRIORITYQUEUE_HPP
 
 #include "opencv2/core.hpp"
-#include "priorityqueue.hpp"
+#include "opencv2/seamcarver/priorityqueue.hpp"
 
 namespace cv
 {

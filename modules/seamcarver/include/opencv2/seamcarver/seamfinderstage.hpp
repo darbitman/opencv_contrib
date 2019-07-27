@@ -70,6 +70,8 @@ public:
 
     virtual bool isInitialized() const override;
 
+    virtual bool isRunning() const override;
+
     // deleted to prevent misuse
     SeamFinderStage(const SeamFinderStage&) = delete;
     SeamFinderStage(SeamFinderStage&&) = delete;
@@ -83,13 +85,13 @@ private:
     bool bIsInitialized_;
 
     /// guards the bThreadIsStopped_ member
-    std::mutex status_mutex_;
-    std::unique_lock<std::mutex> status_lock_;
+    std::mutex statusMutex_;
+    std::unique_lock<std::mutex> statusLock_;
 
     /// initialized in the initialize() call
     cv::PipelineStages pipelineStage_;
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue_;
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_output_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue;
 
     void runThread();
 

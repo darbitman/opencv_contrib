@@ -48,7 +48,7 @@ cv::SeamCarverPipelineInterface::SeamCarverPipelineInterface(
     : totalFrameInPipeline_(0), frameNumber_(0)
 {
     p_freestore_queue_ = cv::makePtr<cv::SharedQueue<VerticalSeamCarverData*>>();
-    p_input_queue_ = initData->p_input_queue;
+    pInputQueue = initData->p_input_queue;
     p_result_queue_ = initData->p_output_queue;
 }
 
@@ -107,7 +107,7 @@ void cv::SeamCarverPipelineInterface::addNewFrame(cv::Ptr<cv::Mat> image, size_t
     data->separateChannels();
 
     p_freestore_queue_->removeNext();
-    p_input_queue_->push(data);
+    pInputQueue->push(data);
     ++totalFrameInPipeline_;
 }
 

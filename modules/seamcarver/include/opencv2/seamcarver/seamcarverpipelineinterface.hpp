@@ -74,7 +74,7 @@ private:
     cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_freestore_queue_;
 
     /// data storage objects are placed in this queue so that processing can beging
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue;
 
     /// when the data processing has been completed, the results are placed on this queue
     cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_result_queue_;

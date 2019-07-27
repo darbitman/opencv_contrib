@@ -51,7 +51,7 @@ cv::ComputeEnergyStage::ComputeEnergyStage()
     : bDoRunThread_(false),
       bThreadIsStopped_(true),
       bIsInitialized_(false),
-      status_lock_(status_mutex_, std::defer_lock)
+      statusLock_(statusMutex_, std::defer_lock)
 {
 }
 
@@ -60,16 +60,16 @@ cv::ComputeEnergyStage::~ComputeEnergyStage()
     doStopStage();
 
     // clear the queues
-    while (!p_input_queue_->empty())
+    while (!pInputQueue->empty())
     {
-        delete p_input_queue_->getNext();
-        p_input_queue_->removeNext();
+        delete pInputQueue->getNext();
+        pInputQueue->removeNext();
     }
 
-    while (!p_output_queue_->empty())
+    while (!pOutputQueue->empty())
     {
-        delete p_output_queue_->getNext();
-        p_output_queue_->removeNext();
+        delete pOutputQueue->getNext();
+        pOutputQueue->removeNext();
     }
 
     // wait for thread to finish
@@ -85,8 +85,8 @@ void cv::ComputeEnergyStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
         if (data != nullptr)
         {
             pipelineStage_ = data->pipeline_stage;
-            p_input_queue_ = data->p_input_queue;
-            p_output_queue_ = data->p_output_queue;
+            pInputQueue = data->p_input_queue;
+            pOutputQueue = data->p_output_queue;
             bIsInitialized_ = true;
         }
     }
@@ -96,13 +96,13 @@ void cv::ComputeEnergyStage::runStage()
 {
     if (bThreadIsStopped_ && bIsInitialized_)
     {
-        status_lock_.lock();
+        statusLock_.lock();
         if (bThreadIsStopped_)
         {
             std::thread(&cv::ComputeEnergyStage::runThread, this).detach();
             bThreadIsStopped_ = false;
         }
-        status_lock_.unlock();
+        statusLock_.unlock();
     }
 }
 
@@ -110,22 +110,24 @@ void cv::ComputeEnergyStage::stopStage() { doStopStage(); }
 
 bool cv::ComputeEnergyStage::isInitialized() const { return bIsInitialized_; }
 
+bool cv::ComputeEnergyStage::isRunning() const { return !bThreadIsStopped_; }
+
 void cv::ComputeEnergyStage::runThread()
 {
     bDoRunThread_ = true;
 
     while (bDoRunThread_)
     {
-        if (!p_input_queue_->empty())
+        if (!pInputQueue->empty())
         {
             // save the pointer for faster access
-            VerticalSeamCarverData* data = p_input_queue_->getNext();
+            VerticalSeamCarverData* data = pInputQueue->getNext();
 
             calculatePixelEnergy(data->savedImage, data->pixelEnergy);
 
             // move data to next queue
-            p_input_queue_->removeNext();
-            p_output_queue_->push(data);
+            pInputQueue->removeNext();
+            pOutputQueue->push(data);
         }
     }
 

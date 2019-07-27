@@ -39,29 +39,97 @@
 //
 //M*/
 
+#include <cstdint>
+#include <iostream>
 #include <memory>
 
+#include "opencv2/seamcarver/cumulativepathenergycalculatorstage.hpp"
+#include "opencv2/seamcarver/pipelinequeuedata.hpp"
+#include "opencv2/seamcarver/pipelinestages.hpp"
+#include "opencv2/seamcarver/sharedqueue.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 #include "test_precomp.hpp"
 
-#include "opencv2/seamcarver/constsizepriorityqueue.hpp"
-#include "opencv2/seamcarver/sharedconstsizepqadapter.hpp"
+using namespace cv;
+using std::cout;
 
 namespace opencv_test
 {
 namespace
 {
-TEST(SharedConstSizeMinPQAdapter, Initialize)
+class CumulativePathEnergyCalculatorStageTest : public ::testing::Test
 {
-    std::shared_ptr<ConstSizePriorityQueue<int32_t>> pConstSizeMinPQ =
-        std::make_shared<ConstSizePriorityQueue<int32_t>>(100);
+public:
+    CumulativePathEnergyCalculatorStageTest() {}
 
-    cv::SharedConstSizePQAdapter<int32_t> adapter(pConstSizeMinPQ);
+    ~CumulativePathEnergyCalculatorStageTest() {}
 
-    adapter.push(100);
-    adapter.push(125);
-    adapter.push(12);
+    virtual void SetUp() override
+    {
+        initData = makePtr<PipelineQueueData>();
 
-    EXPECT_EQ(adapter.getNext(), 12);
+        if (initData != nullptr)
+        {
+            initData->pipeline_stage = PipelineStages::STAGE_1;
+            initData->p_input_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
+            initData->p_output_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
+
+            stage.initialize(initData);
+        }
+    }
+
+protected:
+    Ptr<PipelineQueueData> initData;
+
+    CumulativePathEnergyCalculatorStage stage;
+};
+
+TEST_F(CumulativePathEnergyCalculatorStageTest, Initialize)
+{
+    ASSERT_EQ(stage.isInitialized(), true);
+}
+
+TEST_F(CumulativePathEnergyCalculatorStageTest, RunStage)
+{
+    ASSERT_EQ(stage.isRunning(), false);
+
+    stage.runStage();
+
+    while (!stage.isRunning())
+        ;
+
+    ASSERT_EQ(stage.isRunning(), true);
+
+    stage.stopStage();
+
+    while (stage.isRunning())
+        ;
+
+    ASSERT_EQ(stage.isRunning(), false);
+}
+
+TEST_F(CumulativePathEnergyCalculatorStageTest, TestQueues)
+{
+    stage.runStage();
+
+    while (!stage.isRunning())
+        ;
+
+    VerticalSeamCarverData* data = new VerticalSeamCarverData();
+
+    this->initData->p_input_queue->push(data);
+
+    while (this->initData->p_output_queue->empty())
+        ;
+
+    ASSERT_EQ(this->initData->p_output_queue->empty(), false);
+
+    stage.stopStage();
+
+    while (stage.isRunning())
+        ;
+
+    ASSERT_EQ(stage.isRunning(), false);
 }
 }  // namespace
 }  // namespace opencv_test

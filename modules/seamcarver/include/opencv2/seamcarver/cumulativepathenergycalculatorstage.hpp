@@ -70,6 +70,8 @@ public:
 
     virtual bool isInitialized() const override;
 
+    virtual bool isRunning() const override;
+
     // deleted to prevent misuse
     CumulativePathEnergyCalculatorStage(const CumulativePathEnergyCalculatorStage&) = delete;
     CumulativePathEnergyCalculatorStage(const CumulativePathEnergyCalculatorStage&&) = delete;
@@ -78,20 +80,19 @@ public:
     CumulativePathEnergyCalculatorStage& operator=(const CumulativePathEnergyCalculatorStage&&) =
         delete;
 
-private:
+protected:
     /// initialized in the constructor
     volatile bool bDoRunThread_;
-    volatile bool bThreadIsStopped_;
+    volatile bool bThreadIsRunning_;
     bool bIsInitialized_;
 
-    /// guards the bThreadIsStopped_ member
-    std::mutex status_mutex_;
-    std::unique_lock<std::mutex> status_lock_;
+    /// guards the bThreadIsRunning_ member
+    mutable std::mutex statusMutex_;
 
     /// initialized in the initialize() call
     cv::PipelineStages pipelineStage_;
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue_;
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_output_queue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue_;
 
     void runThread();
 
