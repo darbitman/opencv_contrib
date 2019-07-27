@@ -110,6 +110,12 @@ void cv::CumulativePathEnergyCalculatorStage::runStage()
     }
 }
 
+void cv::CumulativePathEnergyCalculatorStage::stopStage() { doStopStage(); }
+
+bool cv::CumulativePathEnergyCalculatorStage::isInitialized() const { return bIsInitialized_; }
+
+bool cv::CumulativePathEnergyCalculatorStage::isRunning() const { return bThreadIsRunning_; }
+
 void cv::CumulativePathEnergyCalculatorStage::runThread()
 {
     std::unique_lock<std::mutex> statusLock(statusMutex_);
@@ -138,17 +144,11 @@ void cv::CumulativePathEnergyCalculatorStage::runThread()
     bThreadIsRunning_ = false;
 }
 
-bool cv::CumulativePathEnergyCalculatorStage::isInitialized() const { return bIsInitialized_; }
-
-bool cv::CumulativePathEnergyCalculatorStage::isRunning() const { return bThreadIsRunning_; }
-
 void cv::CumulativePathEnergyCalculatorStage::doStopStage()
 {
     std::unique_lock<std::mutex> statusLock(statusMutex_);
     bThreadIsRunning_ = false;
 }
-
-void cv::CumulativePathEnergyCalculatorStage::stopStage() { doStopStage(); }
 
 void cv::CumulativePathEnergyCalculatorStage::calculateCumulativePathEnergy(
     VerticalSeamCarverData* data)
