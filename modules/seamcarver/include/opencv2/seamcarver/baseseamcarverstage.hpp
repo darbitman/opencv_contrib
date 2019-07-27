@@ -39,98 +39,63 @@
 //
 //M*/
 
-#include <cstdint>
-#include <iostream>
-#include <memory>
+#ifndef OPENCV_SEAMCARVER_BASESEAMCARVERSTAGE_HPP
+#define OPENCV_SEAMCARVER_BASESEAMCARVERSTAGE_HPP
 
-#include "opencv2/seamcarver/cumulativepathenergycalculatorstage.hpp"
-#include "opencv2/seamcarver/pipelinequeuedata.hpp"
-#include "opencv2/seamcarver/pipelinestages.hpp"
-#include "opencv2/seamcarver/sharedqueue.hpp"
-#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
-#include "test_precomp.hpp"
+#include <opencv2/core.hpp>
 
-using namespace cv;
-using std::cout;
+#include "opencv2/seamcarver/seamcarverstage.hpp"
 
-namespace opencv_test
+namespace cv
 {
-namespace
-{
-class CumulativePathEnergyCalculatorStageTest : public ::testing::Test
+class BaseSeamCarverStage : public SeamCarverStage
 {
 public:
-    CumulativePathEnergyCalculatorStageTest() {}
+    BaseSeamCarverStage();
 
-    ~CumulativePathEnergyCalculatorStageTest() {}
+    virtual ~BaseSeamCarverStage();
 
-    virtual void SetUp() override
-    {
-        stage = makePtr<CumulativePathEnergyCalculatorStage>();
+    virtual void initialize(cv::Ptr<cv::PipelineQueueData> initData) override;
 
-        initData = makePtr<PipelineQueueData>();
+    virtual void runStage() override;
 
-        if (initData != nullptr)
-        {
-            initData->p_input_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
-            initData->p_output_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
+    virtual void stopStage() override;
 
-            stage->initialize(initData);
-        }
-    }
+    virtual bool isInitialized() const override;
+
+    virtual bool isRunning() const override;
+
+    // deleted to prevent misuse
+    BaseSeamCarverStage(const BaseSeamCarverStage&) = delete;
+    BaseSeamCarverStage(BaseSeamCarverStage&&) = delete;
+    BaseSeamCarverStage& operator=(const BaseSeamCarverStage&) = delete;
+    BaseSeamCarverStage& operator=(BaseSeamCarverStage&&) = delete;
 
 protected:
-    Ptr<PipelineQueueData> initData;
+    /**
+     * @brief method that does the actual data processing
+     * derived class MUST provide an implementation
+     */
+    virtual void processData(VerticalSeamCarverData* data);
 
-    Ptr<BaseSeamCarverStage> stage;
+private:
+    /// Flag to start and stop the thread and to keep track if it's running
+    volatile bool bThreadIsRunning_;
+
+    // Indicates if this stage is initialized
+    bool bIsInitialized_;
+
+    /// guards the bThreadIsRunning_ member
+    mutable std::mutex statusMutex_;
+
+    /// initialized in the initialize() call
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue_;
+
+    void runThread();
+
+    void doStopStage();
 };
+}  // namespace cv
 
-TEST_F(CumulativePathEnergyCalculatorStageTest, Initialize)
-{
-    ASSERT_EQ(stage->isInitialized(), true);
-}
-
-TEST_F(CumulativePathEnergyCalculatorStageTest, RunStage)
-{
-    ASSERT_EQ(stage->isRunning(), false);
-
-    stage->runStage();
-
-    while (!stage->isRunning())
-        ;
-
-    ASSERT_EQ(stage->isRunning(), true);
-
-    stage->stopStage();
-
-    while (stage->isRunning())
-        ;
-
-    ASSERT_EQ(stage->isRunning(), false);
-}
-
-TEST_F(CumulativePathEnergyCalculatorStageTest, TestQueues)
-{
-    stage->runStage();
-
-    while (!stage->isRunning())
-        ;
-
-    VerticalSeamCarverData* data = new VerticalSeamCarverData();
-
-    this->initData->p_input_queue->push(data);
-
-    while (this->initData->p_output_queue->empty())
-        ;
-
-    ASSERT_EQ(this->initData->p_output_queue->empty(), false);
-
-    stage->stopStage();
-
-    while (stage->isRunning())
-        ;
-
-    ASSERT_EQ(stage->isRunning(), false);
-}
-}  // namespace
-}  // namespace opencv_test
+#endif
