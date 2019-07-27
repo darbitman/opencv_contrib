@@ -43,107 +43,29 @@
 
 #include <thread>
 
-#include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/seamcarverstagefactoryregistration.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
-cv::ComputeEnergyStage::ComputeEnergyStage() : bThreadIsRunning_(false), bIsInitialized_(false) {}
+cv::ComputeEnergyStage::ComputeEnergyStage() {}
 
-cv::ComputeEnergyStage::~ComputeEnergyStage()
+cv::ComputeEnergyStage::~ComputeEnergyStage() {}
+
+void cv::ComputeEnergyStage::initialize(cv::Ptr<PipelineQueueData> initData)
 {
-    doStopStage();
-
-    // clear the queues
-    while (!pInputQueue_->empty())
-    {
-        delete pInputQueue_->getNext();
-        pInputQueue_->removeNext();
-    }
-
-    while (!pOutputQueue_->empty())
-    {
-        delete pOutputQueue_->getNext();
-        pOutputQueue_->removeNext();
-    }
-
-    // wait for thread to finish
-    while (bThreadIsRunning_ == true)
-        ;
+    BaseSeamCarverStage::initialize(initData);
 }
 
-void cv::ComputeEnergyStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
+void cv::ComputeEnergyStage::runStage() { BaseSeamCarverStage::runStage(); }
+
+void cv::ComputeEnergyStage::stopStage() { BaseSeamCarverStage::stopStage(); }
+
+bool cv::ComputeEnergyStage::isInitialized() const { return BaseSeamCarverStage::isInitialized(); }
+
+bool cv::ComputeEnergyStage::isRunning() const { return BaseSeamCarverStage::isRunning(); }
+
+void cv::ComputeEnergyStage::processData(VerticalSeamCarverData* data)
 {
-    if (bIsInitialized_ == false)
-    {
-        PipelineQueueData* data = initData.get();
-        if (data != nullptr)
-        {
-            pInputQueue_ = data->pInputQueue_;
-            pOutputQueue_ = data->pOutputQueue_;
-
-            if (pInputQueue_ == nullptr || pOutputQueue_ == nullptr)
-            {
-                bIsInitialized_ = false;
-            }
-            else
-            {
-                bIsInitialized_ = true;
-            }
-        }
-    }
-}
-
-void cv::ComputeEnergyStage::runStage()
-{
-    if (bIsInitialized_ && !bThreadIsRunning_)
-    {
-        std::unique_lock<std::mutex> statusLock(statusMutex_);
-        if (!bThreadIsRunning_)
-        {
-            statusLock.unlock();
-            std::thread(&cv::ComputeEnergyStage::runThread, this).detach();
-        }
-    }
-}
-
-void cv::ComputeEnergyStage::stopStage() { doStopStage(); }
-
-bool cv::ComputeEnergyStage::isInitialized() const { return bIsInitialized_; }
-
-bool cv::ComputeEnergyStage::isRunning() const { return bThreadIsRunning_; }
-
-void cv::ComputeEnergyStage::runThread()
-{
-    std::unique_lock<std::mutex> statusLock(statusMutex_);
-    bThreadIsRunning_ = true;
-    statusLock.unlock();
-
-    while (bThreadIsRunning_)
-    {
-        if (!pInputQueue_->empty())
-        {
-            // save the pointer for faster access
-            VerticalSeamCarverData* data = pInputQueue_->getNext();
-
-            if (data != nullptr)
-            {
-                calculatePixelEnergy(data->savedImage, data->pixelEnergy);
-
-                // move data to next queue
-                pInputQueue_->removeNext();
-                pOutputQueue_->push(data);
-            }
-        }
-    }
-
-    statusLock.lock();
-    bThreadIsRunning_ = false;
-}
-
-void cv::ComputeEnergyStage::doStopStage()
-{
-    std::unique_lock<std::mutex> statusLock(statusMutex_);
-    bThreadIsRunning_ = false;
+    calculatePixelEnergy(data->savedImage, data->pixelEnergy);
 }
 
 void cv::ComputeEnergyStage::calculatePixelEnergy(const cv::Ptr<const cv::Mat>& image,
