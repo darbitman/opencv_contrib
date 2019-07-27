@@ -72,8 +72,8 @@ public:
 
         if (initData != nullptr)
         {
-            initData->p_input_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
-            initData->p_output_queue = makePtr<SharedQueue<VerticalSeamCarverData*>>();
+            initData->pInputQueue_ = makePtr<SharedQueue<VerticalSeamCarverData*>>();
+            initData->pOutputQueue_ = makePtr<SharedQueue<VerticalSeamCarverData*>>();
 
             stage->initialize(initData);
         }
@@ -118,12 +118,12 @@ TEST_F(CumulativePathEnergyCalculatorStageTest, TestQueues)
 
     VerticalSeamCarverData* data = new VerticalSeamCarverData();
 
-    this->initData->p_input_queue->push(data);
+    this->initData->pInputQueue_->push(data);
 
-    while (this->initData->p_output_queue->empty())
+    while (this->initData->pOutputQueue_->empty())
         ;
 
-    ASSERT_EQ(this->initData->p_output_queue->empty(), false);
+    ASSERT_EQ(this->initData->pOutputQueue_->empty(), false);
 
     stage->stopStage();
 

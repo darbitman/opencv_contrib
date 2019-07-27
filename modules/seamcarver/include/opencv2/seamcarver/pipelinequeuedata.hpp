@@ -55,16 +55,16 @@ class VerticalSeamCarverData;
 
 struct PipelineQueueData
 {
-    PipelineQueueData() : p_input_queue(nullptr), p_output_queue(nullptr) {}
+    PipelineQueueData() : pInputQueue_(nullptr), pOutputQueue_(nullptr) {}
 
     PipelineQueueData(cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue,
                       cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue)
-        : p_input_queue(pInputQueue), p_output_queue(pOutputQueue)
+        : pInputQueue_(pInputQueue), pOutputQueue_(pOutputQueue)
     {
     }
 
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_input_queue;
-    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> p_output_queue;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pInputQueue_;
+    cv::Ptr<cv::SharedContainer<VerticalSeamCarverData*>> pOutputQueue_;
 };
 }  // namespace cv
 

@@ -78,8 +78,8 @@ void cv::ComputeEnergyStage::initialize(cv::Ptr<cv::PipelineQueueData> initData)
         PipelineQueueData* data = initData.get();
         if (data != nullptr)
         {
-            pInputQueue_ = data->p_input_queue;
-            pOutputQueue_ = data->p_output_queue;
+            pInputQueue_ = data->pInputQueue_;
+            pOutputQueue_ = data->pOutputQueue_;
 
             if (pInputQueue_ == nullptr || pOutputQueue_ == nullptr)
             {
