@@ -40,6 +40,7 @@
 //M*/
 
 #include "opencv2/seamcarver/seamcarverpipelineinterface.hpp"
+
 #include "opencv2/seamcarver/sharedqueue.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 

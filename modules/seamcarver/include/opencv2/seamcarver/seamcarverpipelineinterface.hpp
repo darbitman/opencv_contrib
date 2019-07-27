@@ -42,8 +42,13 @@
 #ifndef OPENCV_SEAMCARVER_SEAMCARVERPIPELINEINTERFACE_HPP
 #define OPENCV_SEAMCARVER_SEAMCARVERPIPELINEINTERFACE_HPP
 
+#include <cstdint>
+
 #include "opencv2/core.hpp"
+
 #include "opencv2/seamcarver/pipelinequeuedata.hpp"
+#include "opencv2/seamcarver/sharedcontainer.hpp"
+#include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
 namespace cv
 {

@@ -49,6 +49,9 @@
 #include "opencv2/seamcarver/seamcarverstagefactory.hpp"
 #include "opencv2/seamcarver/verticalseamcarverdata.hpp"
 
+using cv::makePtr;
+using cv::Ptr;
+
 cv::SeamCarverPipelineManager::SeamCarverPipelineManager(
     cv::PipelineConfigurationType configurationType)
     : bPipelineStagesCreated_(false),
@@ -75,14 +78,11 @@ void cv::SeamCarverPipelineManager::initialize()
 
 cv::Ptr<cv::SeamCarverPipelineInterface> cv::SeamCarverPipelineManager::createPipelineInterface()
 {
-    cv::Ptr<cv::PipelineQueueData> pNewData = std::make_shared<cv::PipelineQueueData>();
-    pNewData->pInputQueue_ = queues_[PipelineStages::STAGE_0];
-    pNewData->pOutputQueue_ = queues_[PipelineStages::NUM_COMPUTE_STAGES];
+    cv::Ptr<cv::PipelineQueueData> pNewData = makePtr<cv::PipelineQueueData>();
+    pNewData->pInputQueue_ = queue_manager.getQueue(PipelineStages::STAGE_0);
+    pNewData->pOutputQueue_ = queue_manager.getQueue(PipelineStages::NUM_COMPUTE_STAGES);
 
-    cv::Ptr<cv::SeamCarverPipelineInterface> pPipelineInterface =
-        std::make_shared<cv::SeamCarverPipelineInterface>(pNewData);
-
-    return pPipelineInterface;
+    return makePtr<cv::SeamCarverPipelineInterface>(pNewData);
 }
 
 bool cv::SeamCarverPipelineManager::addNewPipelineStage(cv::PipelineStages stage)
